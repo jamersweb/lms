@@ -12,8 +12,9 @@ class VoiceNoteController extends Controller
     public function store(Request $request, AskThread $thread)
     {
         $user = $request->user();
-
-        abort_unless($user->is_admin || $thread->user_id === $user->id, 403);
+        
+        // Only admins/mentors can send voice notes
+        abort_unless($user->is_admin, 403);
 
         $request->validate([
             'audio' => ['required', 'file', 'mimes:mp3,wav,m4a', 'max:10240'], // 10MB max

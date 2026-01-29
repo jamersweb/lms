@@ -6,6 +6,7 @@ use App\Models\Certificate;
 use App\Models\Course;
 use App\Services\CertificateService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class CertificateController extends Controller
@@ -47,8 +48,14 @@ class CertificateController extends Controller
             $certificate = $service->generatePdf($certificate);
         }
 
+        $filePath = Storage::disk('local')->path($certificate->pdf_path);
+        
+        if (!file_exists($filePath)) {
+            abort(404, 'Certificate PDF not found');
+        }
+
         return response()->download(
-            storage_path('app/' . $certificate->pdf_path),
+            $filePath,
             "certificate-{$certificate->certificate_number}.pdf"
         );
     }

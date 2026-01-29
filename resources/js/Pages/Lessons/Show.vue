@@ -1,8 +1,8 @@
 <template>
   <AppShell>
     <div class="h-[calc(100vh-8rem)] flex flex-col lg:flex-row gap-6">
-       <!-- Main Content Area -->
-       <div class="flex-1 flex flex-col min-w-0">
+       <!-- Main Content Area - Scrollable -->
+       <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
           <!-- Video Player -->
           <div class="shrink-0 mb-6">
              <div v-if="lesson.is_locked" class="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-6 text-center text-sm text-neutral-600">
@@ -15,6 +15,7 @@
                :youtube-id="lesson.youtube_video_id"
                :start-seconds="playerStartSeconds"
                :lesson-id="lesson.id"
+               :title="lesson.title"
                @ready="onPlayerReady"
                @heartbeat="onPlayerHeartbeat"
                @ended="onPlayerEnded"
@@ -23,17 +24,17 @@
           </div>
 
           <!-- Lesson Info & Tabs -->
-          <div class="flex-1 flex flex-col bg-white rounded-xl border border-neutral-200 overflow-hidden shadow-sm">
+          <div class="flex flex-col bg-white rounded-xl border border-neutral-200 shadow-sm min-h-0">
              <!-- Tabs Header -->
-             <div class="flex border-b border-neutral-200">
-                <button 
-                  v-for="tab in tabs" 
+             <div class="flex border-b border-neutral-200 shrink-0">
+                <button
+                  v-for="tab in tabs"
                   :key="tab"
                   @click="activeTab = tab"
                   :class="[
                     'px-6 py-4 text-sm font-medium border-b-2 transition-colors',
-                    activeTab === tab 
-                      ? 'border-primary-600 text-primary-700' 
+                    activeTab === tab
+                      ? 'border-primary-600 text-primary-700'
                       : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50'
                   ]"
                 >
@@ -42,7 +43,7 @@
              </div>
 
              <!-- Tab Content -->
-             <div class="flex-1 overflow-y-auto p-6">
+             <div class="p-6 min-h-0">
                 <div
                   v-if="$page.props.errors?.completion"
                   class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-xs text-red-700"
@@ -55,7 +56,7 @@
                    <p class="text-neutral-600 leading-relaxed max-w-prose">
                      Part of <span class="font-semibold">{{ course.title }}</span>
                    </p>
-                   
+
                    <div class="mt-8 flex items-center gap-4">
                       <Button v-if="lesson.prev_lesson_id" variant="secondary" :href="route('lessons.show', { course: course.id, lesson: lesson.prev_lesson_id })">
                         Previous Lesson
@@ -128,24 +129,62 @@
                    </div>
                 </div>
 
-                <!-- Notes (Coming Soon) -->
-                <div v-if="activeTab === 'Notes'" class="flex items-center justify-center h-full text-neutral-400 italic">
-                   Notes feature coming in Phase 2
+                <!-- Notes Tab -->
+                <div v-if="activeTab === 'Notes'" class="space-y-4">
+                  <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-lg text-neutral-900">Lesson Notes</h3>
+                    <Button @click="showNoteModal = true" size="sm" class="flex items-center gap-2">
+                      <Plus class="w-4 h-4" />
+                      New Note
+                    </Button>
+                  </div>
+
+                  <div v-if="notes.length === 0" class="text-center py-12 text-neutral-400">
+                    <FileText class="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p>No notes yet for this lesson</p>
+                    <p class="text-sm mt-1">Create a note to capture your thoughts and learnings</p>
+                  </div>
+
+                  <div v-else class="space-y-3">
+                    <div
+                      v-for="note in notes"
+                      :key="note.id"
+                      class="bg-neutral-50 rounded-lg border border-neutral-200 p-4 hover:shadow-md transition-shadow"
+                    >
+                      <div class="flex items-start justify-between mb-2">
+                        <div class="flex-1">
+                          <div class="flex items-center gap-2">
+                            <h4 class="font-semibold text-neutral-900">{{ note.title }}</h4>
+                            <Pin v-if="note.pinned" class="w-4 h-4 text-primary-600" />
+                          </div>
+                          <p class="text-xs text-neutral-500 mt-1">{{ note.updated_at }}</p>
+                        </div>
+                        <button
+                          @click="deleteNote(note.id)"
+                          class="text-red-500 hover:text-red-700 transition-colors"
+                          title="Delete note"
+                        >
+                          <Trash2 class="w-4 h-4" />
+                        </button>
+                      </div>
+                      <p class="text-neutral-700 text-sm whitespace-pre-wrap">{{ note.content }}</p>
+                    </div>
+                  </div>
                 </div>
              </div>
           </div>
        </div>
 
        <!-- Playlist Sidebar -->
-       <div class="w-full lg:w-96 flex flex-col shrink-0 bg-white rounded-xl border border-neutral-200 overflow-hidden shadow-sm h-full max-h-[600px] lg:max-h-none">
+       <div class="w-full lg:w-96 flex flex-col shrink-0 bg-white rounded-xl border border-neutral-200 overflow-hidden shadow-sm h-full max-h-[600px] lg:max-h-[calc(100vh-8rem)]">
           <div class="p-4 border-b border-neutral-100 bg-neutral-50">
              <h3 class="font-bold text-neutral-900">{{ course.title }}</h3>
              <p class="text-xs text-neutral-500 mt-1">Course Content</p>
           </div>
 
           <div class="overflow-y-auto flex-1 divide-y divide-neutral-100">
-            <Link 
-               v-for="(item, index) in playlist" 
+            <Link
+               v-for="(item, index) in playlist"
                :key="item.id"
                :href="route('lessons.show', { course: course.id, lesson: item.id })"
                :class="[
@@ -156,14 +195,14 @@
                 <div class="py-1">
                    <div :class="[
                       'w-5 h-5 rounded-full border flex items-center justify-center',
-                      item.is_completed ? 'bg-emerald-500 border-emerald-500 text-white' : 
+                      item.is_completed ? 'bg-emerald-500 border-emerald-500 text-white' :
                       item.is_current ? 'border-primary-500 text-primary-600' : 'border-neutral-300 text-transparent'
                    ]">
                       <Check v-if="item.is_completed" class="w-3 h-3" />
                       <div v-if="item.is_current && !item.is_completed" class="w-2 h-2 rounded-full bg-primary-500"></div>
                    </div>
                 </div>
-                
+
                 <div class="flex-1">
                    <div class="flex items-center justify-between">
                      <div :class="[
@@ -184,6 +223,65 @@
           </div>
        </div>
     </div>
+
+    <!-- Note Creation Modal -->
+    <Modal :show="showNoteModal" @close="showNoteModal = false" max-width="2xl">
+      <div class="p-6">
+        <h2 class="font-serif text-2xl font-bold text-neutral-900 mb-6">Create Lesson Note</h2>
+        <form @submit.prevent="saveNote">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-2">
+                Title <span class="text-red-500">*</span>
+              </label>
+              <input
+                v-model="noteForm.title"
+                type="text"
+                required
+                maxlength="255"
+                class="w-full rounded-xl border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                placeholder="Enter note title..."
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-2">
+                Content <span class="text-red-500">*</span>
+              </label>
+              <textarea
+                v-model="noteForm.content"
+                rows="8"
+                required
+                maxlength="10000"
+                class="w-full rounded-xl border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                placeholder="Write your note here..."
+              ></textarea>
+              <p class="text-xs text-neutral-500 mt-1">
+                {{ noteForm.content.length }} / 10,000 characters
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <input
+                v-model="noteForm.pinned"
+                type="checkbox"
+                id="note-pinned"
+                class="rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+              />
+              <label for="note-pinned" class="text-sm text-neutral-700 cursor-pointer">
+                Pin this note
+              </label>
+            </div>
+          </div>
+          <div class="flex justify-end gap-3 mt-6">
+            <Button type="button" variant="secondary" @click="showNoteModal = false">
+              Cancel
+            </Button>
+            <Button type="submit" :loading="noteForm.processing">
+              Create Note
+            </Button>
+          </div>
+        </form>
+      </div>
+    </Modal>
   </AppShell>
 </template>
 
@@ -191,8 +289,9 @@
 import AppShell from '@/Layouts/AppShell.vue';
 import TrackedVideoPlayer from '@/Components/Course/TrackedVideoPlayer.vue';
 import Button from '@/Components/Common/Button.vue';
-import { Check, Play } from 'lucide-vue-next';
-import { Link, usePage, useForm } from '@inertiajs/vue3';
+import Modal from '@/Components/Modal.vue';
+import { Check, Play, Plus, FileText, Pin, Trash2 } from 'lucide-vue-next';
+import { Link, usePage, useForm, router } from '@inertiajs/vue3';
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import axios from 'axios';
 import { route } from 'ziggy-js';
@@ -209,10 +308,23 @@ const props = defineProps({
     type: Object,
     default: null,
   },
+  notes: {
+    type: Array,
+    default: () => [],
+  },
 });
 
 const tabs = ['Overview', 'Transcript', 'Reflection', 'Notes'];
 const activeTab = ref('Overview');
+const showNoteModal = ref(false);
+
+const noteForm = useForm({
+  title: '',
+  content: '',
+  noteable_type: 'App\\Models\\Lesson',
+  noteable_id: null,
+  pinned: false,
+});
 
 const page = usePage();
 const startSeconds = computed(() => {
@@ -260,8 +372,8 @@ onBeforeUnmount(() => {
 
 const onPlayerReady = (payload) => {
   console.log('YouTubePlayer ready', payload);
-  if (!lesson.video_duration_seconds && payload?.duration) {
-    axios.post(route('lessons.duration', { lesson: lesson.id }), {
+  if (!props.lesson.video_duration_seconds && payload?.duration) {
+    axios.post(route('lessons.duration', { lesson: props.lesson.id }), {
       duration_seconds: Math.round(payload.duration),
     }).catch(() => {});
   }
@@ -274,6 +386,25 @@ const onPlayerHeartbeat = (payload) => {
 const onPlayerEnded = () => {
   console.log('YouTubePlayer ended');
 };
+
+function saveNote() {
+  noteForm.noteable_id = props.lesson.id;
+  noteForm.post(route('notes.store'), {
+    preserveScroll: true,
+    onSuccess: () => {
+      showNoteModal.value = false;
+      noteForm.reset();
+    }
+  });
+}
+
+function deleteNote(noteId) {
+  if (confirm('Are you sure you want to delete this note?')) {
+    router.delete(route('notes.destroy', noteId), {
+      preserveScroll: true
+    });
+  }
+}
 
 const onPlayerStateChange = (payload) => {
   console.log('YouTubePlayer stateChange', payload);

@@ -145,4 +145,86 @@
               height: 3px;
               background: var(--color-secondary-500);
        }
+
+       /* Hide YouTube watermark and UI elements - using mask + overlay approach */
+       .youtube-player-wrapper .youtube-player-masked {
+              mask-image:
+                     linear-gradient(to bottom, transparent 0, transparent 70px, black 70px, black calc(100% - 40px), transparent calc(100% - 40px)),
+                     linear-gradient(to right, black 0, black calc(100% - 150px), transparent calc(100% - 150px)) !important;
+              -webkit-mask-image:
+                     linear-gradient(to bottom, transparent 0, transparent 70px, black 70px, black calc(100% - 40px), transparent calc(100% - 40px)),
+                     linear-gradient(to right, black 0, black calc(100% - 150px), transparent calc(100% - 150px)) !important;
+              mask-composite: intersect !important;
+              -webkit-mask-composite: source-in !important;
+       }
+
+       .youtube-player-wrapper .youtube-ui-overlay-top,
+       .youtube-player-wrapper .youtube-ui-overlay-bottom-right {
+              background: #000 !important;
+              z-index: 999999 !important;
+              pointer-events: none !important;
+       }
+
+       /* For external iframe fallback */
+       .youtube-iframe-wrapper .youtube-watermark-overlay,
+       .youtube-iframe-wrapper .youtube-title-overlay {
+              position: absolute !important;
+              z-index: 2147483647 !important;
+              pointer-events: none !important;
+              display: block !important;
+              visibility: visible !important;
+              opacity: 1 !important;
+              background: #000 !important;
+              background-color: #000 !important;
+       }
+
+       .youtube-watermark-overlay {
+              bottom: 0 !important;
+              right: 0 !important;
+              width: 150px !important;
+              height: 40px !important;
+       }
+
+       .youtube-title-overlay {
+              top: 0 !important;
+              left: 0 !important;
+              right: 0 !important;
+              height: 70px !important;
+       }
+
+       /* Ensure YouTube player wrapper creates proper stacking context */
+       .youtube-player-wrapper {
+              position: relative !important;
+              overflow: hidden !important;
+              isolation: isolate;
+       }
+
+       /* Ensure iframe wrapper creates stacking context */
+       .youtube-iframe-wrapper {
+              position: relative !important;
+              overflow: hidden !important;
+              background: #000 !important;
+              isolation: isolate;
+       }
+
+       .youtube-iframe-wrapper iframe {
+              position: relative !important;
+              z-index: 1 !important;
+              width: 100% !important;
+              height: 100% !important;
+              display: block !important;
+       }
+
+       /* Ensure overlays are above iframe with maximum z-index */
+       .youtube-iframe-wrapper .youtube-watermark-overlay,
+       .youtube-iframe-wrapper .youtube-title-overlay {
+              position: absolute !important;
+              z-index: 2147483647 !important;
+              pointer-events: none !important;
+              display: block !important;
+              visibility: visible !important;
+              opacity: 1 !important;
+              background: #000 !important;
+              background-color: #000 !important;
+       }
 }

@@ -22,6 +22,7 @@
     },
     "dependencies": {
         "lucide-vue-next": "^0.563.0",
+        "vue3-ytframe": "^0.4.2",
         "ziggy-js": "^2.6.0"
     }
 }

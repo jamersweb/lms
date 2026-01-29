@@ -18,7 +18,8 @@ class WatchSessionController extends Controller
         $user = $request->user();
         $course = $lesson->module->course;
 
-        if (! $user->isEnrolledIn($course->id)) {
+        // Allow free preview lessons without enrollment
+        if (! $lesson->is_free_preview && ! $user->isEnrolledIn($course->id)) {
             abort(403, 'You must be enrolled in the course.');
         }
 
@@ -58,7 +59,8 @@ class WatchSessionController extends Controller
         $user = $request->user();
         $course = $lesson->module->course;
 
-        if (! $user->isEnrolledIn($course->id)) {
+        // Allow free preview lessons without enrollment
+        if (! $lesson->is_free_preview && ! $user->isEnrolledIn($course->id)) {
             abort(403, 'You must be enrolled in the course.');
         }
 

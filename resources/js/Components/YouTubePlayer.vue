@@ -1,8 +1,58 @@
 <template>
-  <div class="relative w-full h-full">
-    <div ref="playerEl" class="w-full h-full"></div>
+  <div class="relative w-full h-full youtube-player-wrapper" ref="wrapperEl">
+    <div ref="playerEl" class="w-full h-full youtube-player-masked"></div>
+    <!-- Solid black overlays positioned absolutely -->
+    <div class="youtube-ui-overlay-top"></div>
+    <div class="youtube-ui-overlay-bottom-right"></div>
   </div>
 </template>
+
+<style scoped>
+.youtube-player-wrapper {
+  position: relative;
+  overflow: hidden;
+  background: #000;
+  isolation: isolate;
+}
+
+/* Player with mask to hide UI areas */
+.youtube-player-masked {
+  position: relative;
+  z-index: 1;
+  /* Use mask to hide top 70px and bottom-right 150x40px */
+  mask-image:
+    linear-gradient(to bottom, transparent 0, transparent 70px, black 70px, black calc(100% - 40px), transparent calc(100% - 40px)),
+    linear-gradient(to right, black 0, black calc(100% - 150px), transparent calc(100% - 150px));
+  -webkit-mask-image:
+    linear-gradient(to bottom, transparent 0, transparent 70px, black 70px, black calc(100% - 40px), transparent calc(100% - 40px)),
+    linear-gradient(to right, black 0, black calc(100% - 150px), transparent calc(100% - 150px));
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
+}
+
+/* Solid overlays to cover YouTube UI */
+.youtube-ui-overlay-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background: #000;
+  z-index: 999999;
+  pointer-events: none;
+}
+
+.youtube-ui-overlay-bottom-right {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 150px;
+  height: 40px;
+  background: #000;
+  z-index: 999999;
+  pointer-events: none;
+}
+</style>
 
 <script setup>
 import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
@@ -21,6 +71,7 @@ const props = defineProps({
 const emit = defineEmits(['ready', 'heartbeat', 'ended', 'stateChange']);
 
 const playerEl = ref(null);
+const wrapperEl = ref(null);
 let player = null;
 let heartbeatTimer = null;
 let antiCheatTimer = null;
@@ -95,6 +146,12 @@ function createPlayer() {
       hl: 'en',
       origin: window.location.origin,
       start: props.startSeconds || 0,
+      fs: 0,
+      cc_load_policy: 0,
+      cc_lang_pref: 'en',
+      color: 'red',
+      autoplay: 0,
+      mute: 0,
     },
     events: {
       onReady: (event) => {
@@ -176,4 +233,3 @@ watch(
   }
 );
 </script>
-

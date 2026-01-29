@@ -45,6 +45,8 @@ class LessonController extends Controller
         $lesson = Lesson::with(['module', 'reflections', 'transcriptSegments'])->findOrFail($lessonId);
 
         $user = Auth::user();
+
+        // Check content gating (gender, bayah, level)
         if ($user && ! ContentGatingService::userCanAccessLesson($user, $lesson)) {
             return \Inertia\Inertia::render('Errors/ForbiddenContent', [
                 'course' => [
@@ -58,10 +60,18 @@ class LessonController extends Controller
             ])->toResponse(request())->setStatusCode(403);
         }
 
+        // Check enrollment (unless it's a free preview)
+        if ($user && ! $lesson->is_free_preview && ! $user->isEnrolledIn($course->id)) {
+            return redirect()->route('courses.show', $course)
+                ->with('error', 'You must enroll in this course to access the lessons.');
+        }
+
         $completedLessonIds = [];
         $statusByLessonId = [];
 
         $reflectionData = null;
+
+        $lessonNotes = [];
 
         if ($user) {
             // Initialize / recompute journey for enrolled users
@@ -98,6 +108,23 @@ class LessonController extends Controller
                     ];
                 }
             }
+
+            // Load notes for this lesson
+            $lessonNotes = \App\Models\Note::where('user_id', $user->id)
+                ->where('lesson_id', $lesson->id)
+                ->latest()
+                ->get()
+                ->map(function($note) {
+                    return [
+                        'id' => $note->id,
+                        'title' => $note->title,
+                        'content' => $note->content,
+                        'pinned' => $note->pinned,
+                        'updated_at' => $note->updated_at->diffForHumans(),
+                        'updated_at_raw' => $note->updated_at->toISOString(),
+                    ];
+                })
+                ->toArray();
         }
 
         // Build flat playlist from all modules
@@ -163,6 +190,7 @@ class LessonController extends Controller
             'playlist' => $playlist,
             'completedLessonIds' => $completedLessonIds,
             'reflection' => $reflectionData,
+            'notes' => $lessonNotes,
         ]);
     }
 

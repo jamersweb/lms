@@ -47,9 +47,15 @@ class CertificateService
         ];
 
         $pdf = DomPDF::loadView('certificates.pdf', $data);
-
+        
         $filename = "certificates/{$certificate->id}-{$certificate->certificate_number}.pdf";
-        Storage::put($filename, $pdf->output());
+        Storage::disk('local')->put($filename, $pdf->output());
+        
+        // Ensure directory exists
+        $directory = storage_path('app/certificates');
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
 
         $certificate->update(['pdf_path' => $filename]);
 

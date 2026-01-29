@@ -60,6 +60,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Notes
     Route::resource('notes', \App\Http\Controllers\NoteController::class)->except(['create', 'edit', 'show']);
 
+    // Notifications
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+
     // Discussions
     Route::get('/courses/{course}/discussions', [\App\Http\Controllers\DiscussionController::class, 'index'])->name('courses.discussions.index');
     Route::post('/courses/{course}/discussions', [\App\Http\Controllers\DiscussionController::class, 'store'])

@@ -20,7 +20,7 @@ class NoteController extends Controller
     {
         $user = auth()->user();
         
-        $query = $user->notes()->with('noteable')->latest();
+        $query = $user->notes()->with(['lesson', 'course'])->latest();
         
         // Filter by scope if provided
         if ($request->has('scope')) {
@@ -28,18 +28,32 @@ class NoteController extends Controller
         }
         
         $notes = $query->get()->map(function($note) {
+            $related = null;
+            if ($note->lesson) {
+                $related = $note->lesson->title;
+            } elseif ($note->course) {
+                $related = $note->course->title;
+            }
+            
             return [
                 'id' => $note->id,
                 'title' => $note->title,
-                'preview' => substr($note->content, 0, 100) . '...',
+                'content' => $note->content,
+                'preview' => substr($note->content, 0, 100) . (strlen($note->content) > 100 ? '...' : ''),
+                'scope' => $note->scope,
+                'pinned' => $note->pinned,
                 'updated_at' => $note->updated_at->diffForHumans(),
-                'type' => class_basename($note->noteable_type),
-                'related' => $note->noteable ? $note->noteable->title : null
+                'updated_at_raw' => $note->updated_at->toISOString(),
+                'type' => $note->scope === 'lesson' ? 'Lesson' : ($note->scope === 'course' ? 'Course' : 'Personal'),
+                'related' => $related,
+                'lesson_id' => $note->lesson_id,
+                'course_id' => $note->course_id,
             ];
         });
 
         return Inertia::render('Notes/Index', [
-            'notes' => $notes
+            'notes' => $notes,
+            'filters' => $request->only(['scope'])
         ]);
     }
 
@@ -48,7 +62,26 @@ class NoteController extends Controller
      */
     public function store(StoreNoteRequest $request)
     {
-        auth()->user()->notes()->create($request->validated());
+        $data = $request->validated();
+        
+        // Map polymorphic to direct relationships if needed
+        if (isset($data['noteable_type']) && isset($data['noteable_id'])) {
+            if ($data['noteable_type'] === 'App\\Models\\Lesson') {
+                $data['lesson_id'] = $data['noteable_id'];
+                $data['scope'] = 'lesson';
+            } elseif ($data['noteable_type'] === 'App\\Models\\Course') {
+                $data['course_id'] = $data['noteable_id'];
+                $data['scope'] = 'course';
+            }
+            unset($data['noteable_type'], $data['noteable_id']);
+        }
+        
+        // Set default scope if not provided
+        if (!isset($data['scope'])) {
+            $data['scope'] = 'personal';
+        }
+        
+        auth()->user()->notes()->create($data);
 
         return redirect()->route('notes.index')
             ->with('success', 'Note created successfully!');
