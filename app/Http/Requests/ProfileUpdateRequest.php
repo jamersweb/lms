@@ -25,6 +25,11 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
+            'gender' => ['nullable', Rule::in(['male', 'female'])],
+            'has_bayah' => ['sometimes', 'boolean'],
+            'level' => ['nullable', Rule::in(['beginner', 'intermediate', 'expert'])],
+            'notification_email_enabled' => ['sometimes', 'boolean'],
+            'notification_whatsapp_enabled' => ['sometimes', 'boolean'],
         ];
     }
 }

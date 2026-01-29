@@ -125,6 +125,49 @@
           <p v-if="form.video_file" class="mt-2 text-sm text-neutral-600">New file: {{ form.video_file.name }}</p>
         </div>
 
+        <!-- Transcript Upload -->
+        <div class="bg-neutral-50 rounded-xl p-4 space-y-2">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-1">Transcript File (.vtt or .srt)</label>
+              <p class="text-xs text-neutral-500">
+                Uploading a new file will replace existing transcript segments.
+              </p>
+            </div>
+            <div v-if="lesson.transcript_segments_count" class="text-xs text-neutral-600 text-right">
+              Transcript segments: <span class="font-semibold">{{ lesson.transcript_segments_count }}</span>
+            </div>
+          </div>
+
+          <input
+            type="file"
+            accept=".vtt,.srt"
+            class="w-full"
+            @change="e => form.transcript_file = e.target.files[0]"
+          />
+          <p v-if="form.transcript_file" class="mt-1 text-sm text-neutral-600">
+            New transcript: {{ form.transcript_file.name }}
+          </p>
+          <p v-if="form.errors.transcript_file" class="mt-1 text-sm text-red-600">
+            {{ form.errors.transcript_file }}
+          </p>
+
+          <div
+            v-if="lesson.transcript_preview && lesson.transcript_preview.length"
+            class="mt-3 border border-dashed border-neutral-200 rounded-lg p-3 bg-white"
+          >
+            <p class="text-xs font-semibold text-neutral-700 mb-2">Preview (first 5 segments)</p>
+            <ul class="space-y-1 text-xs text-neutral-600 max-h-32 overflow-y-auto">
+              <li v-for="seg in lesson.transcript_preview" :key="seg.id">
+                <span class="font-mono text-[11px] text-neutral-400">
+                  [{{ Math.round(seg.start_seconds) }}s-{{ Math.round(seg.end_seconds) }}s]
+                </span>
+                <span class="ml-1">{{ seg.text }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
         <!-- Sort Order & Free Preview -->
         <div class="grid grid-cols-2 gap-6">
           <div>
@@ -192,6 +235,7 @@ const form = useForm({
   youtube_video_id: props.lesson.youtube_video_id || '',
   external_video_url: props.lesson.external_video_url || '',
   video_file: null,
+   transcript_file: null,
   sort_order: props.lesson.sort_order,
   is_free_preview: Boolean(props.lesson.is_free_preview),
   _method: 'put',

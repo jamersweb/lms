@@ -125,6 +125,26 @@
           <p v-if="form.video_file" class="mt-2 text-sm text-neutral-600">Selected: {{ form.video_file.name }}</p>
         </div>
 
+        <!-- Transcript Upload -->
+        <div class="bg-neutral-50 rounded-xl p-4">
+          <label class="block text-sm font-medium text-neutral-700 mb-2">Transcript File (.vtt or .srt)</label>
+          <input
+            type="file"
+            accept=".vtt,.srt"
+            class="w-full"
+            @change="e => form.transcript_file = e.target.files[0]"
+          />
+          <p v-if="form.transcript_file" class="mt-2 text-sm text-neutral-600">
+            Selected: {{ form.transcript_file.name }}
+          </p>
+          <p class="mt-1 text-xs text-neutral-500">
+            Optional, but recommended for searchable transcripts and accessibility.
+          </p>
+          <p v-if="form.errors.transcript_file" class="mt-1 text-sm text-red-600">
+            {{ form.errors.transcript_file }}
+          </p>
+        </div>
+
         <!-- Sort Order & Free Preview -->
         <div class="grid grid-cols-2 gap-6">
           <div>
@@ -179,11 +199,14 @@ const form = useForm({
   youtube_video_id: '',
   external_video_url: '',
   video_file: null,
+  transcript_file: null,
   sort_order: 0,
   is_free_preview: false,
 });
 
 function submit() {
-  form.post('/admin/lessons');
+  form.post('/admin/lessons', {
+    forceFormData: true,
+  });
 }
 </script>

@@ -32,11 +32,12 @@ class LessonController extends Controller
             'module_id' => 'required|exists:modules,id',
             'title' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:lessons',
-            'video_provider' => 'required|in:youtube,mp4',
+            'video_provider' => 'required|in:youtube,mp4,external',
             'sort_order' => 'integer',
             'is_free_preview' => 'boolean',
             'youtube_video_id' => 'nullable|required_if:video_provider,youtube|string',
             'video_file' => 'nullable|required_if:video_provider,mp4|file|mimetypes:video/mp4|max:512000', // 500MB
+            'external_video_url' => 'nullable|required_if:video_provider,external|url',
             'transcript_file' => 'nullable|file|mimes:vtt,srt|max:512', // 512KB
         ];
 
@@ -61,7 +62,23 @@ class LessonController extends Controller
     public function edit(Lesson $lesson)
     {
         return Inertia::render('Admin/Lessons/Edit', [
-            'lesson' => $lesson,
+            'lesson' => [
+                'id' => $lesson->id,
+                'module_id' => $lesson->module_id,
+                'title' => $lesson->title,
+                'slug' => $lesson->slug,
+                'video_provider' => $lesson->video_provider,
+                'youtube_video_id' => $lesson->youtube_video_id,
+                'external_video_url' => $lesson->external_video_url,
+                'video_path' => $lesson->video_path,
+                'sort_order' => $lesson->sort_order,
+                'is_free_preview' => $lesson->is_free_preview,
+                'transcript_segments_count' => $lesson->transcriptSegments()->count(),
+                'transcript_preview' => $lesson->transcriptSegments()
+                    ->orderBy('start_seconds')
+                    ->limit(5)
+                    ->get(['id', 'start_seconds', 'end_seconds', 'text']),
+            ],
             'modules' => \App\Models\Module::with('course')->get()
         ]);
     }
@@ -72,11 +89,12 @@ class LessonController extends Controller
             'module_id' => 'required|exists:modules,id',
             'title' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:lessons,slug,' . $lesson->id,
-            'video_provider' => 'required|in:youtube,mp4',
+            'video_provider' => 'required|in:youtube,mp4,external',
             'sort_order' => 'integer',
             'is_free_preview' => 'boolean',
             'youtube_video_id' => 'nullable|required_if:video_provider,youtube|string',
             'video_file' => 'nullable|file|mimetypes:video/mp4|max:512000', // 500MB
+            'external_video_url' => 'nullable|required_if:video_provider,external|url',
             'transcript_file' => 'nullable|file|mimes:vtt,srt|max:512', // 512KB
         ];
 

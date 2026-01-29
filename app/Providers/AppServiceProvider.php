@@ -2,12 +2,14 @@
 
 namespace App\Providers;
 
+use App\Models\AskThread;
 use App\Models\Discussion;
 use App\Models\DiscussionReply;
 use App\Models\Habit;
 use App\Models\HabitLog;
 use App\Models\JournalEntry;
 use App\Models\Note;
+use App\Policies\AskThreadPolicy;
 use App\Policies\DiscussionPolicy;
 use App\Policies\DiscussionReplyPolicy;
 use App\Policies\HabitLogPolicy;
@@ -41,6 +43,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Note::class, NotePolicy::class);
         Gate::policy(JournalEntry::class, JournalEntryPolicy::class);
         Gate::policy(Discussion::class, DiscussionPolicy::class);
+        Gate::policy(AskThread::class, AskThreadPolicy::class);
         Gate::policy(DiscussionReply::class, DiscussionReplyPolicy::class);
     }
 }

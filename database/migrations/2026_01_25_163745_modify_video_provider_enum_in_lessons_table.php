@@ -12,7 +12,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // MySQL requires ALTER TABLE to modify ENUM
+        // MySQL requires ALTER TABLE to modify ENUM.
+        // SQLite (used in tests) does not support MODIFY COLUMN / ENUM.
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         DB::statement("ALTER TABLE lessons MODIFY COLUMN video_provider ENUM('youtube', 'mp4', 'external', 'vimeo') DEFAULT 'youtube'");
     }
 
@@ -21,6 +26,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         DB::statement("ALTER TABLE lessons MODIFY COLUMN video_provider ENUM('youtube', 'mp4') DEFAULT 'youtube'");
     }
 };

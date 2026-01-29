@@ -16,7 +16,11 @@ class CourseTest extends TestCase
 
     public function test_authenticated_users_can_view_courses_list(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'gender' => 'male',
+            'has_bayah' => true,
+            'level' => 'expert',
+        ]);
         Course::factory()->count(3)->create();
 
         $response = $this->actingAs($user)->get('/courses');

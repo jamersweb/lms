@@ -38,12 +38,20 @@ class PointsIntegrationTest extends TestCase
         $user = User::factory()->create();
         $course = \App\Models\Course::factory()->create();
         $module = \App\Models\Module::factory()->create(['course_id' => $course->id]);
-        $lesson = Lesson::factory()->create(['module_id' => $module->id]);
+        $lesson = Lesson::factory()->create(['module_id' => $module->id, 'video_duration_seconds' => 10]);
 
         \App\Models\Enrollment::create([
             'user_id' => $user->id,
             'course_id' => $course->id,
             'enrolled_at' => now(),
+        ]);
+
+        \App\Models\LessonProgress::create([
+            'user_id' => $user->id,
+            'lesson_id' => $lesson->id,
+            'time_watched_seconds' => 10,
+            'max_playback_rate_seen' => 1.0,
+            'seek_detected' => false,
         ]);
 
         $this->actingAs($user)->post(route('lessons.complete', $lesson));

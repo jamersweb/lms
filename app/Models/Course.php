@@ -15,7 +15,7 @@ class Course extends Model
     {
         return $this->hasMany(Module::class)->orderBy('sort_order');
     }
-    
+
     public function enrollments()
     {
         return $this->hasMany(Enrollment::class);
@@ -24,5 +24,20 @@ class Course extends Model
     public function discussions()
     {
         return $this->hasMany(Discussion::class);
+    }
+
+    public function assessment()
+    {
+        return $this->hasOne(SunnahAssessment::class)->where('is_active', true);
+    }
+
+    public function exemptions()
+    {
+        return $this->hasMany(CourseExemption::class);
+    }
+
+    public function certificates()
+    {
+        return $this->hasMany(Certificate::class);
     }
 }

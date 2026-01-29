@@ -21,6 +21,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'gender',
+        'has_bayah',
+        'level',
         // Note: 'is_admin' intentionally excluded for security - set via admin controllers only
     ];
 
@@ -45,6 +48,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'has_bayah' => 'boolean',
         ];
     }
 
@@ -98,14 +102,44 @@ class User extends Authenticatable
     {
         return $this->enrollments()->where('course_id', $courseId)->exists();
     }
-    
+
     public function lessonProgress()
     {
         return $this->hasMany(LessonProgress::class);
     }
-    
+
     public function pointsEvents()
     {
         return $this->hasMany(PointsEvent::class);
+    }
+
+    public function notificationPreference()
+    {
+        return $this->hasOne(NotificationPreference::class);
+    }
+
+    public function certificates()
+    {
+        return $this->hasMany(Certificate::class);
+    }
+
+    public function assessmentResponses()
+    {
+        return $this->hasMany(AssessmentResponse::class);
+    }
+
+    public function courseExemptions()
+    {
+        return $this->hasMany(CourseExemption::class);
+    }
+
+    public function voiceNotes()
+    {
+        return $this->hasMany(VoiceNote::class, 'sender_id');
+    }
+
+    public function nudgeDeliveries()
+    {
+        return $this->hasMany(NudgeDelivery::class);
     }
 }

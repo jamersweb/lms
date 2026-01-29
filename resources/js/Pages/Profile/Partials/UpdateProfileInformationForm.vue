@@ -19,6 +19,11 @@ const user = usePage().props.auth.user;
 const form = useForm({
     name: user.name,
     email: user.email,
+    gender: user.gender || '',
+    has_bayah: user.has_bayah ?? false,
+    level: user.level || 'beginner',
+    notification_email_enabled: user.notification_preference?.email_enabled ?? true,
+    notification_whatsapp_enabled: user.notification_preference?.whatsapp_enabled ?? false,
 });
 </script>
 
@@ -88,6 +93,77 @@ const form = useForm({
                 >
                     A new verification link has been sent to your email address.
                 </div>
+            </div>
+
+            <div>
+                <InputLabel for="gender" value="Gender" />
+
+                <select
+                    id="gender"
+                    v-model="form.gender"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                >
+                    <option value="">Select gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+
+                <InputError class="mt-2" :message="form.errors.gender" />
+            </div>
+
+            <div>
+                <label class="inline-flex items-center gap-2">
+                    <input
+                        id="has_bayah"
+                        type="checkbox"
+                        v-model="form.has_bayah"
+                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    />
+                    <span class="text-sm text-gray-700">I have bay'ah with the shaykh</span>
+                </label>
+
+                <InputError class="mt-2" :message="form.errors.has_bayah" />
+            </div>
+
+            <div>
+                <InputLabel for="level" value="Level" />
+
+                <select
+                    id="level"
+                    v-model="form.level"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                >
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="expert">Expert</option>
+                </select>
+
+                <InputError class="mt-2" :message="form.errors.level" />
+            </div>
+
+            <div class="space-y-2">
+                <h3 class="text-sm font-medium text-gray-900">Notifications</h3>
+                <p class="text-xs text-gray-500">Control how we remind you about your learning journey.</p>
+
+                <label class="inline-flex items-center gap-2">
+                    <input
+                        id="notification_email_enabled"
+                        type="checkbox"
+                        v-model="form.notification_email_enabled"
+                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    />
+                    <span class="text-sm text-gray-700">Email reminders</span>
+                </label>
+
+                <label class="inline-flex items-center gap-2">
+                    <input
+                        id="notification_whatsapp_enabled"
+                        type="checkbox"
+                        v-model="form.notification_whatsapp_enabled"
+                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    />
+                    <span class="text-sm text-gray-700">WhatsApp reminders (coming soon)</span>
+                </label>
             </div>
 
             <div class="flex items-center gap-4">

@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use App\Models\NotificationPreference;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -21,6 +22,7 @@ class ProfileController extends Controller
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+            'notificationPreference' => $request->user()->notificationPreference,
         ]);
     }
 
@@ -29,13 +31,24 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $user->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        $user->save();
+
+        if ($request->hasAny(['notification_email_enabled', 'notification_whatsapp_enabled'])) {
+            $user->notificationPreference()->updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'email_enabled' => $request->boolean('notification_email_enabled', true),
+                    'whatsapp_enabled' => $request->boolean('notification_whatsapp_enabled', false),
+                ]
+            );
+        }
 
         return Redirect::route('profile.edit');
     }
