@@ -24,6 +24,10 @@ class User extends Authenticatable
         'gender',
         'has_bayah',
         'level',
+        'whatsapp_number',
+        'whatsapp_opt_in',
+        'email_reminders_opt_in',
+        'last_active_at',
         // Note: 'is_admin' intentionally excluded for security - set via admin controllers only
     ];
 
@@ -49,6 +53,9 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_admin' => 'boolean',
             'has_bayah' => 'boolean',
+            'whatsapp_opt_in' => 'boolean',
+            'email_reminders_opt_in' => 'boolean',
+            'last_active_at' => 'datetime',
         ];
     }
 
@@ -141,5 +148,35 @@ class User extends Authenticatable
     public function nudgeDeliveries()
     {
         return $this->hasMany(NudgeDelivery::class);
+    }
+
+    public function lessonReflections()
+    {
+        return $this->hasMany(LessonReflection::class);
+    }
+
+    public function taskProgress()
+    {
+        return $this->hasMany(TaskProgress::class);
+    }
+
+    public function dailyMetrics()
+    {
+        return $this->hasMany(DailyUserMetric::class);
+    }
+
+    public function latestMetric()
+    {
+        return $this->hasOne(DailyUserMetric::class)->latestOfMany('date');
+    }
+
+    public function courseProgressSnapshots()
+    {
+        return $this->hasMany(CourseProgressSnapshot::class);
+    }
+
+    public function activityEvents()
+    {
+        return $this->hasMany(ActivityEvent::class);
     }
 }

@@ -22,12 +22,25 @@ class StoreHabitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|string|max:255',
+            'title' => 'required|string|max:255|min:1',
             'description' => 'nullable|string|max:1000',
-            'frequency_type' => 'required|in:daily,weekly,monthly',
+            'frequency_type' => 'required|in:daily,weekly,custom',
             'reminder_time' => 'nullable|date_format:H:i',
             'target_per_day' => 'nullable|integer|min:1|max:10',
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        // Ensure title is trimmed
+        if ($this->has('title')) {
+            $this->merge([
+                'title' => trim($this->input('title')),
+            ]);
+        }
     }
 
     /**

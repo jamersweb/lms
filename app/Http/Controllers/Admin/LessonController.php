@@ -32,7 +32,7 @@ class LessonController extends Controller
             'module_id' => 'required|exists:modules,id',
             'title' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:lessons',
-            'video_provider' => 'required|in:youtube,mp4,external',
+            'video_provider' => 'required|in:youtube,mp4,external,vimeo',
             'sort_order' => 'integer',
             'is_free_preview' => 'boolean',
             'youtube_video_id' => 'nullable|required_if:video_provider,youtube|string',
@@ -61,6 +61,8 @@ class LessonController extends Controller
 
     public function edit(Lesson $lesson)
     {
+        $lesson->load('contentRule', 'task');
+
         return Inertia::render('Admin/Lessons/Edit', [
             'lesson' => [
                 'id' => $lesson->id,
@@ -79,7 +81,21 @@ class LessonController extends Controller
                     ->limit(5)
                     ->get(['id', 'start_seconds', 'end_seconds', 'text']),
             ],
-            'modules' => \App\Models\Module::with('course')->get()
+            'modules' => \App\Models\Module::with('course')->get(),
+            'contentRule' => $lesson->contentRule ? [
+                'min_level' => $lesson->contentRule->min_level,
+                'gender' => $lesson->contentRule->gender,
+                'requires_bayah' => $lesson->contentRule->requires_bayah,
+            ] : null,
+            'task' => $lesson->task ? [
+                'id' => $lesson->task->id,
+                'title' => $lesson->task->title,
+                'instructions' => $lesson->task->instructions,
+                'required_days' => $lesson->task->required_days,
+                'unlock_next_lesson' => $lesson->task->unlock_next_lesson,
+            ] : null,
+            'release_at' => $lesson->release_at ? $lesson->release_at->toIso8601String() : null,
+            'release_day_offset' => $lesson->release_day_offset,
         ]);
     }
 
@@ -89,13 +105,15 @@ class LessonController extends Controller
             'module_id' => 'required|exists:modules,id',
             'title' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:lessons,slug,' . $lesson->id,
-            'video_provider' => 'required|in:youtube,mp4,external',
+            'video_provider' => 'required|in:youtube,mp4,external,vimeo',
             'sort_order' => 'integer',
             'is_free_preview' => 'boolean',
             'youtube_video_id' => 'nullable|required_if:video_provider,youtube|string',
             'video_file' => 'nullable|file|mimetypes:video/mp4|max:512000', // 500MB
             'external_video_url' => 'nullable|required_if:video_provider,external|url',
             'transcript_file' => 'nullable|file|mimes:vtt,srt|max:512', // 512KB
+            'release_at' => 'nullable|date',
+            'release_day_offset' => 'nullable|integer|min:0|max:365',
         ];
 
         $validated = $request->validate($rules);
@@ -114,7 +132,7 @@ class LessonController extends Controller
         if ($request->hasFile('transcript_file')) {
             $content = file_get_contents($request->file('transcript_file')->getRealPath());
             $segments = $parser->parse($content);
-            
+
             // Replace existing segments
             $lesson->transcriptSegments()->delete();
             $lesson->transcriptSegments()->createMany($segments);

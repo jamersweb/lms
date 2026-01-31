@@ -54,7 +54,8 @@
             <tbody class="divide-y divide-neutral-100">
               <tr v-for="habit in habits.data" :key="habit.id" class="hover:bg-neutral-50">
                 <td class="px-6 py-4">
-                  <div class="font-medium text-neutral-900">{{ habit.name }}</div>
+                  <div class="font-medium text-neutral-900">{{ habit.title }}</div>
+                  <div v-if="habit.description" class="text-sm text-neutral-500 mt-1">{{ habit.description }}</div>
                 </td>
                 <td class="px-6 py-4">
                   <Link :href="`/admin/users/${habit.user.id}`" class="text-primary-600 hover:text-primary-700">
@@ -64,16 +65,18 @@
                 <td class="px-6 py-4">
                   <span :class="[
                     'px-2.5 py-1 rounded-full text-xs font-semibold',
-                    habit.frequency === 'daily' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                    habit.frequency_type === 'daily' ? 'bg-blue-100 text-blue-700' :
+                    habit.frequency_type === 'weekly' ? 'bg-purple-100 text-purple-700' :
+                    'bg-gray-100 text-gray-700'
                   ]">
-                    {{ habit.frequency }}
+                    {{ habit.frequency_type }}
                   </span>
                 </td>
                 <td class="px-6 py-4">
                   <div class="flex items-center gap-2">
                     <Flame class="w-4 h-4 text-orange-500" />
-                    <span class="text-neutral-900">{{ habit.current_streak }}</span>
-                    <span class="text-neutral-400 text-sm">(best: {{ habit.best_streak }})</span>
+                    <span class="text-neutral-900">-</span>
+                    <span class="text-neutral-400 text-sm">(best: -)</span>
                   </div>
                 </td>
                 <td class="px-6 py-4 text-neutral-600">{{ habit.logs_count }}</td>
@@ -154,7 +157,7 @@ const applyFilters = () => {
 };
 
 const confirmDelete = (habit) => {
-  if (confirm(`Are you sure you want to delete "${habit.name}"? This action cannot be undone.`)) {
+  if (confirm(`Are you sure you want to delete "${habit.title}"? This action cannot be undone.`)) {
     router.delete(`/admin/habits/${habit.id}`);
   }
 };

@@ -58,8 +58,21 @@ class CourseController extends Controller
      */
     public function edit(Course $course)
     {
+        $course->load('contentRule');
+
         return Inertia::render('Admin/Courses/Edit', [
-            'course' => $course
+            'course' => [
+                'id' => $course->id,
+                'title' => $course->title,
+                'slug' => $course->slug,
+                'description' => $course->description,
+                'sort_order' => $course->sort_order,
+            ],
+            'contentRule' => $course->contentRule ? [
+                'min_level' => $course->contentRule->min_level,
+                'gender' => $course->contentRule->gender,
+                'requires_bayah' => $course->contentRule->requires_bayah,
+            ] : null,
         ]);
     }
 

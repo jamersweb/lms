@@ -11,9 +11,9 @@
           <!-- Search -->
           <div class="relative">
              <div class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400">🔍</div>
-             <input 
-               type="text" 
-               placeholder="Search courses..." 
+             <input
+               type="text"
+               placeholder="Search courses..."
                class="pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:ring-primary-300 focus:border-primary-900 text-sm w-full sm:w-64"
              />
           </div>
@@ -34,11 +34,11 @@
           <div class="flex flex-col bg-white rounded-xl border border-neutral-100 shadow-sm hover:shadow-lg hover:border-primary-200 transition-all duration-300 overflow-hidden h-full">
             <!-- Thumbnail -->
             <div class="aspect-video bg-gradient-to-br from-primary-800 to-primary-950 relative overflow-hidden">
-              <img 
-                v-if="course.thumbnail && !course.thumbnail.includes('faker')" 
-                :src="course.thumbnail" 
-                :alt="course.title" 
-                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+              <img
+                v-if="course.thumbnail && !course.thumbnail.includes('faker')"
+                :src="course.thumbnail"
+                :alt="course.title"
+                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
               <!-- Placeholder with initials for courses without thumbnail -->
               <div v-else class="w-full h-full flex items-center justify-center">
@@ -46,7 +46,7 @@
                   {{ getInitials(course.title) }}
                 </span>
               </div>
-              <div class="absolute top-3 left-3">
+              <div class="absolute top-3 left-3 flex gap-2">
                 <span :class="[
                   'backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-semibold',
                   course.level === 'Beginner' ? 'bg-emerald-500/90 text-white' : '',
@@ -54,6 +54,10 @@
                   course.level === 'Advanced' ? 'bg-primary-900/90 text-white' : '',
                   !course.level ? 'bg-white/90 text-neutral-700' : ''
                 ]">{{ course.level || 'All Levels' }}</span>
+                <span v-if="course.is_locked" class="backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500/90 text-white flex items-center gap-1">
+                  <Lock class="w-3 h-3" />
+                  Locked
+                </span>
               </div>
             </div>
 
@@ -66,7 +70,12 @@
               <h3 class="text-lg font-serif font-bold text-neutral-900 mb-2 group-hover:text-primary-900 transition-colors line-clamp-2">
                 {{ course.title }}
               </h3>
-              
+
+              <p v-if="course.is_locked && course.lock_message" class="text-xs text-red-600 mb-2 flex items-center gap-1">
+                <Lock class="w-3 h-3" />
+                {{ course.lock_message }}
+              </p>
+
               <p class="text-sm text-neutral-500 line-clamp-2 mb-4 flex-1">
                 {{ course.description }}
               </p>
@@ -85,8 +94,13 @@
 
               <!-- Action -->
               <div class="mt-auto">
-                <div class="w-full py-2.5 text-center text-sm font-semibold text-primary-900 bg-primary-50 rounded-lg group-hover:bg-primary-900 group-hover:text-white transition-colors">
-                   View Course
+                <div :class="[
+                  'w-full py-2.5 text-center text-sm font-semibold rounded-lg transition-colors',
+                  course.is_locked
+                    ? 'text-neutral-500 bg-neutral-100 cursor-not-allowed'
+                    : 'text-primary-900 bg-primary-50 group-hover:bg-primary-900 group-hover:text-white'
+                ]">
+                   {{ course.is_locked ? 'Locked' : 'View Course' }}
                 </div>
               </div>
             </div>
@@ -104,7 +118,7 @@
 <script setup>
 import AppShell from '@/Layouts/AppShell.vue';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Clock } from 'lucide-vue-next';
+import { BookOpen, Clock, Lock } from 'lucide-vue-next';
 
 defineProps({
     courses: Array

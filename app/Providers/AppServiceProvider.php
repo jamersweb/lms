@@ -16,7 +16,9 @@ use App\Policies\HabitLogPolicy;
 use App\Policies\HabitPolicy;
 use App\Policies\JournalEntryPolicy;
 use App\Policies\NotePolicy;
+use Illuminate\Notifications\Channels\DatabaseChannel;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
@@ -36,7 +38,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
-        
+
         // Register all policies
         Gate::policy(Habit::class, HabitPolicy::class);
         Gate::policy(HabitLog::class, HabitLogPolicy::class);
@@ -45,5 +47,10 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Discussion::class, DiscussionPolicy::class);
         Gate::policy(AskThread::class, AskThreadPolicy::class);
         Gate::policy(DiscussionReply::class, DiscussionReplyPolicy::class);
+
+        // Register custom WhatsApp notification channel
+        Notification::extend('whatsapp', function ($app) {
+            return new \App\Notifications\Channels\WhatsAppChannel();
+        });
     }
 }

@@ -40,17 +40,7 @@ class ProfileController extends Controller
 
         $user->save();
 
-        if ($request->hasAny(['notification_email_enabled', 'notification_whatsapp_enabled'])) {
-            $user->notificationPreference()->updateOrCreate(
-                ['user_id' => $user->id],
-                [
-                    'email_enabled' => $request->boolean('notification_email_enabled', true),
-                    'whatsapp_enabled' => $request->boolean('notification_whatsapp_enabled', false),
-                ]
-            );
-        }
-
-        return Redirect::route('profile.edit');
+        return Redirect::route('profile.edit')->with('success', 'Profile updated successfully.');
     }
 
     /**

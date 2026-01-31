@@ -9,7 +9,12 @@ class Enrollment extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'course_id', 'enrolled_at'];
+    protected $fillable = ['user_id', 'course_id', 'enrolled_at', 'started_at'];
+
+    protected $casts = [
+        'enrolled_at' => 'datetime',
+        'started_at' => 'datetime',
+    ];
 
     public function user()
     {

@@ -26,10 +26,22 @@ class ProfileUpdateRequest extends FormRequest
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
             'gender' => ['nullable', Rule::in(['male', 'female'])],
-            'has_bayah' => ['sometimes', 'boolean'],
-            'level' => ['nullable', Rule::in(['beginner', 'intermediate', 'expert'])],
-            'notification_email_enabled' => ['sometimes', 'boolean'],
-            'notification_whatsapp_enabled' => ['sometimes', 'boolean'],
+            'whatsapp_number' => ['nullable', 'string', 'max:30'],
+            'whatsapp_opt_in' => ['sometimes', 'boolean'],
+            'email_reminders_opt_in' => ['sometimes', 'boolean'],
         ];
+    }
+
+    /**
+     * Configure the validator instance.
+     */
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            // If whatsapp_opt_in is true, whatsapp_number must be present
+            if ($this->boolean('whatsapp_opt_in') && empty($this->input('whatsapp_number'))) {
+                $validator->errors()->add('whatsapp_opt_in', 'WhatsApp number is required when opting in to WhatsApp notifications.');
+            }
+        });
     }
 }

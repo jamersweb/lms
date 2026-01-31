@@ -8,7 +8,7 @@
              <div v-if="lesson.is_locked" class="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-6 text-center text-sm text-neutral-600">
                This lesson is locked. Please complete the previous lessons to unlock it.
              </div>
-             <TrackedVideoPlayer
+             <VideoGuardPlayer
                v-else
                :provider="lesson.video_provider"
                :video-url="lesson.video_url"
@@ -16,6 +16,7 @@
                :start-seconds="playerStartSeconds"
                :lesson-id="lesson.id"
                :title="lesson.title"
+               :duration-seconds="lesson.duration_seconds"
                @ready="onPlayerReady"
                @heartbeat="onPlayerHeartbeat"
                @ended="onPlayerEnded"
@@ -57,6 +58,43 @@
                      Part of <span class="font-semibold">{{ course.title }}</span>
                    </p>
 
+                   <!-- Completion Section -->
+                   <div v-if="!lesson.is_locked" class="mt-6 p-4 bg-neutral-50 rounded-xl border border-neutral-200">
+                     <div class="flex items-center justify-between mb-3">
+                       <div>
+                         <h3 class="font-semibold text-neutral-900 mb-1">Lesson Progress</h3>
+                         <div v-if="lesson.progress && lesson.duration_seconds" class="text-sm text-neutral-600">
+                           <span>Watched: {{ formatTime(lesson.progress.watched_seconds) }} / {{ formatTime(lesson.duration_seconds) }}</span>
+                           <span class="mx-2">•</span>
+                           <span>{{ Math.round((lesson.progress.watched_seconds / lesson.duration_seconds) * 100) }}%</span>
+                         </div>
+                         <div v-else-if="lesson.duration_seconds" class="text-sm text-neutral-500">
+                           Start watching to track progress
+                         </div>
+                       </div>
+                       <div>
+                         <Button
+                           v-if="!lesson.is_completed"
+                           @click="markComplete"
+                           :loading="completionForm.processing"
+                           variant="primary"
+                         >
+                           Mark Complete
+                         </Button>
+                         <div v-else class="flex items-center gap-2 text-emerald-700">
+                           <Check class="w-5 h-5" />
+                           <span class="font-medium">Completed</span>
+                         </div>
+                       </div>
+                     </div>
+                     <div v-if="lesson.progress && lesson.progress.seek_attempts > 0" class="mt-2 text-xs text-amber-700">
+                       ⚠ Skipping detected: {{ lesson.progress.seek_attempts }} attempt(s)
+                     </div>
+                     <div v-if="lesson.progress && lesson.progress.max_playback_rate > 1.5" class="mt-2 text-xs text-amber-700">
+                       ⚠ Speed exceeded: {{ lesson.progress.max_playback_rate }}x
+                     </div>
+                   </div>
+
                    <div class="mt-8 flex items-center gap-4">
                       <Button v-if="lesson.prev_lesson_id" variant="secondary" :href="route('lessons.show', { course: course.id, lesson: lesson.prev_lesson_id })">
                         Previous Lesson
@@ -95,38 +133,116 @@
 
                 <!-- Reflection -->
                 <div v-if="activeTab === 'Reflection'" class="space-y-4">
-                   <div class="bg-amber-50 border border-amber-100 text-amber-800 text-sm px-4 py-3 rounded-lg">
-                     This lesson requires a short written reflection before you can advance to the next step.
+                   <div v-if="!lesson.is_completed" class="bg-amber-50 border border-amber-100 text-amber-800 text-sm px-4 py-3 rounded-lg">
+                     Complete the lesson video first before submitting your reflection.
+                   </div>
+                   <div v-else-if="!reflection" class="bg-blue-50 border border-blue-100 text-blue-800 text-sm px-4 py-3 rounded-lg">
+                     Submit your reflection for this lesson to unlock the next lesson.
+                   </div>
+                   <div v-else class="bg-emerald-50 border border-emerald-100 text-emerald-800 text-sm px-4 py-3 rounded-lg">
+                     Your reflection has been submitted. You can update it below if needed.
                    </div>
 
                    <div>
                      <label class="block text-sm font-medium text-neutral-700 mb-2">
-                       Your reflection
+                       Spiritual Takeaway <span class="text-red-500">*</span>
                      </label>
                      <textarea
-                       v-model="reflectionForm.content"
+                       v-model="reflectionForm.takeaway"
                        rows="6"
-                       class="w-full rounded-xl border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 p-3 text-sm"
-                       placeholder="What did you take from this lesson? How will you apply it in your life?"
+                       :disabled="!lesson.is_completed"
+                       class="w-full rounded-xl border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 p-3 text-sm disabled:bg-neutral-100 disabled:cursor-not-allowed"
+                       placeholder="What did you take from this lesson? How will you apply it in your life? (Minimum 30 characters)"
+                       minlength="30"
+                       maxlength="5000"
                      ></textarea>
+                     <div class="flex items-center justify-between mt-1">
+                       <p v-if="reflectionForm.errors.takeaway" class="text-xs text-red-600">
+                         {{ reflectionForm.errors.takeaway }}
+                       </p>
+                       <p v-else-if="reflectionForm.takeaway.length > 0 && reflectionForm.takeaway.length < 30" class="text-xs text-amber-600">
+                         Minimum 30 characters required ({{ reflectionForm.takeaway.length }}/30)
+                       </p>
+                       <p v-else class="text-xs text-neutral-500">
+                         {{ reflectionForm.takeaway.length }} / 5,000 characters
+                       </p>
+                     </div>
                    </div>
 
                    <div class="flex items-center justify-between">
                      <div v-if="reflection">
                        <p class="text-xs text-neutral-500">
                          Status:
-                         <span class="font-medium" :class="reflectionStatusClass">
+                         <span class="font-medium capitalize" :class="reflectionStatusClass">
                            {{ reflection.review_status }}
                          </span>
                        </p>
-                       <p v-if="reflection.mentor_note" class="text-xs text-neutral-600 mt-1">
-                         Mentor note: {{ reflection.mentor_note }}
+                       <p v-if="reflection.teacher_note" class="text-xs text-neutral-600 mt-1">
+                         Teacher note: {{ reflection.teacher_note }}
                        </p>
                      </div>
-                     <Button :loading="reflectionForm.processing" @click="submitReflection">
-                       Submit reflection
+                     <Button
+                       :loading="reflectionForm.processing"
+                       :disabled="!lesson.is_completed || reflectionForm.takeaway.length < 30"
+                       @click="submitReflection"
+                     >
+                       {{ reflection ? 'Update reflection' : 'Submit reflection' }}
                      </Button>
                    </div>
+                </div>
+
+                <!-- Task -->
+                <div v-if="activeTab === 'Overview' && task && lesson.is_completed && reflection" class="mt-6 p-6 bg-white rounded-xl border border-neutral-200">
+                  <h3 class="text-lg font-semibold text-neutral-900 mb-2">{{ task.title }}</h3>
+                  <p v-if="task.instructions" class="text-sm text-neutral-700 mb-4 whitespace-pre-line">
+                    {{ task.instructions }}
+                  </p>
+
+                  <div class="space-y-4">
+                    <!-- Progress Display -->
+                    <div>
+                      <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-neutral-700">
+                          Day {{ task.progress?.days_done || 0 }} of {{ task.required_days }}
+                        </span>
+                        <span v-if="task.progress?.status === 'completed'" class="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 font-medium">
+                          Completed
+                        </span>
+                        <span v-else-if="task.progress?.status === 'in_progress'" class="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
+                          In Progress
+                        </span>
+                      </div>
+                      <div class="w-full bg-neutral-200 rounded-full h-2">
+                        <div
+                          class="bg-primary-600 h-2 rounded-full transition-all"
+                          :style="{ width: `${Math.min((task.progress?.days_done || 0) / task.required_days * 100, 100)}%` }"
+                        ></div>
+                      </div>
+                    </div>
+
+                    <!-- Check-in Button -->
+                    <div v-if="task.progress?.status !== 'completed'">
+                      <Button
+                        @click="checkIn"
+                        :disabled="task.progress?.has_checked_in_today || checkinForm.processing"
+                        :loading="checkinForm.processing"
+                        variant="primary"
+                        class="w-full"
+                      >
+                        <span v-if="task.progress?.has_checked_in_today">
+                          ✓ Already checked in today - Come back tomorrow!
+                        </span>
+                        <span v-else>
+                          Mark today as done
+                        </span>
+                      </Button>
+                    </div>
+
+                    <div v-else class="text-sm text-emerald-700 flex items-center gap-2">
+                      <Check class="w-5 h-5" />
+                      <span>Task completed! You can now proceed to the next lesson.</span>
+                    </div>
+                  </div>
                 </div>
 
                 <!-- Notes Tab -->
@@ -287,7 +403,7 @@
 
 <script setup>
 import AppShell from '@/Layouts/AppShell.vue';
-import TrackedVideoPlayer from '@/Components/Course/TrackedVideoPlayer.vue';
+import VideoGuardPlayer from '@/Components/VideoGuardPlayer.vue';
 import Button from '@/Components/Common/Button.vue';
 import Modal from '@/Components/Modal.vue';
 import { Check, Play, Plus, FileText, Pin, Trash2 } from 'lucide-vue-next';
@@ -305,6 +421,10 @@ const props = defineProps({
     default: () => [],
   },
   reflection: {
+    type: Object,
+    default: null,
+  },
+  task: {
     type: Object,
     default: null,
   },
@@ -411,8 +531,40 @@ const onPlayerStateChange = (payload) => {
 };
 
 const reflectionForm = useForm({
-  content: props.reflection?.content || '',
+  takeaway: props.reflection?.takeaway || props.reflection?.content || '',
 });
+
+const completionForm = useForm({});
+const checkinForm = useForm({});
+
+const markComplete = () => {
+  completionForm.post(route('lessons.complete', { lesson: props.lesson.id }), {
+    preserveScroll: true,
+    onSuccess: () => {
+      // Refresh page to update completion status
+      router.reload({ only: ['lesson', 'task'] });
+    },
+    onError: (errors) => {
+      // Errors are shown via Inertia flash/errors
+      console.error('Completion failed:', errors);
+    },
+  });
+};
+
+const checkIn = () => {
+  if (!props.task) return;
+
+  checkinForm.post(route('tasks.checkin', { task: props.task.id }), {
+    preserveScroll: true,
+    onSuccess: (response) => {
+      // Refresh page to update task progress
+      router.reload({ only: ['lesson', 'task'] });
+    },
+    onError: (errors) => {
+      console.error('Check-in failed:', errors);
+    },
+  });
+};
 
 const submitReflection = () => {
   reflectionForm.post(route('lessons.reflection', { lesson: props.lesson.id }), {

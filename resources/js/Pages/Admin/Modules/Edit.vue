@@ -68,6 +68,15 @@
           </div>
         </form>
       </div>
+
+      <!-- Content Rule -->
+      <div class="mt-6">
+        <ContentRuleForm
+          type="modules"
+          :entity-id="module.id"
+          :initial-rule="contentRule"
+        />
+      </div>
     </div>
   </AppShell>
 </template>
@@ -76,10 +85,12 @@
 import AppShell from '@/Layouts/AppShell.vue';
 import { Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft } from 'lucide-vue-next';
+import ContentRuleForm from '@/Components/Admin/ContentRuleForm.vue';
 
 const props = defineProps({
   module: Object,
   courses: Array,
+  contentRule: Object,
 });
 
 const form = useForm({

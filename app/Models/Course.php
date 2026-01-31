@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class Course extends Model
 {
@@ -14,6 +15,14 @@ class Course extends Model
     public function modules()
     {
         return $this->hasMany(Module::class)->orderBy('sort_order');
+    }
+
+    /**
+     * Get the content rule for this course.
+     */
+    public function contentRule(): MorphOne
+    {
+        return $this->morphOne(ContentRule::class, 'ruleable');
     }
 
     public function enrollments()

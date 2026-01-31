@@ -17,13 +17,13 @@
           Your request
         </label>
         <textarea
-          v-model="form.request_text"
+          v-model="form.content"
           rows="3"
           class="w-full rounded-lg border border-neutral-300 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
           placeholder="Please make dua for..."
         ></textarea>
-        <p v-if="form.errors.request_text" class="text-xs text-red-600">
-          {{ form.errors.request_text }}
+        <p v-if="form.errors.content" class="text-xs text-red-600">
+          {{ form.errors.content }}
         </p>
 
         <label class="inline-flex items-center gap-2 text-xs text-neutral-600">
@@ -63,7 +63,7 @@
             </div>
           </div>
           <p class="text-sm text-neutral-800 font-serif whitespace-pre-line mb-3">
-            {{ dua.request_text }}
+            {{ dua.content }}
           </p>
           <div class="flex items-center justify-between text-xs text-neutral-500">
             <div>
@@ -99,7 +99,7 @@ const props = defineProps({
 });
 
 const form = useForm({
-  request_text: '',
+  content: '',
   is_anonymous: false,
 });
 
@@ -109,7 +109,7 @@ const submit = () => {
   form.post(route('dua.store'), {
     preserveScroll: true,
     onSuccess: () => {
-      form.reset('request_text');
+      form.reset('content');
     },
   });
 };

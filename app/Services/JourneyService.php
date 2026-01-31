@@ -134,8 +134,31 @@ class JourneyService
                     } else {
                         // First incomplete lesson becomes available
                         if ($currentStatus !== 'available' && $currentStatus !== 'in_progress') {
+                            $wasLocked = $currentStatus === 'locked';
                             $progress->available_at = $progress->available_at ?? $now;
                             $progress->unlocked_at = $progress->unlocked_at ?? $now;
+
+                            // Log lesson unlock event
+                            if ($wasLocked) {
+                                try {
+                                    $activityLogger = app(\App\Services\ActivityLogger::class);
+                                    $activityLogger->log(
+                                        \App\Models\ActivityEvent::TYPE_LESSON_UNLOCKED,
+                                        $user,
+                                        [
+                                            'subject' => $lesson,
+                                            'course_id' => $lesson->module->course_id ?? null,
+                                            'module_id' => $lesson->module_id,
+                                            'lesson_id' => $lesson->id,
+                                            'meta' => [
+                                                'unlocked_lesson_id' => $lesson->id,
+                                            ],
+                                        ]
+                                    );
+                                } catch (\Exception $e) {
+                                    // Silently fail - logging should never break the flow
+                                }
+                            }
                         }
 
                         // Preserve in_progress if already started

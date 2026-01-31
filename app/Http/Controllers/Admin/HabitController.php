@@ -16,31 +16,30 @@ class HabitController extends Controller
     public function index(Request $request)
     {
         $query = Habit::with('user');
-        
+
         // Search
         if ($request->search) {
             $query->where(function($q) use ($request) {
-                $q->where('name', 'like', "%{$request->search}%")
+                $q->where('title', 'like', "%{$request->search}%")
                   ->orWhereHas('user', function($uq) use ($request) {
                       $uq->where('name', 'like', "%{$request->search}%");
                   });
             });
         }
-        
+
         // Filter by user
         if ($request->user_id) {
             $query->where('user_id', $request->user_id);
         }
-        
+
         $habits = $query->withCount('logs')
             ->latest()
             ->paginate(15)
             ->through(fn($habit) => [
                 'id' => $habit->id,
-                'name' => $habit->name,
-                'frequency' => $habit->frequency,
-                'current_streak' => $habit->current_streak,
-                'best_streak' => $habit->best_streak,
+                'title' => $habit->title,
+                'frequency_type' => $habit->frequency_type,
+                'description' => $habit->description,
                 'logs_count' => $habit->logs_count,
                 'user' => [
                     'id' => $habit->user->id,
@@ -48,9 +47,9 @@ class HabitController extends Controller
                 ],
                 'created_at' => $habit->created_at->format('M d, Y'),
             ]);
-        
+
         $users = User::orderBy('name')->get(['id', 'name']);
-        
+
         return Inertia::render('Admin/Habits/Index', [
             'habits' => $habits,
             'users' => $users,
@@ -68,7 +67,7 @@ class HabitController extends Controller
     {
         $users = User::orderBy('name')->get(['id', 'name', 'email']);
         $selectedUserId = $request->user_id;
-        
+
         return Inertia::render('Admin/Habits/Create', [
             'users' => $users,
             'selectedUserId' => $selectedUserId,
@@ -82,14 +81,32 @@ class HabitController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'name' => 'required|string|max:255',
+            'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'frequency' => 'required|in:daily,weekly',
-            'reminder_time' => 'nullable|date_format:H:i',
+            'frequency_type' => 'required|in:daily,weekly,custom',
+            'target_per_day' => 'nullable|integer|min:1|max:10',
         ]);
-        
-        Habit::create($validated);
-        
+
+        // Map validated data to match database schema
+        $data = [
+            'user_id' => $validated['user_id'],
+            'title' => trim($validated['title']),
+            'description' => !empty($validated['description']) ? trim($validated['description']) : null,
+            'frequency_type' => $validated['frequency_type'] ?? 'daily',
+            'target_per_day' => isset($validated['target_per_day']) ? (int)$validated['target_per_day'] : 1,
+            'is_active' => true,
+        ];
+
+        // Create habit manually to ensure title is included
+        $habit = new Habit();
+        $habit->user_id = $data['user_id'];
+        $habit->title = $data['title'];
+        $habit->description = $data['description'];
+        $habit->frequency_type = $data['frequency_type'];
+        $habit->target_per_day = $data['target_per_day'];
+        $habit->is_active = $data['is_active'];
+        $habit->save();
+
         return redirect()->route('admin.habits.index')
             ->with('success', 'Habit created successfully for user.');
     }
@@ -102,10 +119,10 @@ class HabitController extends Controller
         return Inertia::render('Admin/Habits/Edit', [
             'habit' => [
                 'id' => $habit->id,
-                'name' => $habit->name,
+                'title' => $habit->title,
                 'description' => $habit->description,
-                'frequency' => $habit->frequency,
-                'reminder_time' => $habit->reminder_time,
+                'frequency_type' => $habit->frequency_type,
+                'target_per_day' => $habit->target_per_day,
                 'user' => [
                     'id' => $habit->user->id,
                     'name' => $habit->user->name,
@@ -120,14 +137,22 @@ class HabitController extends Controller
     public function update(Request $request, Habit $habit)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'frequency' => 'required|in:daily,weekly',
-            'reminder_time' => 'nullable|date_format:H:i',
+            'frequency_type' => 'required|in:daily,weekly,custom',
+            'target_per_day' => 'nullable|integer|min:1|max:10',
         ]);
-        
-        $habit->update($validated);
-        
+
+        // Map validated data
+        $data = [
+            'title' => trim($validated['title']),
+            'description' => !empty($validated['description']) ? trim($validated['description']) : null,
+            'frequency_type' => $validated['frequency_type'],
+            'target_per_day' => isset($validated['target_per_day']) ? (int)$validated['target_per_day'] : 1,
+        ];
+
+        $habit->update($data);
+
         return redirect()->route('admin.habits.index')
             ->with('success', 'Habit updated successfully.');
     }
@@ -138,7 +163,7 @@ class HabitController extends Controller
     public function destroy(Habit $habit)
     {
         $habit->delete();
-        
+
         return redirect()->route('admin.habits.index')
             ->with('success', 'Habit deleted successfully.');
     }

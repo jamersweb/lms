@@ -15,12 +15,15 @@ class LessonProgress extends Model
         'is_completed',
         'last_position_seconds',
         'completed_at',
-        'time_watched_seconds',
+        'watched_seconds',
         'last_heartbeat_at',
-        'max_playback_rate_seen',
+        'max_playback_rate',
+        'seek_attempts',
+        'violations',
         'seek_detected',
         'verified_completion',
         'verified_at',
+        'completion_meta',
         'status',
         'available_at',
         'unlocked_at',
@@ -34,6 +37,9 @@ class LessonProgress extends Model
         'available_at' => 'datetime',
         'unlocked_at' => 'datetime',
         'started_at' => 'datetime',
+        'violations' => 'array',
+        'completion_meta' => 'array',
+        'max_playback_rate' => 'decimal:1',
     ];
 
     public function user()

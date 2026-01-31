@@ -28,15 +28,15 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Habit Name *</label>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Habit Title *</label>
             <input
-              v-model="form.name"
+              v-model="form.title"
               type="text"
               class="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-100 focus:border-primary-300"
               placeholder="e.g., Morning Dhikr, Read Quran"
               required
             />
-            <p v-if="form.errors.name" class="mt-1 text-sm text-red-600">{{ form.errors.name }}</p>
+            <p v-if="form.errors.title" class="mt-1 text-sm text-red-600">{{ form.errors.title }}</p>
           </div>
 
           <div>
@@ -55,7 +55,7 @@
             <div class="flex gap-4">
               <label class="flex items-center gap-2 cursor-pointer">
                 <input
-                  v-model="form.frequency"
+                  v-model="form.frequency_type"
                   type="radio"
                   value="daily"
                   class="h-4 w-4 text-primary-600 border-neutral-300 focus:ring-primary-500"
@@ -64,15 +64,24 @@
               </label>
               <label class="flex items-center gap-2 cursor-pointer">
                 <input
-                  v-model="form.frequency"
+                  v-model="form.frequency_type"
                   type="radio"
                   value="weekly"
                   class="h-4 w-4 text-primary-600 border-neutral-300 focus:ring-primary-500"
                 />
                 <span class="text-neutral-700">Weekly</span>
               </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  v-model="form.frequency_type"
+                  type="radio"
+                  value="custom"
+                  class="h-4 w-4 text-primary-600 border-neutral-300 focus:ring-primary-500"
+                />
+                <span class="text-neutral-700">Custom</span>
+              </label>
             </div>
-            <p v-if="form.errors.frequency" class="mt-1 text-sm text-red-600">{{ form.errors.frequency }}</p>
+            <p v-if="form.errors.frequency_type" class="mt-1 text-sm text-red-600">{{ form.errors.frequency_type }}</p>
           </div>
 
           <div>
@@ -115,10 +124,10 @@ const props = defineProps({
 
 const form = useForm({
   user_id: props.selectedUserId || '',
-  name: '',
+  title: '',
   description: '',
-  frequency: 'daily',
-  reminder_time: '',
+  frequency_type: 'daily',
+  target_per_day: 1,
 });
 
 const submit = () => {

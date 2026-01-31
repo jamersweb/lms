@@ -14,10 +14,11 @@ class LessonWatchSession extends Model
         'lesson_id',
         'started_at',
         'ended_at',
-        'watch_time_seconds',
-        'last_time_seconds',
-        'seek_events_count',
+        'watched_seconds',
+        'last_position_seconds',
+        'seek_attempts',
         'max_playback_rate',
+        'violations',
         'is_valid',
         'invalid_reason',
         'ip',
@@ -28,6 +29,8 @@ class LessonWatchSession extends Model
         'started_at' => 'datetime',
         'ended_at' => 'datetime',
         'is_valid' => 'boolean',
+        'violations' => 'array',
+        'max_playback_rate' => 'decimal:1',
     ];
 
     public function user()

@@ -1,149 +1,112 @@
 <template>
   <AppShell>
-    <div class="max-w-4xl mx-auto">
-      <div class="mb-6">
-        <h1 class="font-serif text-2xl font-bold text-neutral-900">Broadcasts</h1>
-        <p class="text-sm text-neutral-600">
-          Send segmented email messages to students based on gender, bayah status, and level.
-        </p>
+    <Head title="Admin - Broadcasts" />
+
+    <div class="space-y-6">
+      <!-- Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-serif font-bold text-primary-900">Broadcasts</h1>
+          <p class="text-neutral-600 mt-1">Send announcements to selected groups</p>
+        </div>
+        <Link
+          href="/admin/broadcasts/create"
+          class="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-900 text-white rounded-lg font-medium hover:bg-primary-800 transition-colors"
+        >
+          <Plus class="w-5 h-5" />
+          Create Broadcast
+        </Link>
       </div>
 
-      <form
-        class="mb-8 bg-white border border-neutral-200 rounded-xl p-4 shadow-sm space-y-3"
-        @submit.prevent="submit"
-      >
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-neutral-700 mb-1">Gender</label>
-            <select
-              v-model="form.gender"
-              class="w-full rounded-md border border-neutral-300 text-sm"
-            >
-              <option :value="null">All</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-neutral-700 mb-1">Has Bayah</label>
-            <select
-              v-model="form.has_bayah"
-              class="w-full rounded-md border border-neutral-300 text-sm"
-            >
-              <option :value="null">All</option>
-              <option :value="true">Yes</option>
-              <option :value="false">No</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-neutral-700 mb-1">Level</label>
-            <select
-              v-model="form.level"
-              class="w-full rounded-md border border-neutral-300 text-sm"
-            >
-              <option :value="null">All</option>
-              <option value="beginner">Beginner</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="expert">Expert</option>
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-neutral-700 mb-1">Subject</label>
-          <input
-            v-model="form.subject"
-            type="text"
-            class="w-full rounded-md border border-neutral-300 text-sm"
-          />
-          <p v-if="form.errors.subject" class="text-xs text-red-600 mt-1">
-            {{ form.errors.subject }}
-          </p>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-neutral-700 mb-1">Body</label>
-          <textarea
-            v-model="form.body"
-            rows="4"
-            class="w-full rounded-md border border-neutral-300 text-sm"
-          ></textarea>
-          <p v-if="form.errors.body" class="text-xs text-red-600 mt-1">
-            {{ form.errors.body }}
-          </p>
-        </div>
-
-        <div class="flex justify-end">
-          <button
-            type="submit"
-            class="inline-flex items-center px-4 py-2 rounded-md bg-primary-900 text-white text-sm font-medium hover:bg-primary-800 disabled:opacity-50"
-            :disabled="form.processing"
-          >
-            Send broadcast
-          </button>
-        </div>
-      </form>
-
-      <div>
-        <h2 class="text-sm font-semibold text-neutral-900 mb-2">Recent broadcasts</h2>
-        <div v-if="broadcasts.length === 0" class="text-sm text-neutral-500">
-          No broadcasts sent yet.
-        </div>
-        <div v-else class="space-y-3">
-          <div
-            v-for="b in broadcasts"
-            :key="b.id"
-            class="bg-white border border-neutral-200 rounded-lg p-3 text-sm"
-          >
-            <div class="flex items-center justify-between mb-1">
-              <div class="font-semibold text-neutral-900">
-                {{ b.subject }}
-              </div>
-              <div class="text-xs text-neutral-500">
-                {{ b.sent_at || 'Pending' }}
-              </div>
-            </div>
-            <div class="text-xs text-neutral-500 mb-1">
-              Audience:
-              <span v-if="b.audience.gender">gender={{ b.audience.gender }} </span>
-              <span v-if="b.audience.has_bayah !== null">
-                bayah={{ b.audience.has_bayah ? 'yes' : 'no' }}
-              </span>
-              <span v-if="b.audience.level"> level={{ b.audience.level }}</span>
-            </div>
-            <p class="text-neutral-700 whitespace-pre-line">
-              {{ b.body }}
-            </p>
-          </div>
-        </div>
+      <!-- Broadcasts Table -->
+      <div class="bg-white rounded-xl border border-neutral-200 overflow-hidden">
+        <table class="w-full">
+          <thead class="bg-neutral-50 border-b border-neutral-200">
+            <tr>
+              <th class="text-left px-6 py-4 text-sm font-semibold text-neutral-700">Title</th>
+              <th class="text-left px-6 py-4 text-sm font-semibold text-neutral-700">Channels</th>
+              <th class="text-left px-6 py-4 text-sm font-semibold text-neutral-700">Status</th>
+              <th class="text-left px-6 py-4 text-sm font-semibold text-neutral-700">Deliveries</th>
+              <th class="text-left px-6 py-4 text-sm font-semibold text-neutral-700">Created</th>
+              <th class="text-right px-6 py-4 text-sm font-semibold text-neutral-700">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-neutral-100">
+            <tr v-for="broadcast in broadcasts" :key="broadcast.id" class="hover:bg-neutral-50 transition-colors">
+              <td class="px-6 py-4">
+                <div class="font-medium text-neutral-900">{{ broadcast.title }}</div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex flex-wrap gap-1.5">
+                  <span v-for="channel in broadcast.channels" :key="channel"
+                    class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium"
+                    :class="getChannelClass(channel)">
+                    {{ channel }}
+                  </span>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium"
+                  :class="getStatusClass(broadcast.status)">
+                  {{ broadcast.status }}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-sm text-neutral-600">
+                {{ broadcast.deliveries_count || 0 }}
+              </td>
+              <td class="px-6 py-4 text-sm text-neutral-600">
+                {{ formatDate(broadcast.created_at) }}
+              </td>
+              <td class="px-6 py-4">
+                <Link
+                  :href="`/admin/broadcasts/${broadcast.id}`"
+                  class="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                >
+                  View
+                </Link>
+              </td>
+            </tr>
+            <tr v-if="broadcasts.length === 0">
+              <td colspan="6" class="px-6 py-12 text-center text-neutral-500">
+                No broadcasts yet. Click "Create Broadcast" to get started.
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </AppShell>
 </template>
 
 <script setup>
-import AppShell from '@/Layouts/AppShell.vue';
-import { useForm } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3'
+import AppShell from '@/Layouts/AppShell.vue'
+import { Plus } from 'lucide-vue-next'
 
 const props = defineProps({
   broadcasts: Array,
-});
+})
 
-const form = useForm({
-  gender: null,
-  has_bayah: null,
-  level: null,
-  subject: '',
-  body: '',
-});
+const getChannelClass = (channel) => {
+  const classes = {
+    email: 'bg-blue-100 text-blue-700',
+    whatsapp: 'bg-green-100 text-green-700',
+    in_app: 'bg-purple-100 text-purple-700',
+  }
+  return classes[channel] || 'bg-neutral-100 text-neutral-600'
+}
 
-const submit = () => {
-  form.post(route('admin.broadcasts.store'), {
-    preserveScroll: true,
-    onSuccess: () => {
-      form.reset('subject', 'body');
-    },
-  });
-};
+const getStatusClass = (status) => {
+  const classes = {
+    draft: 'bg-neutral-100 text-neutral-600',
+    scheduled: 'bg-yellow-100 text-yellow-700',
+    sending: 'bg-blue-100 text-blue-700',
+    sent: 'bg-green-100 text-green-700',
+  }
+  return classes[status] || 'bg-neutral-100 text-neutral-600'
+}
+
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString()
+}
 </script>
-

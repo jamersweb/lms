@@ -1,7 +1,7 @@
 <template>
   <AppShell>
     <Head :title="`Admin - Edit ${course.title}`" />
-    
+
     <div class="max-w-2xl">
       <!-- Header -->
       <div class="mb-8">
@@ -18,9 +18,9 @@
         <!-- Title -->
         <div>
           <label class="block text-sm font-medium text-neutral-700 mb-2">Course Title *</label>
-          <input 
+          <input
             v-model="form.title"
-            type="text" 
+            type="text"
             class="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
             required
           />
@@ -30,9 +30,9 @@
         <!-- Slug -->
         <div>
           <label class="block text-sm font-medium text-neutral-700 mb-2">URL Slug *</label>
-          <input 
+          <input
             v-model="form.slug"
-            type="text" 
+            type="text"
             class="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
             required
           />
@@ -43,7 +43,7 @@
         <!-- Description -->
         <div>
           <label class="block text-sm font-medium text-neutral-700 mb-2">Description</label>
-          <textarea 
+          <textarea
             v-model="form.description"
             rows="4"
             class="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
@@ -54,9 +54,9 @@
         <!-- Sort Order -->
         <div>
           <label class="block text-sm font-medium text-neutral-700 mb-2">Sort Order</label>
-          <input 
+          <input
             v-model="form.sort_order"
-            type="number" 
+            type="number"
             class="w-32 px-4 py-2.5 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
           />
           <p class="mt-1 text-xs text-neutral-500">Lower numbers appear first</p>
@@ -64,7 +64,7 @@
 
         <!-- Submit -->
         <div class="flex items-center gap-4 pt-4 border-t border-neutral-100">
-          <button 
+          <button
             type="submit"
             :disabled="form.processing"
             class="px-6 py-2.5 bg-primary-900 text-white rounded-lg font-medium hover:bg-primary-800 transition-colors disabled:opacity-50 flex items-center gap-2"
@@ -78,11 +78,20 @@
         </div>
       </form>
 
+      <!-- Content Rule -->
+      <div class="mt-8">
+        <ContentRuleForm
+          type="courses"
+          :entity-id="course.id"
+          :initial-rule="contentRule"
+        />
+      </div>
+
       <!-- Danger Zone -->
       <div class="mt-8 bg-red-50 rounded-xl border border-red-200 p-6">
         <h3 class="font-semibold text-red-800 mb-2">Danger Zone</h3>
         <p class="text-sm text-red-600 mb-4">Deleting this course will remove all modules, lessons, and student enrollments.</p>
-        <button 
+        <button
           @click="deleteCourse"
           class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
         >
@@ -97,9 +106,11 @@
 import AppShell from '@/Layouts/AppShell.vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import { ArrowLeft, Loader2 } from 'lucide-vue-next';
+import ContentRuleForm from '@/Components/Admin/ContentRuleForm.vue';
 
 const props = defineProps({
   course: Object,
+  contentRule: Object,
 });
 
 const form = useForm({

@@ -20,10 +20,9 @@ const form = useForm({
     name: user.name,
     email: user.email,
     gender: user.gender || '',
-    has_bayah: user.has_bayah ?? false,
-    level: user.level || 'beginner',
-    notification_email_enabled: user.notification_preference?.email_enabled ?? true,
-    notification_whatsapp_enabled: user.notification_preference?.whatsapp_enabled ?? false,
+    whatsapp_number: user.whatsapp_number || '',
+    whatsapp_opt_in: user.whatsapp_opt_in ?? false,
+    email_reminders_opt_in: user.email_reminders_opt_in ?? true,
 });
 </script>
 
@@ -112,58 +111,57 @@ const form = useForm({
             </div>
 
             <div>
-                <label class="inline-flex items-center gap-2">
-                    <input
-                        id="has_bayah"
-                        type="checkbox"
-                        v-model="form.has_bayah"
-                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    />
-                    <span class="text-sm text-gray-700">I have bay'ah with the shaykh</span>
-                </label>
+                <InputLabel for="whatsapp_number" value="WhatsApp Number" />
 
-                <InputError class="mt-2" :message="form.errors.has_bayah" />
+                <TextInput
+                    id="whatsapp_number"
+                    type="text"
+                    class="mt-1 block w-full"
+                    v-model="form.whatsapp_number"
+                    placeholder="+1234567890"
+                    autocomplete="tel"
+                />
+
+                <p class="mt-1 text-xs text-gray-500">
+                    Optional. Include country code (e.g., +1234567890)
+                </p>
+
+                <InputError class="mt-2" :message="form.errors.whatsapp_number" />
             </div>
 
             <div>
-                <InputLabel for="level" value="Level" />
+                <label class="inline-flex items-center gap-2">
+                    <input
+                        id="whatsapp_opt_in"
+                        type="checkbox"
+                        v-model="form.whatsapp_opt_in"
+                        :disabled="!form.whatsapp_number"
+                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                    <span class="text-sm text-gray-700">
+                        Opt in to WhatsApp notifications
+                        <span v-if="!form.whatsapp_number" class="text-gray-400">(requires WhatsApp number)</span>
+                    </span>
+                </label>
 
-                <select
-                    id="level"
-                    v-model="form.level"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                >
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="expert">Expert</option>
-                </select>
-
-                <InputError class="mt-2" :message="form.errors.level" />
+                <InputError class="mt-2" :message="form.errors.whatsapp_opt_in" />
             </div>
 
             <div class="space-y-2">
-                <h3 class="text-sm font-medium text-gray-900">Notifications</h3>
-                <p class="text-xs text-gray-500">Control how we remind you about your learning journey.</p>
+                <h3 class="text-sm font-medium text-gray-900">Email Reminders</h3>
+                <p class="text-xs text-gray-500">Receive email reminders about your learning journey.</p>
 
                 <label class="inline-flex items-center gap-2">
                     <input
-                        id="notification_email_enabled"
+                        id="email_reminders_opt_in"
                         type="checkbox"
-                        v-model="form.notification_email_enabled"
+                        v-model="form.email_reminders_opt_in"
                         class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     />
-                    <span class="text-sm text-gray-700">Email reminders</span>
+                    <span class="text-sm text-gray-700">Enable email reminders</span>
                 </label>
 
-                <label class="inline-flex items-center gap-2">
-                    <input
-                        id="notification_whatsapp_enabled"
-                        type="checkbox"
-                        v-model="form.notification_whatsapp_enabled"
-                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    />
-                    <span class="text-sm text-gray-700">WhatsApp reminders (coming soon)</span>
-                </label>
+                <InputError class="mt-2" :message="form.errors.email_reminders_opt_in" />
             </div>
 
             <div class="flex items-center gap-4">
