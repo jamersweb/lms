@@ -10,6 +10,7 @@ use App\Services\JourneyService;
 use App\Services\ProgressionService;
 use App\Support\LockMessage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class CourseController extends Controller
 {
@@ -25,8 +26,16 @@ class CourseController extends Controller
         $eligibilityService = app(EligibilityService::class);
         $showLockedCourses = config('lms.show_locked_courses', true);
 
-        $courses = Course::with('contentRule', 'modules.lessons.contentRule')
-            ->get()
+        $courses = Course::with([
+            'contentRule',
+            'modules' => function($query) {
+                $query->orderBy('sort_order')->orderBy('id');
+            },
+            'modules.lessons' => function($query) {
+                $query->orderBy('sort_order')->orderBy('id');
+            },
+            'modules.lessons.contentRule'
+        ])->get()
             ->map(function($course) use ($user, $eligibilityService, $showLockedCourses) {
                 // Check course-level eligibility
                 $courseResult = $eligibilityService->canAccessCourse($user, $course);
@@ -68,7 +77,7 @@ class CourseController extends Controller
                     'title' => $course->title,
                     'instructor' => $course->instructor,
                     'description' => $course->description,
-                    'thumbnail' => $course->thumbnail ?? 'https://ui-avatars.com/api/?name=' . urlencode(substr($course->title, 0, 2)) . '&background=059669&color=fff&size=400',
+                    'thumbnail' => $course->thumbnail ? Storage::url($course->thumbnail) : ('https://ui-avatars.com/api/?name=' . urlencode(substr($course->title, 0, 2)) . '&background=059669&color=fff&size=400'),
                     'lessons_count' => $lessonsCount,
                     'duration' => gmdate('H\h i\m', $totalDuration),
                     'level' => $course->level,
@@ -115,7 +124,18 @@ class CourseController extends Controller
         $eligibilityService = app(EligibilityService::class);
         $progressionService = app(ProgressionService::class);
 
-        $course->load('contentRule', 'modules.contentRule', 'modules.lessons.contentRule', 'modules.lessons.task');
+        $course->load([
+            'contentRule',
+            'modules' => function($query) {
+                $query->orderBy('sort_order')->orderBy('id');
+            },
+            'modules.contentRule',
+            'modules.lessons' => function($query) {
+                $query->orderBy('sort_order')->orderBy('id');
+            },
+            'modules.lessons.contentRule',
+            'modules.lessons.task'
+        ]);
 
         // Check course-level eligibility
         $courseResult = $eligibilityService->canAccessCourse($user, $course);
@@ -215,6 +235,7 @@ class CourseController extends Controller
                     return [
                         'id' => $lesson->id,
                         'title' => $lesson->title,
+                        'image' => $lesson->image ? \Illuminate\Support\Facades\Storage::url($lesson->image) : null,
                         'duration' => gmdate('i\m', $lesson->duration_seconds ?? 0),
                         'is_completed' => $isCompleted,
                         'is_locked' => !$lessonResult->allowed,
@@ -242,7 +263,7 @@ class CourseController extends Controller
                 'title' => $course->title,
                 'instructor' => $course->instructor,
                 'description' => $course->description,
-                'thumbnail' => $course->thumbnail ?? 'https://ui-avatars.com/api/?name=' . urlencode(substr($course->title, 0, 2)) . '&background=059669&color=fff&size=400',
+                'thumbnail' => $course->thumbnail ? Storage::url($course->thumbnail) : ('https://ui-avatars.com/api/?name=' . urlencode(substr($course->title, 0, 2)) . '&background=059669&color=fff&size=400'),
                 'lessons_count' => $visibleLessons->count(),
                 'duration' => gmdate('H\h i\m', $visibleLessons->sum('duration_seconds')),
                 'level' => $course->level,
@@ -297,15 +318,18 @@ class CourseController extends Controller
             return back()->with('info', 'You are already enrolled in this course.');
         }
 
-        // Create enrollment with started_at for drip scheduling
-        $user->enrollments()->create([
-            'course_id' => $course->id,
-            'enrolled_at' => now(),
-            'started_at' => now(), // Set started_at for relative drip calculation
-        ]);
+        // Wrap enrollment and progress initialization in transaction
+        \Illuminate\Support\Facades\DB::transaction(function () use ($user, $course) {
+            // Create enrollment with started_at for drip scheduling
+            $user->enrollments()->create([
+                'course_id' => $course->id,
+                'enrolled_at' => now(),
+                'started_at' => now(), // Set started_at for relative drip calculation
+            ]);
 
-        // Initialize journey progress for this course
-        JourneyService::ensureProgressRecords($user, $course);
+            // Initialize journey progress for this course
+            JourneyService::ensureProgressRecords($user, $course);
+        });
 
         return redirect()->route('courses.show', $course)
             ->with('success', 'Successfully enrolled in ' . $course->title);

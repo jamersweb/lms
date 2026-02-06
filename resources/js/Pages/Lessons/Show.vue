@@ -1,112 +1,132 @@
 <template>
   <AppShell>
-    <div class="h-[calc(100vh-8rem)] flex flex-col lg:flex-row gap-6">
-       <!-- Main Content Area - Scrollable -->
-       <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
-          <!-- Video Player -->
-          <div class="shrink-0 mb-6">
-             <div v-if="lesson.is_locked" class="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-6 text-center text-sm text-neutral-600">
-               This lesson is locked. Please complete the previous lessons to unlock it.
-             </div>
-             <VideoGuardPlayer
-               v-else
-               :provider="lesson.video_provider"
-               :video-url="lesson.video_url"
-               :youtube-id="lesson.youtube_video_id"
-               :start-seconds="playerStartSeconds"
-               :lesson-id="lesson.id"
-               :title="lesson.title"
-               :duration-seconds="lesson.duration_seconds"
-               @ready="onPlayerReady"
-               @heartbeat="onPlayerHeartbeat"
-               @ended="onPlayerEnded"
-               @stateChange="onPlayerStateChange"
-             />
+    <div class="flex flex-col h-full bg-neutral-50">
+      <!-- Main Content Area: Left Sidebar (4/12) + Right Video (8/12) -->
+      <div class="flex flex-col md:flex-row flex-1 min-h-0 overflow-hidden">
+        <!-- Left Sidebar: Tabs (4/12) -->
+        <aside class="w-full md:w-4/12 flex flex-col bg-white border-r border-neutral-200 overflow-hidden">
+          <!-- Tabs Header -->
+          <div class="flex border-b border-neutral-200 shrink-0 bg-white">
+            <button
+              v-for="tab in tabs"
+              :key="tab"
+              @click="activeTab = tab"
+              :class="[
+                'flex-1 px-4 py-4 text-sm font-medium border-b-2 transition-colors',
+                activeTab === tab
+                  ? 'border-primary-600 text-primary-700 bg-primary-50/30'
+                  : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50'
+              ]"
+            >
+              {{ tab }}
+            </button>
           </div>
 
-          <!-- Lesson Info & Tabs -->
-          <div class="flex flex-col bg-white rounded-xl border border-neutral-200 shadow-sm min-h-0">
-             <!-- Tabs Header -->
-             <div class="flex border-b border-neutral-200 shrink-0">
-                <button
-                  v-for="tab in tabs"
-                  :key="tab"
-                  @click="activeTab = tab"
-                  :class="[
-                    'px-6 py-4 text-sm font-medium border-b-2 transition-colors',
-                    activeTab === tab
-                      ? 'border-primary-600 text-primary-700'
-                      : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50'
-                  ]"
-                >
-                  {{ tab }}
-                </button>
-             </div>
+          <!-- Tab Content - Scrollable -->
+          <div class="flex-1 overflow-y-auto p-6">
+            <div
+              v-if="$page.props.errors?.completion"
+              class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-xs text-red-700"
+            >
+              {{ $page.props.errors.completion }}
+            </div>
+            <!-- Overview -->
+            <div v-if="activeTab === 'Overview'">
+              <h1 class="text-xl font-serif font-bold text-neutral-900 mb-2">{{ lesson.title }}</h1>
+              <p class="text-neutral-600 leading-relaxed text-sm mb-4">
+                Part of <span class="font-semibold">{{ course.title }}</span>
+              </p>
 
-             <!-- Tab Content -->
-             <div class="p-6 min-h-0">
-                <div
-                  v-if="$page.props.errors?.completion"
-                  class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-xs text-red-700"
-                >
-                  {{ $page.props.errors.completion }}
+              <!-- Completion Section -->
+              <div v-if="!lesson.is_locked" class="mt-4 p-4 bg-neutral-50 rounded-xl border border-neutral-200">
+                <div class="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 class="font-semibold text-neutral-900 mb-1 text-sm">Lesson Progress</h3>
+                    <div v-if="(lesson.progress && lesson.duration_seconds) || (lesson.video_progress && lesson.video_progress.duration_seconds)" class="text-xs text-neutral-600">
+                      <span v-if="lesson.video_progress && lesson.video_progress.duration_seconds > 0">
+                        Watched: {{ formatTime(lesson.video_progress.last_position_seconds || 0) }} / {{ formatTime(lesson.video_progress.duration_seconds) }}
+                      </span>
+                      <span v-else-if="lesson.progress && lesson.duration_seconds">
+                        Watched: {{ formatTime(lesson.progress.watched_seconds) }} / {{ formatTime(lesson.duration_seconds) }}
+                      </span>
+                      <span class="mx-2">•</span>
+                      <span>
+                        {{ Math.round(
+                          (lesson.video_progress && lesson.video_progress.duration_seconds > 0)
+                            ? (lesson.video_progress.percent_complete || 0)
+                            : (lesson.progress && lesson.duration_seconds)
+                              ? ((lesson.progress.watched_seconds / lesson.duration_seconds) * 100)
+                              : 0
+                        ) }}%
+                      </span>
+                    </div>
+                    <div v-else-if="lesson.duration_seconds || lesson.video_duration_seconds" class="text-xs text-neutral-500">
+                      Start watching to track progress
+                    </div>
+                  </div>
+                  <div>
+                    <Button
+                      v-if="!lesson.is_completed"
+                      @click="markComplete"
+                      :loading="completionForm.processing"
+                      variant="primary"
+                      size="sm"
+                    >
+                      Mark Complete
+                    </Button>
+                    <div v-else class="flex items-center gap-2 text-emerald-700">
+                      <Check class="w-4 h-4" />
+                      <span class="font-medium text-sm">Completed</span>
+                    </div>
+                  </div>
                 </div>
-                <!-- Overview -->
-                <div v-if="activeTab === 'Overview'">
-                   <h1 class="text-2xl font-serif font-bold text-neutral-900 mb-2">{{ lesson.title }}</h1>
-                   <p class="text-neutral-600 leading-relaxed max-w-prose">
-                     Part of <span class="font-semibold">{{ course.title }}</span>
-                   </p>
-
-                   <!-- Completion Section -->
-                   <div v-if="!lesson.is_locked" class="mt-6 p-4 bg-neutral-50 rounded-xl border border-neutral-200">
-                     <div class="flex items-center justify-between mb-3">
-                       <div>
-                         <h3 class="font-semibold text-neutral-900 mb-1">Lesson Progress</h3>
-                         <div v-if="lesson.progress && lesson.duration_seconds" class="text-sm text-neutral-600">
-                           <span>Watched: {{ formatTime(lesson.progress.watched_seconds) }} / {{ formatTime(lesson.duration_seconds) }}</span>
-                           <span class="mx-2">•</span>
-                           <span>{{ Math.round((lesson.progress.watched_seconds / lesson.duration_seconds) * 100) }}%</span>
-                         </div>
-                         <div v-else-if="lesson.duration_seconds" class="text-sm text-neutral-500">
-                           Start watching to track progress
-                         </div>
-                       </div>
-                       <div>
-                         <Button
-                           v-if="!lesson.is_completed"
-                           @click="markComplete"
-                           :loading="completionForm.processing"
-                           variant="primary"
-                         >
-                           Mark Complete
-                         </Button>
-                         <div v-else class="flex items-center gap-2 text-emerald-700">
-                           <Check class="w-5 h-5" />
-                           <span class="font-medium">Completed</span>
-                         </div>
-                       </div>
-                     </div>
-                     <div v-if="lesson.progress && lesson.progress.seek_attempts > 0" class="mt-2 text-xs text-amber-700">
-                       ⚠ Skipping detected: {{ lesson.progress.seek_attempts }} attempt(s)
-                     </div>
-                     <div v-if="lesson.progress && lesson.progress.max_playback_rate > 1.5" class="mt-2 text-xs text-amber-700">
-                       ⚠ Speed exceeded: {{ lesson.progress.max_playback_rate }}x
-                     </div>
-                   </div>
-
-                   <div class="mt-8 flex items-center gap-4">
-                      <Button v-if="lesson.prev_lesson_id" variant="secondary" :href="route('lessons.show', { course: course.id, lesson: lesson.prev_lesson_id })">
-                        Previous Lesson
-                      </Button>
-                      <Button v-if="lesson.next_lesson_id" variant="primary" :href="route('lessons.show', { course: course.id, lesson: lesson.next_lesson_id })">
-                        Next Lesson
-                      </Button>
-                   </div>
+                <!-- Progress Bar -->
+                <div v-if="(lesson.progress && lesson.duration_seconds) || (lesson.video_progress && lesson.video_progress.duration_seconds)" class="mt-3">
+                  <div class="w-full bg-neutral-200 rounded-full h-2">
+                    <div
+                      class="bg-primary-600 h-2 rounded-full transition-all"
+                      :style="{ width: `${Math.min(
+                        (lesson.video_progress && lesson.video_progress.duration_seconds > 0) 
+                          ? (lesson.video_progress.percent_complete || 0)
+                          : (lesson.progress && lesson.duration_seconds)
+                            ? ((lesson.progress.watched_seconds / lesson.duration_seconds) * 100)
+                            : 0
+                      , 100)}%` }"
+                    ></div>
+                  </div>
                 </div>
+                <div v-if="lesson.progress && lesson.progress.seek_attempts > 0" class="mt-2 text-xs text-amber-700">
+                  ⚠ Skipping detected: {{ lesson.progress.seek_attempts }} attempt(s)
+                </div>
+                <div v-if="lesson.progress && lesson.progress.max_playback_rate > 1.5" class="mt-2 text-xs text-amber-700">
+                  ⚠ Speed exceeded: {{ lesson.progress.max_playback_rate }}x
+                </div>
+              </div>
 
-                <!-- Transcript -->
-                <div v-if="activeTab === 'Transcript'" class="max-w-none text-neutral-700 font-serif leading-relaxed text-sm">
+              <div class="mt-6 flex flex-col gap-2">
+                <Button 
+                  v-if="lesson.prev_lesson_id" 
+                  variant="secondary" 
+                  size="sm"
+                  @click="goToLesson(lesson.prev_lesson_id)"
+                  class="w-full"
+                >
+                  Previous Lesson
+                </Button>
+                <Button 
+                  v-if="lesson.next_lesson_id" 
+                  variant="primary" 
+                  size="sm"
+                  @click="goToLesson(lesson.next_lesson_id)"
+                  class="w-full"
+                >
+                  Next Lesson
+                </Button>
+              </div>
+            </div>
+
+            <!-- Transcript -->
+            <div v-if="activeTab === 'Transcript'" class="max-w-none text-neutral-700 font-serif leading-relaxed text-sm">
                   <div v-if="!lesson.transcript_segments || !lesson.transcript_segments.length" class="text-sm text-neutral-500">
                     Transcript is not available for this lesson yet.
                   </div>
@@ -131,8 +151,8 @@
                   </div>
                 </div>
 
-                <!-- Reflection -->
-                <div v-if="activeTab === 'Reflection'" class="space-y-4">
+            <!-- Reflection -->
+            <div v-if="activeTab === 'Reflection'" class="space-y-4">
                    <div v-if="!lesson.is_completed" class="bg-amber-50 border border-amber-100 text-amber-800 text-sm px-4 py-3 rounded-lg">
                      Complete the lesson video first before submitting your reflection.
                    </div>
@@ -191,8 +211,8 @@
                    </div>
                 </div>
 
-                <!-- Task -->
-                <div v-if="activeTab === 'Overview' && task && lesson.is_completed && reflection" class="mt-6 p-6 bg-white rounded-xl border border-neutral-200">
+            <!-- Task -->
+            <div v-if="activeTab === 'Overview' && task && lesson.is_completed && reflection" class="mt-6 p-4 bg-white rounded-xl border border-neutral-200">
                   <h3 class="text-lg font-semibold text-neutral-900 mb-2">{{ task.title }}</h3>
                   <p v-if="task.instructions" class="text-sm text-neutral-700 mb-4 whitespace-pre-line">
                     {{ task.instructions }}
@@ -245,8 +265,8 @@
                   </div>
                 </div>
 
-                <!-- Notes Tab -->
-                <div v-if="activeTab === 'Notes'" class="space-y-4">
+            <!-- Notes Tab -->
+            <div v-if="activeTab === 'Notes'" class="space-y-4">
                   <div class="flex items-center justify-between mb-4">
                     <h3 class="font-bold text-lg text-neutral-900">Lesson Notes</h3>
                     <Button @click="showNoteModal = true" size="sm" class="flex items-center gap-2">
@@ -287,57 +307,77 @@
                     </div>
                   </div>
                 </div>
-             </div>
-          </div>
-       </div>
+            </div>
+          </aside>
 
-       <!-- Playlist Sidebar -->
-       <div class="w-full lg:w-96 flex flex-col shrink-0 bg-white rounded-xl border border-neutral-200 overflow-hidden shadow-sm h-full max-h-[600px] lg:max-h-[calc(100vh-8rem)]">
-          <div class="p-4 border-b border-neutral-100 bg-neutral-50">
-             <h3 class="font-bold text-neutral-900">{{ course.title }}</h3>
-             <p class="text-xs text-neutral-500 mt-1">Course Content</p>
+          <!-- Right Column: Video Player (8/12) -->
+          <div class="w-full md:w-8/12 flex flex-col bg-neutral-50 overflow-hidden">
+            <!-- Video Player - Fixed Height, No Scroll -->
+            <div class="flex-1 flex items-start justify-center p-4 md:p-6 min-h-0 overflow-hidden">
+              <div v-if="lesson.is_locked" class="w-full max-w-5xl rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-6 text-center text-sm text-neutral-600">
+                This lesson is locked. Please complete the previous lessons to unlock it.
+              </div>
+              <div v-else class="w-full max-w-5xl h-full">
+                <VideoGuardPlayer
+                  :provider="lesson.video_provider"
+                  :video-url="lesson.video_url"
+                  :youtube-id="lesson.youtube_video_id"
+                  :start-seconds="playerStartSeconds"
+                  :lesson-id="lesson.id"
+                  :title="lesson.title"
+                  :duration-seconds="lesson.duration_seconds"
+                  @ready="onPlayerReady"
+                  @heartbeat="onPlayerHeartbeat"
+                  @ended="onPlayerEnded"
+                  @stateChange="onPlayerStateChange"
+                />
+              </div>
+            </div>
           </div>
+        </div>
 
-          <div class="overflow-y-auto flex-1 divide-y divide-neutral-100">
-            <Link
-               v-for="(item, index) in playlist"
-               :key="item.id"
-               :href="route('lessons.show', { course: course.id, lesson: item.id })"
-               :class="[
-                 'p-4 flex gap-3 hover:bg-neutral-50 transition-colors group',
-                 item.is_current ? 'bg-primary-50 hover:bg-primary-50' : ''
-               ]"
-             >
-                <div class="py-1">
-                   <div :class="[
-                      'w-5 h-5 rounded-full border flex items-center justify-center',
-                      item.is_completed ? 'bg-emerald-500 border-emerald-500 text-white' :
-                      item.is_current ? 'border-primary-500 text-primary-600' : 'border-neutral-300 text-transparent'
-                   ]">
-                      <Check v-if="item.is_completed" class="w-3 h-3" />
-                      <div v-if="item.is_current && !item.is_completed" class="w-2 h-2 rounded-full bg-primary-500"></div>
-                   </div>
+        <!-- Bottom: Course Videos Playlist - Fixed -->
+        <div class="shrink-0 border-t border-neutral-200 bg-white flex flex-col h-20 z-10">
+          <div class="p-1.5 border-b border-neutral-100 bg-neutral-50 shrink-0">
+            <h3 class="font-bold text-neutral-900 text-[10px]">{{ course.title }}</h3>
+            <p class="text-[9px] text-neutral-500">Course Content</p>
+          </div>
+          <div class="flex-1 overflow-x-auto overflow-y-hidden">
+            <div class="flex gap-1.5 p-1.5 min-w-max h-full items-center">
+              <Link
+                v-for="(item, index) in playlist"
+                :key="item.id"
+                :href="route('lessons.show', { course: course.id, lesson: item.id })"
+                :class="[
+                  'px-2.5 py-1.5 rounded-md border transition-all group whitespace-nowrap text-xs',
+                  item.is_current 
+                    ? 'bg-primary-50 border-primary-500 text-primary-900 font-semibold' 
+                    : item.is_completed
+                      ? 'bg-emerald-50 border-emerald-300 text-emerald-900 hover:bg-emerald-100'
+                      : item.is_locked
+                        ? 'bg-neutral-50 border-neutral-200 text-neutral-400 cursor-not-allowed'
+                        : 'bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50 hover:border-primary-300'
+                ]"
+              >
+                <div class="flex items-center gap-1.5">
+                  <div :class="[
+                    'w-4 h-4 rounded-full border flex items-center justify-center shrink-0',
+                    item.is_completed ? 'bg-emerald-500 border-emerald-500 text-white' :
+                    item.is_current ? 'border-primary-500 text-primary-600' : 'border-neutral-300 text-transparent'
+                  ]">
+                    <Check v-if="item.is_completed" class="w-2.5 h-2.5" />
+                    <div v-if="item.is_current && !item.is_completed" class="w-1.5 h-1.5 rounded-full bg-primary-500"></div>
+                  </div>
+                  <span class="text-xs">{{ index + 1 }}. {{ item.title }}</span>
+                  <span v-if="item.is_locked" class="text-[9px] uppercase tracking-wide text-neutral-400 ml-1">Locked</span>
+                  <span v-else class="text-[10px] text-neutral-400 flex items-center gap-0.5">
+                    <Play class="w-2.5 h-2.5" /> {{ item.duration }}
+                  </span>
                 </div>
-
-                <div class="flex-1">
-                   <div class="flex items-center justify-between">
-                     <div :class="[
-                       'text-sm font-medium mb-0.5',
-                       item.is_current ? 'text-primary-800' : 'text-neutral-700'
-                     ]">
-                       {{ index + 1 }}. {{ item.title }}
-                     </div>
-                     <span v-if="item.is_locked" class="text-[11px] uppercase tracking-wide text-neutral-400">
-                       Locked
-                     </span>
-                   </div>
-                   <div class="text-xs text-neutral-400 flex items-center gap-2">
-                      <Play class="w-3 h-3" /> {{ item.duration }}
-                   </div>
-                </div>
-             </Link>
+              </Link>
+            </div>
           </div>
-       </div>
+        </div>
     </div>
 
     <!-- Note Creation Modal -->
@@ -398,6 +438,22 @@
         </form>
       </div>
     </Modal>
+
+    <!-- Post-Lesson Summary Card -->
+    <PostLessonSummaryCard
+      :show="showPostLessonSummary"
+      :lesson-id="lesson.id"
+      :lesson-title="lesson.title"
+      @close="showPostLessonSummary = false"
+    />
+
+    <!-- Side Panel Notebook -->
+    <SidePanelNotebook
+      :is-open="showSidePanel"
+      :lesson-id="lesson.id"
+      @open="showSidePanel = true"
+      @close="showSidePanel = false"
+    />
   </AppShell>
 </template>
 
@@ -406,11 +462,12 @@ import AppShell from '@/Layouts/AppShell.vue';
 import VideoGuardPlayer from '@/Components/VideoGuardPlayer.vue';
 import Button from '@/Components/Common/Button.vue';
 import Modal from '@/Components/Modal.vue';
+import PostLessonSummaryCard from '@/Components/PostLessonSummaryCard.vue';
+import SidePanelNotebook from '@/Components/SidePanelNotebook.vue';
 import { Check, Play, Plus, FileText, Pin, Trash2 } from 'lucide-vue-next';
 import { Link, usePage, useForm, router } from '@inertiajs/vue3';
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
+import { computed, ref, onMounted, onBeforeUnmount, getCurrentInstance, inject } from 'vue';
 import axios from 'axios';
-import { route } from 'ziggy-js';
 
 const props = defineProps({
   course: Object,
@@ -437,6 +494,19 @@ const props = defineProps({
 const tabs = ['Overview', 'Transcript', 'Reflection', 'Notes'];
 const activeTab = ref('Overview');
 const showNoteModal = ref(false);
+const showPostLessonSummary = ref(false);
+const showSidePanel = ref(false);
+
+const page = usePage();
+
+// Get route helper - try inject first (provided by ZiggyVue), then global property, then fallback
+const route = inject('route', null) || 
+    getCurrentInstance()?.appContext.config.globalProperties.route ||
+    (typeof window !== 'undefined' && window.route) ||
+    ((name, params) => {
+        console.error('Route helper not available. Route name:', name, params);
+        return '#';
+    });
 
 const noteForm = useForm({
   title: '',
@@ -446,7 +516,6 @@ const noteForm = useForm({
   pinned: false,
 });
 
-const page = usePage();
 const startSeconds = computed(() => {
   try {
     const url = new URL(page.url, window.location.origin);
@@ -471,9 +540,40 @@ const searchQuery = computed(() => {
   }
 });
 
+// Keyboard shortcuts handler
+const handleKeyPress = (e) => {
+  // Don't trigger if user is typing in an input/textarea
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+    return;
+  }
+
+  // Ctrl/Cmd + N to toggle notes panel
+  if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+    e.preventDefault();
+    showSidePanel.value = !showSidePanel.value;
+  }
+  // Escape to close side panel
+  if (e.key === 'Escape' && showSidePanel.value) {
+    showSidePanel.value = false;
+  }
+};
+
 onMounted(() => {
-  // Initialise player start from URL (?t=)
-  playerStartSeconds.value = startSeconds.value || 0;
+  // Initialise player start from URL (?t=) or video progress
+  const urlStartSeconds = startSeconds.value || 0;
+  
+  // Check for saved video progress (resume functionality)
+  if (props.lesson.video_progress && !props.lesson.video_progress.is_completed) {
+    const savedPosition = props.lesson.video_progress.last_position_seconds || 0;
+    // Only resume if there's a saved position > 5 seconds (avoid resuming from very start)
+    if (savedPosition > 5) {
+      playerStartSeconds.value = savedPosition;
+    } else {
+      playerStartSeconds.value = urlStartSeconds;
+    }
+  } else {
+    playerStartSeconds.value = urlStartSeconds;
+  }
 
   lessonSeekHandler = (event) => {
     const seconds = event?.detail?.seconds ?? 0;
@@ -481,6 +581,7 @@ onMounted(() => {
   };
 
   window.addEventListener('lesson-seek', lessonSeekHandler);
+  window.addEventListener('keydown', handleKeyPress);
 });
 
 onBeforeUnmount(() => {
@@ -488,23 +589,54 @@ onBeforeUnmount(() => {
     window.removeEventListener('lesson-seek', lessonSeekHandler);
     lessonSeekHandler = null;
   }
+  window.removeEventListener('keydown', handleKeyPress);
 });
 
 const onPlayerReady = (payload) => {
   console.log('YouTubePlayer ready', payload);
-  if (!props.lesson.video_duration_seconds && payload?.duration) {
-    axios.post(route('lessons.duration', { lesson: props.lesson.id }), {
-      duration_seconds: Math.round(payload.duration),
-    }).catch(() => {});
+  if (payload?.duration) {
+    // Store duration if not already set
+    if (!props.lesson.video_duration_seconds) {
+      axios.post(route('lessons.duration', { lesson: props.lesson.id }), {
+        duration_seconds: Math.round(payload.duration),
+      }).catch(() => {});
+    }
+    // Also update video progress immediately with duration
+    if (props.lesson.id) {
+      axios.post(route('lesson-progress.update', { lesson: props.lesson.id }), {
+        duration_seconds: Math.round(payload.duration),
+        last_position_seconds: 0,
+        percent_complete: 0,
+        provider: 'youtube',
+      }).catch(() => {});
+    }
   }
 };
 
+// Track last reload time
+let lastProgressReload = 0;
+const PROGRESS_RELOAD_INTERVAL = 10000; // Reload every 10 seconds
+
 const onPlayerHeartbeat = (payload) => {
   console.log('YouTubePlayer heartbeat', payload);
+  // The VideoGuardPlayer component handles progress updates via updateVideoProgress
+  // Reload progress data periodically to update the display
+  if (payload && payload.duration && payload.duration > 0) {
+    const now = Date.now();
+    if (now - lastProgressReload > PROGRESS_RELOAD_INTERVAL) {
+      // Reload only lesson data to update progress display
+      router.reload({ only: ['lesson'], preserveScroll: true });
+      lastProgressReload = now;
+    }
+  }
 };
 
-const onPlayerEnded = () => {
+const onPlayerEnded = async () => {
   console.log('YouTubePlayer ended');
+  // Show post-lesson summary card only if lesson is completed
+  // The completion check happens server-side, so we show the popup
+  // The PostLessonSummaryCard component will handle access control
+  showPostLessonSummary.value = true;
 };
 
 function saveNote() {
@@ -614,6 +746,14 @@ const highlightText = (text) => {
 const seekTo = (seconds) => {
   window.dispatchEvent(new CustomEvent('lesson-seek', {
     detail: { seconds: Math.max(0, Number(seconds || 0)) },
+  }));
+};
+
+const goToLesson = (lessonId) => {
+  if (!lessonId) return;
+  router.visit(route('lessons.show', { 
+    course: props.course.id, 
+    lesson: lessonId 
   }));
 };
 </script>

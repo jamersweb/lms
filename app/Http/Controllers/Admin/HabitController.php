@@ -67,10 +67,22 @@ class HabitController extends Controller
     {
         $users = User::orderBy('name')->get(['id', 'name', 'email']);
         $selectedUserId = $request->user_id;
+        $lessons = \App\Models\Lesson::with('module.course')
+            ->orderBy('title')
+            ->get()
+            ->map(function($lesson) {
+                return [
+                    'id' => $lesson->id,
+                    'title' => $lesson->title,
+                    'course_title' => $lesson->module->course->title ?? '',
+                    'module_title' => $lesson->module->title ?? '',
+                ];
+            });
 
         return Inertia::render('Admin/Habits/Create', [
             'users' => $users,
             'selectedUserId' => $selectedUserId,
+            'lessons' => $lessons,
         ]);
     }
 
@@ -81,6 +93,7 @@ class HabitController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
+            'lesson_id' => 'nullable|exists:lessons,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'frequency_type' => 'required|in:daily,weekly,custom',
@@ -90,6 +103,7 @@ class HabitController extends Controller
         // Map validated data to match database schema
         $data = [
             'user_id' => $validated['user_id'],
+            'lesson_id' => $validated['lesson_id'] ?? null,
             'title' => trim($validated['title']),
             'description' => !empty($validated['description']) ? trim($validated['description']) : null,
             'frequency_type' => $validated['frequency_type'] ?? 'daily',
@@ -97,15 +111,7 @@ class HabitController extends Controller
             'is_active' => true,
         ];
 
-        // Create habit manually to ensure title is included
-        $habit = new Habit();
-        $habit->user_id = $data['user_id'];
-        $habit->title = $data['title'];
-        $habit->description = $data['description'];
-        $habit->frequency_type = $data['frequency_type'];
-        $habit->target_per_day = $data['target_per_day'];
-        $habit->is_active = $data['is_active'];
-        $habit->save();
+        Habit::create($data);
 
         return redirect()->route('admin.habits.index')
             ->with('success', 'Habit created successfully for user.');
@@ -116,6 +122,18 @@ class HabitController extends Controller
      */
     public function edit(Habit $habit)
     {
+        $lessons = \App\Models\Lesson::with('module.course')
+            ->orderBy('title')
+            ->get()
+            ->map(function($lesson) {
+                return [
+                    'id' => $lesson->id,
+                    'title' => $lesson->title,
+                    'course_title' => $lesson->module->course->title ?? '',
+                    'module_title' => $lesson->module->title ?? '',
+                ];
+            });
+
         return Inertia::render('Admin/Habits/Edit', [
             'habit' => [
                 'id' => $habit->id,
@@ -123,11 +141,13 @@ class HabitController extends Controller
                 'description' => $habit->description,
                 'frequency_type' => $habit->frequency_type,
                 'target_per_day' => $habit->target_per_day,
+                'lesson_id' => $habit->lesson_id,
                 'user' => [
                     'id' => $habit->user->id,
                     'name' => $habit->user->name,
                 ],
             ],
+            'lessons' => $lessons,
         ]);
     }
 
@@ -141,6 +161,7 @@ class HabitController extends Controller
             'description' => 'nullable|string|max:1000',
             'frequency_type' => 'required|in:daily,weekly,custom',
             'target_per_day' => 'nullable|integer|min:1|max:10',
+            'lesson_id' => 'nullable|exists:lessons,id',
         ]);
 
         // Map validated data
@@ -149,6 +170,7 @@ class HabitController extends Controller
             'description' => !empty($validated['description']) ? trim($validated['description']) : null,
             'frequency_type' => $validated['frequency_type'],
             'target_per_day' => isset($validated['target_per_day']) ? (int)$validated['target_per_day'] : 1,
+            'lesson_id' => $validated['lesson_id'] ?? null,
         ];
 
         $habit->update($data);

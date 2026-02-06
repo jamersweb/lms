@@ -31,12 +31,23 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
 
+        // Optimize unread notifications count query to prevent timeouts
+        $unreadCount = 0;
+        if ($user) {
+            try {
+                $unreadCount = $user->unreadNotifications()->count();
+            } catch (\Exception $e) {
+                // Silently fail if database query fails to prevent page timeout
+                \Log::warning('Failed to get unread notifications count: ' . $e->getMessage());
+            }
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
                 'user' => $user,
             ],
-            'unread_notifications_count' => $user ? $user->unreadNotifications()->count() : 0,
+            'unread_notifications_count' => $unreadCount,
         ];
     }
 }

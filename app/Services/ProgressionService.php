@@ -159,6 +159,7 @@ class ProgressionService
         return Lesson::where('module_id', $moduleId)
             ->where('sort_order', '<', $lesson->sort_order)
             ->orderBy('sort_order', 'desc')
+            ->orderBy('id', 'desc')
             ->first();
     }
 
@@ -169,7 +170,10 @@ class ProgressionService
      */
     public function getFirstIncompleteLessonInModule(User $user, Module $module): ?Lesson
     {
-        $lessons = $module->lessons()->orderBy('sort_order')->orderBy('id')->get();
+        $lessons = $module->lessons()
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
 
         if ($lessons->isEmpty()) {
             return null;

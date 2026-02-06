@@ -136,30 +136,45 @@ const extractVideoId = (url) => {
   if (!url || typeof url !== 'string') return '';
 
   const patterns = [
-    /(?:youtube\.com\/embed\/|youtube-nocookie\.com\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]+)/,
+    // Match youtube-nocookie.com/embed/VIDEO_ID or youtube.com/embed/VIDEO_ID
+    /(?:youtube-nocookie\.com\/embed\/|youtube\.com\/embed\/|youtu\.be\/)([a-zA-Z0-9_-]+)/,
+    // Match youtube.com/watch?v=VIDEO_ID
     /(?:youtube\.com\/watch\?v=)([a-zA-Z0-9_-]+)/,
   ];
 
   for (const pattern of patterns) {
     const match = url.match(pattern);
     if (match && match[1]) {
-      return match[1].split('?')[0].split('&')[0];
+      const videoId = match[1].split('?')[0].split('&')[0];
+      if (isDevMode.value) {
+        console.log('[VideoGuardPlayer] Extracted video ID:', videoId, 'from URL:', url);
+      }
+      return videoId;
     }
+  }
+  
+  if (isDevMode.value) {
+    console.warn('[VideoGuardPlayer] Could not extract video ID from URL:', url);
   }
   return '';
 };
 
 const extractedYoutubeId = computed(() => {
+  // First try to extract from youtubeId prop
   if (props.youtubeId) {
     const extracted = extractVideoId(props.youtubeId);
     if (extracted) return extracted;
     if (props.youtubeId.length <= 11 && /^[a-zA-Z0-9_-]+$/.test(props.youtubeId)) {
       return props.youtubeId;
     }
-    return '';
   }
+  // Then try to extract from videoUrl prop (for external YouTube URLs)
   if (props.videoUrl) {
-    return extractVideoId(props.videoUrl);
+    const extracted = extractVideoId(props.videoUrl);
+    if (extracted) {
+      console.log('[VideoGuardPlayer] Extracted YouTube ID from videoUrl:', extracted);
+      return extracted;
+    }
   }
   return '';
 });
@@ -200,6 +215,12 @@ let lastPlaybackRate = 1.0;
 let lastAllowedTime = 0; // For seek blocking
 let seekBlockedCount = 0;
 
+// Video progress tracking
+let progressUpdateInterval = null;
+let lastProgressUpdate = 0;
+const PROGRESS_UPDATE_INTERVAL_MS = 5000; // Update every 5 seconds
+let lastProgressSnapshot = null; // Store last snapshot to avoid duplicate updates
+
 // Toast notification
 const toastMessage = ref('');
 let toastTimeout = null;
@@ -227,15 +248,27 @@ const onYouTubeReady = (payload) => {
 
 const onYouTubeHeartbeat = (payload) => {
   emit('heartbeat', payload);
+  
+  // Send heartbeat for watch tracking
   sendHeartbeat({
     position_seconds: payload.currentTime ?? 0,
     playback_rate: payload.playbackRate ?? 1,
     duration: payload.duration ?? 0,
-  }, true);
+  }, payload.isPlaying ?? true);
+  
+  // Update video progress (for resume functionality)
+  // Always update, even if duration is 0 initially (it will be set later)
+  updateVideoProgress({
+    currentTime: payload.currentTime ?? 0,
+    duration: payload.duration ?? 0,
+    isPlaying: payload.isPlaying ?? false,
+  });
 };
 
 const onYouTubeEnded = () => {
   emit('ended');
+  stopProgressTracking();
+  // Mark as completed (will be handled by heartbeat with 100% completion)
   endSession();
 };
 
@@ -288,6 +321,17 @@ const onMp4TimeUpdate = () => {
   const snapshot = getMp4Snapshot();
   emit('heartbeat', snapshot);
   // Heartbeat is sent via interval, not on every timeupdate
+  
+  // Update video progress (throttled)
+  const now = Date.now();
+  if (now - lastProgressUpdate >= PROGRESS_UPDATE_INTERVAL_MS) {
+    updateVideoProgress({
+      currentTime: snapshot.currentTime,
+      duration: snapshot.duration,
+      isPlaying: !el.paused,
+    });
+    lastProgressUpdate = now;
+  }
 };
 
 const onMp4Play = () => {
@@ -298,12 +342,17 @@ const onMp4Play = () => {
 const onMp4Pause = () => {
   emit('stateChange', { state: 'paused', ...getMp4Snapshot() });
   stopHeartbeatInterval();
+  // Save progress on pause
+  saveVideoProgress();
 };
 
 const onMp4Ended = () => {
   emit('ended');
   emit('stateChange', { state: 'ended', ...getMp4Snapshot() });
   stopHeartbeatInterval();
+  stopProgressTracking();
+  // Mark as completed
+  saveVideoProgress(true);
   endSession();
 };
 
@@ -399,6 +448,124 @@ const stopHeartbeatInterval = () => {
   }
 };
 
+// Video progress tracking functions
+const updateVideoProgress = async (snapshot) => {
+  if (!props.lessonId) {
+    if (isDevMode.value) {
+      console.warn('[VideoGuardPlayer] Cannot update progress: lessonId is missing');
+    }
+    return;
+  }
+
+  const currentTime = snapshot.currentTime || 0;
+  let duration = snapshot.duration || props.durationSeconds || 0;
+  
+  // For YouTube videos, duration might not be available immediately
+  // But we should still update progress with current time even if duration is 0
+  // The backend can handle this and use watched_seconds for completion
+  
+  const percentComplete = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  // Throttle updates to avoid too many requests (every 5 seconds)
+  const now = Date.now();
+  const timeSinceLastUpdate = now - lastProgressUpdate;
+  
+  // Skip if we updated recently (unless duration just became available)
+  if (timeSinceLastUpdate < PROGRESS_UPDATE_INTERVAL_MS) {
+    // Only skip if duration is still 0, or if values haven't changed much
+    if (duration <= 0 || (lastProgressSnapshot && 
+        Math.abs(lastProgressSnapshot.currentTime - currentTime) < 2 &&
+        Math.abs(lastProgressSnapshot.duration - duration) < 1)) {
+      return;
+    }
+  }
+  lastProgressUpdate = now;
+  lastProgressSnapshot = { currentTime, duration };
+
+  try {
+    // Get lesson model to pass to route
+    const lessonId = props.lessonId;
+    const provider = shouldUseYouTubePlayer.value ? 'youtube' : (props.provider === 'vimeo' ? 'vimeo' : 'html5');
+    
+    const response = await axios.post(route('lesson-progress.update', { lesson: lessonId }), {
+      duration_seconds: Math.round(duration),
+      last_position_seconds: Math.round(currentTime),
+      percent_complete: Math.round(percentComplete * 100) / 100, // Round to 2 decimals
+      provider: provider,
+    });
+    
+    // Log success in dev mode
+    if (isDevMode.value) {
+      console.log('[VideoGuardPlayer] Progress updated:', {
+        currentTime: Math.round(currentTime),
+        duration: Math.round(duration),
+        percentComplete: Math.round(percentComplete * 100) / 100,
+        provider: provider
+      });
+    }
+  } catch (error) {
+    // Log error for debugging
+    console.error('[VideoGuardPlayer] Failed to update video progress:', {
+      error: error.response?.data || error.message,
+      lessonId: props.lessonId,
+      currentTime: Math.round(currentTime),
+      duration: Math.round(duration)
+    });
+  }
+};
+
+const saveVideoProgress = async (isCompleted = false) => {
+  if (!props.lessonId) return;
+
+  let snapshot;
+  if (props.provider === 'mp4' && mp4El.value) {
+    snapshot = getMp4Snapshot();
+  } else {
+    // For YouTube, we can't get current state here, skip
+    return;
+  }
+
+  if (!snapshot.duration || snapshot.duration <= 0) return;
+
+  const currentTime = snapshot.currentTime || 0;
+  const duration = snapshot.duration || 0;
+  let percentComplete = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  if (isCompleted) {
+    percentComplete = 100;
+  }
+
+  try {
+    const lessonId = props.lessonId;
+    await axios.post(route('lesson-progress.update', { lesson: lessonId }), {
+      duration_seconds: Math.round(duration),
+      last_position_seconds: isCompleted ? Math.round(duration) : Math.round(currentTime),
+      percent_complete: Math.round(percentComplete * 100) / 100,
+      is_completed: isCompleted,
+      provider: props.provider === 'youtube' ? 'youtube' : props.provider === 'vimeo' ? 'vimeo' : 'html5',
+    });
+  } catch (error) {
+    console.debug('Failed to save video progress:', error);
+  }
+};
+
+const startProgressTracking = () => {
+  if (progressUpdateInterval) return;
+  
+  // For MP4, progress is tracked in timeupdate
+  // For YouTube, track via heartbeat events
+  // Set up beforeunload handler
+  window.addEventListener('beforeunload', saveVideoProgress);
+};
+
+const stopProgressTracking = () => {
+  if (progressUpdateInterval) {
+    clearInterval(progressUpdateInterval);
+    progressUpdateInterval = null;
+  }
+  window.removeEventListener('beforeunload', saveVideoProgress);
+};
+
 // Session management
 onMounted(() => {
   if (props.provider === 'mp4' && mp4El.value && props.startSeconds > 0) {
@@ -416,6 +583,7 @@ onMounted(() => {
   }
 
   startSession();
+  startProgressTracking();
 
   // Start heartbeat interval for MP4
   if (props.provider === 'mp4') {
@@ -428,6 +596,8 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   stopHeartbeatInterval();
+  stopProgressTracking();
+  saveVideoProgress(); // Final save
   endSession();
   document.removeEventListener('visibilitychange', handleVisibilityChange);
 });

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Course;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 
@@ -35,10 +36,15 @@ class CourseController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:courses',
+            'slug' => 'nullable|string|max:255|unique:courses',
             'description' => 'nullable|string',
             'sort_order' => 'integer',
+            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // 5MB
         ]);
+
+        if ($request->hasFile('thumbnail')) {
+            $validated['thumbnail'] = $request->file('thumbnail')->store('courses', 'public');
+        }
 
         Course::create($validated);
 
@@ -67,6 +73,7 @@ class CourseController extends Controller
                 'slug' => $course->slug,
                 'description' => $course->description,
                 'sort_order' => $course->sort_order,
+                'thumbnail' => $course->thumbnail ? Storage::url($course->thumbnail) : null,
             ],
             'contentRule' => $course->contentRule ? [
                 'min_level' => $course->contentRule->min_level,
@@ -83,10 +90,22 @@ class CourseController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:courses,slug,' . $course->id,
+            'slug' => 'nullable|string|max:255|unique:courses,slug,' . $course->id,
             'description' => 'nullable|string',
             'sort_order' => 'integer',
+            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // 5MB
         ]);
+
+        if ($request->hasFile('thumbnail')) {
+            // Delete old thumbnail if exists
+            if ($course->thumbnail) {
+                Storage::disk('public')->delete($course->thumbnail);
+            }
+            $validated['thumbnail'] = $request->file('thumbnail')->store('courses', 'public');
+        } else {
+            // Keep existing thumbnail if no new file uploaded
+            unset($validated['thumbnail']);
+        }
 
         $course->update($validated);
 

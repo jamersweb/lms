@@ -7,7 +7,6 @@ use App\Models\Course;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Illuminate\Support\Str;
 
 class ModuleController extends Controller
 {
@@ -77,11 +76,10 @@ class ModuleController extends Controller
         $validated = $request->validate([
             'course_id' => 'required|exists:courses,id',
             'title' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
             'sort_order' => 'nullable|integer|min:0',
         ]);
-
-        $validated['slug'] = Str::slug($validated['title']);
 
         // Auto-assign sort order if not provided
         if (empty($validated['sort_order'])) {
@@ -156,11 +154,10 @@ class ModuleController extends Controller
         $validated = $request->validate([
             'course_id' => 'required|exists:courses,id',
             'title' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
             'sort_order' => 'nullable|integer|min:0',
         ]);
-
-        $validated['slug'] = Str::slug($validated['title']);
 
         $module->update($validated);
 

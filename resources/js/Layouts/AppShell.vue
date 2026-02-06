@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-screen bg-neutral-50 font-sans text-neutral-900">
     <!-- Sidebar (Desktop) -->
-    <aside class="hidden w-72 flex-col border-r border-neutral-200 bg-white shadow-[2px_0_24px_rgba(0,0,0,0.02)] md:flex z-10">
+    <aside v-if="!isLessonPage" class="hidden w-72 flex-col border-r border-primary-600 bg-white shadow-[2px_0_24px_rgba(0,0,0,0.02)] md:flex z-10">
       <div class="flex h-20 items-center px-6 border-b border-neutral-100">
         <!-- Logo Area -->
         <Link href="/dashboard" class="flex items-center gap-3 group">
@@ -160,26 +160,106 @@
     <!-- Mobile Header + Content -->
     <div class="flex flex-1 flex-col overflow-hidden relative">
         <!-- Top Header (Mobile & Desktop) -->
-        <header class="flex h-20 items-center justify-between border-b border-neutral-200 bg-white px-4 md:px-8 z-20">
-            <div class="flex items-center md:hidden">
-                <!-- Mobile Menu Button -->
+        <header class="flex h-20 items-center justify-between border-b border-primary-600 bg-white px-4 md:px-8 z-20">
+            <div class="flex items-center">
+                <!-- Hamburger Menu (Lesson Pages Only) -->
+                <div v-if="isLessonPage" class="relative mr-3" ref="lessonMenuRef">
+                    <button
+                      @click="showLessonMenu = !showLessonMenu"
+                      class="p-2 text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors active:bg-primary-100"
+                      aria-label="Open menu"
+                    >
+                        <Menu class="h-6 w-6" />
+                    </button>
+                    
+                    <!-- Dropdown Menu -->
+                    <Transition
+                      enter-active-class="transition ease-out duration-100"
+                      enter-from-class="transform opacity-0 scale-95"
+                      enter-to-class="transform opacity-100 scale-100"
+                      leave-active-class="transition ease-in duration-75"
+                      leave-from-class="transform opacity-100 scale-100"
+                      leave-to-class="transform opacity-0 scale-95"
+                    >
+                        <div
+                          v-if="showLessonMenu"
+                          class="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-neutral-200 z-50 py-2"
+                        >
+                            <Link
+                              v-for="item in navigation"
+                              :key="item.name"
+                              :href="item.href"
+                              @click="showLessonMenu = false"
+                              :class="[
+                                'flex items-center px-4 py-3 text-sm font-medium transition-colors',
+                                route().current(item.route)
+                                  ? 'bg-primary-50 text-primary-900'
+                                  : 'text-neutral-600 hover:bg-neutral-50 hover:text-primary-900'
+                              ]"
+                            >
+                                <component :is="item.icon" class="mr-3 h-5 w-5 flex-shrink-0" />
+                                {{ item.name }}
+                                <span v-if="item.badge" class="ml-auto bg-secondary-100 text-secondary-700 py-0.5 px-2 rounded-full text-xs font-semibold">
+                                  {{ item.badge }}
+                                </span>
+                            </Link>
+                            
+                            <!-- Admin Section -->
+                            <template v-if="isAdmin">
+                                <div class="border-t border-neutral-200 my-2"></div>
+                                <div class="px-4 py-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Admin Panel</div>
+                                <Link
+                                  v-for="item in adminNavigation"
+                                  :key="item.name"
+                                  :href="item.href"
+                                  @click="showLessonMenu = false"
+                                  :class="[
+                                    'flex items-center px-4 py-3 text-sm font-medium transition-colors',
+                                    page.url.startsWith(item.activePrefix)
+                                      ? 'bg-primary-50 text-primary-900'
+                                      : 'text-neutral-600 hover:bg-neutral-50 hover:text-primary-900'
+                                  ]"
+                                >
+                                    <component :is="item.icon" class="mr-3 h-5 w-5 flex-shrink-0" />
+                                    {{ item.name }}
+                                </Link>
+                            </template>
+                            
+                            <!-- Logout -->
+                            <div class="border-t border-neutral-200 my-2"></div>
+                            <Link
+                              href="/logout"
+                              method="post"
+                              as="button"
+                              @click="showLessonMenu = false"
+                              class="w-full flex items-center px-4 py-3 text-sm font-medium text-neutral-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                            >
+                                <LogOut class="mr-3 h-5 w-5 text-neutral-400" />
+                                Sign Out
+                            </Link>
+                        </div>
+                    </Transition>
+                </div>
+
+                <!-- Mobile Menu Button (Non-Lesson Pages) -->
                 <button
+                  v-if="!isLessonPage"
                   @click="openMobileMenu"
-                  class="p-2 -ml-2 text-neutral-600 hover:bg-neutral-50 rounded-lg transition-colors active:bg-neutral-100"
+                  class="p-2 -ml-2 text-neutral-600 hover:bg-neutral-50 rounded-lg transition-colors active:bg-neutral-100 md:hidden"
                   aria-label="Open menu"
                 >
                     <Menu class="h-6 w-6" />
                 </button>
 
-                <!-- Mobile Logo -->
-                <Link href="/dashboard" class="ml-3 flex items-center">
+                <!-- Mobile Logo (Only show on mobile or when sidebar is hidden) -->
+                <Link v-if="isLessonPage" href="/dashboard" class="ml-3 flex items-center md:ml-0">
                   <img src="/images/logo.png" alt="Tazkiyah Tarbiyah" class="h-8 w-auto" />
                 </Link>
             </div>
 
             <div class="hidden md:flex flex-1">
                 <!-- Breadcrumbs or Search could go here -->
-                <h2 class="font-serif text-xl text-primary-900 font-semibold" v-if="headerTitle">{{ headerTitle }}</h2>
+                <h2 class="font-serif text-xl text-primary-900 font-semibold" v-if="headerTitle && !isLessonPage">{{ headerTitle }}</h2>
             </div>
 
             <div class="flex flex-1 justify-end items-center gap-3 md:gap-6">
@@ -202,25 +282,40 @@
         </header>
 
         <!-- Main Content -->
-        <main class="flex-1 overflow-y-auto bg-neutral-50 scroll-smooth">
-            <div class="max-w-7xl mx-auto px-4 py-6 md:py-8 md:px-8">
+        <main :class="isLessonPage ? 'flex-1 overflow-hidden bg-neutral-50' : 'flex-1 overflow-y-auto bg-neutral-50 scroll-smooth'">
+            <div v-if="isLessonPage" class="h-full">
+                <slot />
+            </div>
+            <div v-else class="max-w-7xl mx-auto px-4 py-6 md:py-8 md:px-8">
                 <slot />
             </div>
         </main>
     </div>
+
+    <!-- Global Toast Notification -->
+    <Toast
+      :show="toast.show"
+      :message="toast.message"
+      :type="toast.type"
+      @close="hideToast"
+    />
   </div>
 </template>
 
 <script setup>
 import { Link, usePage } from '@inertiajs/vue3';
 import { Home, BookOpen, CheckSquare, MessageCircle, Award, Settings, LogOut, Menu, Bell, X, LayoutDashboard, Users, FolderOpen, Video, Target, Shield } from 'lucide-vue-next';
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
 import NotificationDropdown from '@/Components/NotificationDropdown.vue';
+import Toast from '@/Components/Toast.vue';
+import { useToast } from '@/composables/useToast';
 
 const page = usePage();
 
 // Mobile menu state
 const isMobileMenuOpen = ref(false);
+const showLessonMenu = ref(false);
+const lessonMenuRef = ref(null);
 
 const openMobileMenu = () => {
   isMobileMenuOpen.value = true;
@@ -234,11 +329,35 @@ const closeMobileMenu = () => {
   document.body.style.overflow = '';
 };
 
+// Close lesson menu when clicking outside
+function handleLessonMenuClickOutside(event) {
+  if (lessonMenuRef.value && !lessonMenuRef.value.contains(event.target)) {
+    showLessonMenu.value = false;
+  }
+}
+
 // Close menu on route change
 watch(() => page.url, () => {
   if (isMobileMenuOpen.value) {
     closeMobileMenu();
   }
+  if (showLessonMenu.value) {
+    showLessonMenu.value = false;
+  }
+});
+
+// Add click outside listener for lesson menu
+onMounted(() => {
+  document.addEventListener('click', handleLessonMenuClickOutside);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleLessonMenuClickOutside);
+});
+
+// Check if we're on a lesson page
+const isLessonPage = computed(() => {
+    return page.url.includes('/lessons/') && page.url.match(/\/courses\/\d+\/lessons\/\d+/);
 });
 
 // Dynamic Header Title based on route or prop (simplified for now)
@@ -283,4 +402,22 @@ const adminNavigation = [
 
 // Check if user is admin
 const isAdmin = computed(() => page.props.auth?.user?.is_admin);
+
+// Toast functionality
+const { toast, hideToast } = useToast();
+
+// Make toast available globally
+window.showToast = (message, type = 'info') => {
+  toast.value = {
+    show: true,
+    message,
+    type,
+    duration: 5000,
+  };
+};
+
+window.showSuccess = (message) => window.showToast(message, 'success');
+window.showError = (message) => window.showToast(message, 'error');
+window.showWarning = (message) => window.showToast(message, 'warning');
+window.showInfo = (message) => window.showToast(message, 'info');
 </script>

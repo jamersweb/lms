@@ -38,8 +38,30 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('throttle:30,1');
     Route::post('/lessons/{lesson}/duration', [\App\Http\Controllers\LessonController::class, 'storeDuration'])
         ->name('lessons.duration');
+    Route::post('/lessons/{lesson}/video-progress', [\App\Http\Controllers\LessonVideoProgressController::class, 'update'])
+        ->name('lesson-progress.update')
+        ->middleware('throttle:60,1'); // Allow frequent updates (every 5 seconds)
+    Route::get('/lesson-progress/{lesson}', [\App\Http\Controllers\LessonVideoProgressController::class, 'show'])
+        ->name('lesson-progress.show');
     Route::post('/lessons/{lesson}/reflection', [\App\Http\Controllers\LessonReflectionController::class, 'store'])
         ->name('lessons.reflection');
+    Route::get('/lessons/{lesson}/resources', [\App\Http\Controllers\LessonResourceController::class, 'show'])
+        ->name('lessons.resources.show');
+    Route::get('/lessons/{lesson}/resources/pdf', [\App\Http\Controllers\LessonResourceController::class, 'exportPdf'])
+        ->name('lessons.resources.pdf')
+        ->middleware('throttle:10,1'); // Limit PDF downloads
+    Route::get('/lessons/{lesson}/resources/pdf/view', [\App\Http\Controllers\LessonResourceController::class, 'viewPdf'])
+        ->name('lessons.resources.pdf.view')
+        ->middleware('throttle:30,1'); // Allow more frequent viewing
+    
+    // Student Notes (Side Panel Notebook)
+    Route::get('/lessons/{lesson}/student-note', [\App\Http\Controllers\StudentNoteController::class, 'show'])
+        ->name('student-notes.show');
+    Route::post('/lessons/{lesson}/student-note', [\App\Http\Controllers\StudentNoteController::class, 'store'])
+        ->name('student-notes.store')
+        ->middleware('throttle:60,1'); // Allow frequent auto-saves
+    Route::delete('/lessons/{lesson}/student-note', [\App\Http\Controllers\StudentNoteController::class, 'destroy'])
+        ->name('student-notes.destroy');
     Route::get('/tasks/{task}', [\App\Http\Controllers\TaskProgressController::class, 'show'])
         ->name('tasks.show');
     Route::post('/tasks/{task}/checkin', [\App\Http\Controllers\TaskProgressController::class, 'checkin'])
@@ -165,6 +187,10 @@ Route::middleware(['auth', \App\Http\Middleware\IsAdmin::class])->prefix('admin'
         ->name('lessons.task.upsert');
     Route::delete('/lessons/{lesson}/task', [\App\Http\Controllers\Admin\TaskController::class, 'destroy'])
         ->name('lessons.task.destroy');
+    Route::post('/lessons/{lesson}/resources', [\App\Http\Controllers\Admin\LessonResourceController::class, 'store'])
+        ->name('lessons.resources.store');
+    Route::delete('/lessons/{lesson}/resources', [\App\Http\Controllers\Admin\LessonResourceController::class, 'destroy'])
+        ->name('lessons.resources.destroy');
 
     // User Management
     Route::resource('users', \App\Http\Controllers\Admin\UserController::class);

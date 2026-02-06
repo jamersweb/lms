@@ -230,8 +230,18 @@ function startHeartbeat() {
     if (!player) return;
     const time = player.getCurrentTime ? player.getCurrentTime() : 0;
     const playbackRate = player.getPlaybackRate ? player.getPlaybackRate() : 1;
+    const dur = player.getDuration ? player.getDuration() : duration.value || 0;
     currentTime.value = time;
-    emit('heartbeat', { currentTime: time, playbackRate });
+    // Update duration if we got it from player
+    if (dur > 0 && duration.value !== dur) {
+      duration.value = dur;
+    }
+    emit('heartbeat', { 
+      currentTime: time, 
+      playbackRate,
+      duration: dur,
+      isPlaying: isPlaying.value
+    });
   }, 1000);
 }
 
@@ -341,7 +351,16 @@ function createPlayer() {
           playbackRate = 1.5;
         }
         const time = player && player.getCurrentTime ? player.getCurrentTime() : 0;
-        emit('heartbeat', { currentTime: time, playbackRate });
+        const dur = player && player.getDuration ? player.getDuration() : duration.value || 0;
+        if (dur > 0 && duration.value !== dur) {
+          duration.value = dur;
+        }
+        emit('heartbeat', { 
+          currentTime: time, 
+          playbackRate,
+          duration: dur,
+          isPlaying: isPlaying.value
+        });
       },
     },
   });
@@ -625,8 +644,6 @@ watch(
   /* Allow clicks to pass through */
   cursor: pointer;
 }
-<｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
-run_terminal_cmd
 
 .custom-controls {
   position: absolute;

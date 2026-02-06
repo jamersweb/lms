@@ -179,4 +179,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(ActivityEvent::class);
     }
+
+    public function videoProgress()
+    {
+        return $this->hasMany(LessonVideoProgress::class);
+    }
 }

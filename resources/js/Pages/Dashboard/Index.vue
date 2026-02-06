@@ -1,27 +1,94 @@
 <template>
   <AppShell>
     <!-- Welcome Hero -->
-    <div class="mb-8">
-      <h1 class="font-serif text-3xl font-bold text-primary-900 mb-2">
-        Welcome back, {{ userName }}
-      </h1>
-      <p class="text-neutral-600">
-        "The best of deeds is that which is done consistently, even if it is small." — Prophet Muhammad (ﷺ)
-      </p>
+    <div class="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900 p-8 text-white shadow-lg">
+      <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0YzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00eiIvPjwvZz48L2c+PC9zdmc+')] opacity-20"></div>
+      <div class="relative z-10">
+        <h1 class="font-serif text-4xl font-bold mb-2 drop-shadow-sm">
+          Welcome back, {{ userName }}
+        </h1>
+        <p class="text-white/90 text-lg">
+          "The best of deeds is that which is done consistently, even if it is small." — Prophet Muhammad (ﷺ)
+        </p>
+      </div>
+    </div>
+
+    <!-- Top KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <!-- Watched Lessons -->
+      <Card class="relative overflow-hidden bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 border-2 border-primary-400 hover:border-primary-300 hover:shadow-xl hover:scale-105 transition-all duration-300 group">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
+        <div class="relative z-10 flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-white/90 uppercase tracking-wide mb-1">Watched</p>
+            <p class="text-4xl font-serif font-bold text-white drop-shadow-sm">{{ stats.watched_lessons }}</p>
+            <p class="text-xs text-white/80 mt-1">of {{ stats.total_lessons }} lessons</p>
+          </div>
+          <div class="h-14 w-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/30 transition-colors shadow-lg">
+            <CheckCircle class="w-7 h-7 text-white" />
+          </div>
+        </div>
+      </Card>
+
+      <!-- Remaining Lessons -->
+      <Card class="relative overflow-hidden bg-gradient-to-br from-neutral-100 via-white to-primary-50 border-2 border-primary-200 hover:border-primary-400 hover:shadow-xl hover:scale-105 transition-all duration-300 group">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-primary-100/50 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
+        <div class="relative z-10 flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-primary-700 uppercase tracking-wide mb-1">Remaining</p>
+            <p class="text-4xl font-serif font-bold text-primary-900">{{ stats.remaining_lessons }}</p>
+            <p class="text-xs text-primary-600 mt-1">lessons to go</p>
+          </div>
+          <div class="h-14 w-14 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center group-hover:from-primary-200 group-hover:to-primary-300 transition-all shadow-md">
+            <BookOpen class="w-7 h-7 text-primary-700" />
+          </div>
+        </div>
+      </Card>
+
+      <!-- Total Watch Time -->
+      <Card class="relative overflow-hidden bg-gradient-to-br from-secondary-400 via-secondary-500 to-secondary-600 border-2 border-secondary-300 hover:border-secondary-200 hover:shadow-xl hover:scale-105 transition-all duration-300 group">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
+        <div class="relative z-10 flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-white/90 uppercase tracking-wide mb-1">Watch Time</p>
+            <p class="text-4xl font-serif font-bold text-white drop-shadow-sm">{{ stats.total_watch_time_formatted }}</p>
+            <p class="text-xs text-white/80 mt-1">total watched</p>
+          </div>
+          <div class="h-14 w-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/30 transition-colors shadow-lg">
+            <Clock class="w-7 h-7 text-white" />
+          </div>
+        </div>
+      </Card>
+
+      <!-- Current Streak -->
+      <Card class="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-800 to-primary-900 text-white border-2 border-primary-500 hover:border-primary-400 hover:shadow-2xl hover:scale-105 transition-all duration-300 group">
+        <div class="absolute inset-0 bg-gradient-to-br from-secondary-500/20 to-transparent"></div>
+        <div class="absolute top-0 right-0 w-32 h-32 bg-secondary-400/30 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
+        <div class="relative z-10 flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-white/90 uppercase tracking-wide mb-1">Streak</p>
+            <p class="text-4xl font-serif font-bold text-white drop-shadow-sm">{{ stats.current_streak }}</p>
+            <p class="text-xs text-white/80 mt-1">{{ stats.current_streak === 1 ? 'day' : 'days' }} in a row</p>
+          </div>
+          <div class="h-14 w-14 rounded-full bg-gradient-to-br from-secondary-400 to-secondary-600 flex items-center justify-center group-hover:from-secondary-300 group-hover:to-secondary-500 transition-all shadow-lg animate-pulse">
+            <Flame class="w-7 h-7 text-white" />
+          </div>
+        </div>
+      </Card>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- Left Column: Main Progress -->
+      <!-- Left Column: Main Content -->
       <div class="lg:col-span-2 space-y-8">
         <!-- Continue Learning Card -->
-        <Card v-if="continue_learning" hoverable class="border-l-4 border-l-primary-900">
+        <Card v-if="continue_learning" hoverable class="border-l-4 border-l-primary-600 bg-gradient-to-r from-white via-primary-50/30 to-white shadow-lg hover:shadow-xl transition-all duration-300 group">
           <div class="flex flex-col sm:flex-row gap-6">
             <!-- Course Image/Thumbnail -->
-            <div class="w-full sm:w-48 aspect-video bg-gradient-to-br from-primary-800 to-primary-950 rounded-lg overflow-hidden shrink-0 relative cursor-pointer" @click="goToLesson">
-               <img :src="continue_learning.image" alt="Course Thumbnail" class="w-full h-full object-cover" />
-               <div class="absolute inset-0 bg-black/10"></div>
+            <div class="w-full sm:w-48 aspect-video bg-gradient-to-br from-primary-800 to-primary-950 rounded-lg overflow-hidden shrink-0 relative cursor-pointer group" @click="goToLesson">
+               <img :src="continue_learning.image" alt="Course Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+               <div class="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-colors"></div>
                <div class="absolute inset-0 flex items-center justify-center">
-                 <div class="bg-white/90 rounded-full p-2 shadow-sm backdrop-blur-sm">
+                 <div class="bg-white/90 rounded-full p-2 shadow-sm backdrop-blur-sm group-hover:scale-110 transition-transform">
                     <Play class="w-6 h-6 text-primary-900 ml-1" />
                  </div>
                </div>
@@ -40,8 +107,25 @@
                 Next: <span class="font-medium text-neutral-700">{{ continue_learning.lesson_title }}</span>
               </p>
 
-              <!-- Progress Bar -->
-              <div class="w-full bg-neutral-100 rounded-full h-2 mb-4">
+              <!-- Video Progress Bar (if available) -->
+              <div v-if="continue_learning.video_progress && continue_learning.video_progress.percent_complete > 0" class="mb-2">
+                <div class="flex items-center justify-between text-xs text-neutral-600 mb-1">
+                  <span>Video Progress</span>
+                  <span>{{ Math.round(continue_learning.video_progress.percent_complete) }}%</span>
+                </div>
+                <div class="w-full bg-neutral-200 rounded-full h-2 overflow-hidden">
+                  <div
+                    class="bg-primary-600 h-2 rounded-full transition-all duration-300"
+                    :style="{ width: Math.min(continue_learning.video_progress.percent_complete, 100) + '%' }"
+                  ></div>
+                </div>
+                <p class="text-xs text-neutral-500 mt-1">
+                  Resume from {{ formatTime(continue_learning.video_progress.last_position_seconds) }}
+                </p>
+              </div>
+
+              <!-- Course Progress Bar -->
+              <div class="w-full bg-neutral-100 rounded-full h-2 mb-4 overflow-hidden">
                 <div
                   class="bg-primary-900 h-2 rounded-full transition-all duration-500 ease-out"
                   :style="{ width: continue_learning.progress + '%' }"
@@ -49,52 +133,118 @@
               </div>
 
               <div class="flex">
-                <Button size="sm" variant="primary" @click="goToLesson">
-                  Resume Lesson
+                <Button size="sm" variant="primary" @click="goToLesson" class="hover:scale-105 transition-transform">
+                  {{ continue_learning.video_progress && continue_learning.video_progress.percent_complete > 0 ? 'Resume Lesson' : 'Continue Learning' }}
                 </Button>
               </div>
             </div>
           </div>
         </Card>
 
-        <!-- Latest Notes Section -->
-        <div v-if="latest_notes && latest_notes.length > 0">
-           <div class="flex items-center justify-between mb-4">
-              <h2 class="text-lg font-bold text-neutral-900">Latest Notes</h2>
-              <Link :href="route('notes.index')" class="text-sm font-medium text-primary-900 hover:text-primary-700">View All</Link>
-           </div>
+        <!-- Continue Watching Widget -->
+        <Card v-if="continue_watching && continue_watching.length > 0" class="shadow-lg border-t-4 border-t-primary-600 bg-gradient-to-br from-white to-primary-50/20">
+          <template #header>
+            <div class="flex items-center justify-between pb-2 border-b border-primary-100">
+              <h2 class="text-lg font-bold text-primary-900 flex items-center gap-2">
+                <div class="h-1 w-1 rounded-full bg-primary-600 animate-pulse"></div>
+                Continue Watching
+              </h2>
+              <Link :href="route('courses.index')" class="text-sm font-medium text-primary-600 hover:text-primary-800 transition-colors font-semibold">View All →</Link>
+            </div>
+          </template>
 
-           <div class="bg-white rounded-xl border border-neutral-100 shadow-sm divide-y divide-neutral-100">
-              <Link
-                v-for="note in latest_notes"
-                :key="note.id"
-                :href="route('notes.index')"
-                class="p-4 flex items-start gap-4 hover:bg-neutral-50 transition-colors block"
-              >
-                 <div class="h-10 w-10 rounded-full bg-primary-50 text-primary-900 flex items-center justify-center shrink-0">
-                    <FileText class="w-5 h-5" />
-                 </div>
+          <div class="space-y-3">
+            <div
+              v-for="lesson in continue_watching"
+              :key="lesson.lesson_id"
+              class="p-4 rounded-xl border-2 border-primary-100 hover:border-primary-400 hover:bg-gradient-to-r hover:from-primary-50 hover:to-white transition-all duration-200 cursor-pointer group shadow-sm hover:shadow-md"
+              @click="goToLessonFromContinue(lesson)"
+            >
+              <div class="flex items-start gap-4">
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-sm font-semibold text-neutral-900 mb-1 group-hover:text-primary-900 transition-colors">
+                    {{ lesson.lesson_title }}
+                  </h4>
+                  <p class="text-xs text-neutral-500 mb-2">{{ lesson.course_title }}</p>
+                  
+                  <!-- Progress Bar -->
+                  <div class="w-full bg-neutral-200 rounded-full h-2 mb-2 overflow-hidden shadow-inner">
+                    <div
+                      class="bg-gradient-to-r from-primary-500 via-primary-600 to-primary-700 h-2 rounded-full transition-all duration-500 shadow-sm"
+                      :style="{ width: Math.min(lesson.percent_complete, 100) + '%' }"
+                    ></div>
+                  </div>
+                  
+                  <div class="flex items-center justify-between text-xs text-neutral-500">
+                    <span>{{ Math.round(lesson.percent_complete) }}% complete</span>
+                    <span>{{ lesson.last_watched_at }}</span>
+                  </div>
+                </div>
+                <Button size="sm" variant="ghost" class="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  Resume
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Card>
 
-                 <div class="flex-1 min-w-0">
-                    <h4 class="text-sm font-medium text-neutral-900 mb-1">{{ note.title }}</h4>
-                    <p class="text-xs text-neutral-500 mb-1">{{ note.preview }}</p>
-                    <div class="flex items-center gap-2 text-xs text-neutral-400">
-                      <Tag class="w-3 h-3" />
-                      <span>{{ note.scope }}</span>
-                      <span v-if="note.related">• {{ note.related }}</span>
-                    </div>
-                 </div>
+        <!-- My Notes Widget -->
+        <Card class="shadow-lg border-t-4 border-t-secondary-500 bg-gradient-to-br from-white to-secondary-50/20">
+          <template #header>
+            <div class="flex items-center justify-between pb-2 border-b border-secondary-100">
+              <h2 class="text-lg font-bold text-secondary-900 flex items-center gap-2">
+                <div class="h-1 w-1 rounded-full bg-secondary-500 animate-pulse"></div>
+                My Notes
+              </h2>
+              <div class="flex items-center gap-2">
+                <Button size="sm" variant="ghost" @click="showQuickNoteModal = true" class="text-secondary-700 hover:text-secondary-900 hover:bg-secondary-100">
+                  <Plus class="w-4 h-4 mr-1" />
+                  Quick Note
+                </Button>
+                <Link :href="route('notes.index')" class="text-sm font-medium text-secondary-700 hover:text-secondary-900 transition-colors font-semibold">View All →</Link>
+              </div>
+            </div>
+          </template>
 
-                 <span class="text-xs text-neutral-400 shrink-0">{{ note.created_at }}</span>
-              </Link>
-           </div>
-        </div>
+          <div v-if="recent_notes && recent_notes.length > 0" class="space-y-3">
+            <div
+              v-for="note in recent_notes"
+              :key="note.id"
+              class="p-4 rounded-xl border-2 border-secondary-100 hover:border-secondary-400 hover:bg-gradient-to-r hover:from-secondary-50 hover:to-white transition-all duration-200 cursor-pointer group shadow-sm hover:shadow-md"
+              @click="goToNote(note)"
+            >
+              <div class="flex items-start gap-3">
+                <div class="h-12 w-12 rounded-full bg-gradient-to-br from-secondary-400 to-secondary-600 text-white flex items-center justify-center shrink-0 group-hover:from-secondary-300 group-hover:to-secondary-500 transition-all shadow-md">
+                  <FileText class="w-6 h-6" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-sm font-medium text-neutral-900 mb-1 group-hover:text-primary-900 transition-colors">
+                    {{ note.title || 'Untitled Note' }}
+                  </h4>
+                  <p class="text-xs text-neutral-500 mb-1 line-clamp-2">{{ note.preview }}</p>
+                  <div class="flex items-center gap-2 text-xs text-neutral-400">
+                    <span v-if="note.related">{{ note.related }}</span>
+                    <span v-if="note.related">•</span>
+                    <span>{{ note.updated_at }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="text-center py-8 text-neutral-500">
+            <FileText class="w-12 h-12 mx-auto mb-2 opacity-50" />
+            <p class="text-sm">No notes yet</p>
+            <Button size="sm" variant="ghost" @click="showQuickNoteModal = true" class="mt-2">
+              Create your first note
+            </Button>
+          </div>
+        </Card>
 
         <!-- Community Posts Section -->
         <div v-if="latest_community_posts && latest_community_posts.length > 0">
            <div class="flex items-center justify-between mb-4">
               <h2 class="text-lg font-bold text-neutral-900">Community Posts</h2>
-              <Link href="#" class="text-sm font-medium text-primary-900 hover:text-primary-700">View All</Link>
+              <Link href="#" class="text-sm font-medium text-primary-900 hover:text-primary-700 transition-colors">View All</Link>
            </div>
 
            <div class="space-y-4">
@@ -102,7 +252,7 @@
                 v-for="post in latest_community_posts"
                 :key="post.id"
                 hoverable
-                class="cursor-pointer"
+                class="cursor-pointer shadow-sm hover:shadow-md transition-all duration-200"
                 @click="goToDiscussion(post.id)"
               >
                 <div class="flex items-start gap-4">
@@ -125,93 +275,98 @@
               </Card>
            </div>
         </div>
-
-        <!-- Recent Activity Section -->
-        <div v-if="recent_activity && recent_activity.length > 0">
-           <div class="flex items-center justify-between mb-4">
-              <h2 class="text-lg font-bold text-neutral-900">Recent Activity</h2>
-              <Link href="#" class="text-sm font-medium text-primary-900 hover:text-primary-700">View All</Link>
-           </div>
-
-           <div class="bg-white rounded-xl border border-neutral-100 shadow-sm divide-y divide-neutral-100">
-              <div
-                v-for="activity in recent_activity"
-                :key="`${activity.type}-${activity.id}`"
-                class="p-4 flex items-center gap-4 hover:bg-neutral-50 transition-colors cursor-pointer"
-                @click="handleActivityClick(activity)"
-              >
-                 <div :class="[
-                    'h-10 w-10 rounded-full flex items-center justify-center shrink-0',
-                    activity.type === 'lesson_completed' ? 'bg-primary-50 text-primary-900' :
-                    activity.type === 'note_created' ? 'bg-emerald-50 text-emerald-700' :
-                    'bg-secondary-50 text-secondary-700'
-                 ]">
-                    <PlayCircle v-if="activity.type === 'lesson_completed'" class="w-5 h-5" />
-                    <FileText v-else-if="activity.type === 'note_created'" class="w-5 h-5" />
-                    <MessageCircle v-else class="w-5 h-5" />
-                 </div>
-
-                 <div class="flex-1 min-w-0">
-                    <h4 class="text-sm font-medium text-neutral-900">{{ activity.title }}</h4>
-                    <p class="text-xs text-neutral-500" v-if="activity.related || activity.course">
-                      {{ activity.related || activity.course }}
-                    </p>
-                 </div>
-
-                 <span class="text-xs text-neutral-400 shrink-0">{{ activity.time }}</span>
-              </div>
-           </div>
-        </div>
       </div>
 
       <!-- Right Column: Stats & Quick Actions -->
       <div class="space-y-6">
-         <!-- Stats Grid -->
-         <div class="grid grid-cols-2 gap-4">
-            <Card class="bg-primary-50 border-primary-100" noPadding>
-                <div class="p-4 text-center">
-                    <div class="text-3xl font-serif font-bold text-primary-900 mb-1">{{ stats.lessons_watched }}</div>
-                    <div class="text-xs font-medium text-primary-700 uppercase tracking-wide">Lessons</div>
+         <!-- Learning Habits / Streak Widget -->
+         <Card class="shadow-lg bg-gradient-to-br from-primary-100 via-white to-secondary-50 border-2 border-primary-200">
+            <template #header>
+                <div class="flex items-center justify-between pb-2 border-b border-primary-200">
+                    <h3 class="font-bold text-primary-900 flex items-center gap-2">
+                      <div class="h-1 w-1 rounded-full bg-primary-600 animate-pulse"></div>
+                      Daily Goal
+                    </h3>
+                    <Flame v-if="streak.badge" :class="[
+                      'w-6 h-6',
+                      streak.badge.color === 'secondary' ? 'text-secondary-600' : 'text-primary-600'
+                    ]" />
                 </div>
-            </Card>
-            <Card class="bg-secondary-50 border-secondary-200" noPadding>
-                <div class="p-4 text-center">
-                    <div class="text-3xl font-serif font-bold text-secondary-700 mb-1">{{ stats.current_streak }}</div>
-                    <div class="text-xs font-medium text-secondary-600 uppercase tracking-wide">Day Streak</div>
+            </template>
+
+            <div class="space-y-4">
+              <!-- Daily Goal Progress -->
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-sm font-medium text-neutral-700">Watch {{ watch_time.daily_goal_minutes }} min/day</span>
+                  <span class="text-xs font-semibold text-primary-900">{{ Math.round(watch_time.daily_goal_progress) }}%</span>
                 </div>
-            </Card>
-         </div>
+                <div class="w-full bg-neutral-200 rounded-full h-4 overflow-hidden shadow-inner">
+                  <div
+                    class="bg-gradient-to-r from-primary-500 via-primary-600 to-primary-700 h-4 rounded-full transition-all duration-700 shadow-sm"
+                    :style="{ width: Math.min(watch_time.daily_goal_progress, 100) + '%' }"
+                  ></div>
+                </div>
+                <p class="text-xs text-neutral-500 mt-1">
+                  {{ watch_time.today_minutes }} / {{ watch_time.daily_goal_minutes }} minutes today
+                </p>
+              </div>
+
+              <!-- Streak Badge -->
+              <div v-if="streak.badge" class="pt-4 border-t border-neutral-200">
+                <div class="flex items-center gap-3">
+                  <div :class="[
+                    'h-12 w-12 rounded-full flex items-center justify-center',
+                    streak.badge.color === 'secondary' 
+                      ? 'bg-gradient-to-br from-secondary-400 to-secondary-600' 
+                      : 'bg-gradient-to-br from-primary-600 to-primary-800'
+                  ]">
+                    <Flame class="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p class="text-xs font-medium text-neutral-600 uppercase tracking-wide">{{ streak.badge.label }}</p>
+                    <p class="text-lg font-serif font-bold text-neutral-900">{{ streak.days }} day streak</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
 
          <!-- Points Card -->
-         <Card class="bg-gradient-to-br from-primary-600 to-primary-800 text-white border-0" noPadding>
-            <div class="p-6 text-center">
-                <div class="text-4xl font-serif font-bold mb-2">{{ stats.total_points || 0 }}</div>
+         <Card class="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-800 to-primary-900 text-white border-2 border-primary-500 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 group" noPadding>
+            <div class="absolute inset-0 bg-gradient-to-br from-secondary-500/20 to-transparent"></div>
+            <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-700"></div>
+            <div class="relative z-10 p-6 text-center">
+                <div class="text-5xl font-serif font-bold mb-2 drop-shadow-lg">{{ stats.total_points || 0 }}</div>
                 <div class="text-sm font-medium opacity-90 uppercase tracking-wide">Total Points</div>
                 <div class="mt-4 pt-4 border-t border-white/20">
-                    <Link :href="route('leaderboard.index')" class="text-xs font-medium opacity-80 hover:opacity-100 transition-opacity">
-                        View Leaderboard →
+                    <Link :href="route('leaderboard.index')" class="text-xs font-semibold opacity-90 hover:opacity-100 transition-opacity inline-flex items-center gap-1">
+                        View Leaderboard <span class="group-hover:translate-x-1 transition-transform">→</span>
                     </Link>
                 </div>
             </div>
          </Card>
 
          <!-- Quick Habit Check (Mini) -->
-         <Card>
+         <Card class="shadow-lg border-t-4 border-t-secondary-400 bg-gradient-to-br from-white to-secondary-50/30">
             <template #header>
-                <div class="flex items-center justify-between">
-                    <h3 class="font-bold text-neutral-900">Today's Sunnah</h3>
-                    <span class="text-xs text-neutral-500">{{ new Date().toLocaleDateString() }}</span>
+                <div class="flex items-center justify-between pb-2 border-b border-secondary-100">
+                    <h3 class="font-bold text-secondary-900 flex items-center gap-2">
+                      <div class="h-1 w-1 rounded-full bg-secondary-500 animate-pulse"></div>
+                      Today's Sunnah
+                    </h3>
+                    <span class="text-xs text-secondary-600 font-medium">{{ new Date().toLocaleDateString() }}</span>
                 </div>
             </template>
 
             <div class="space-y-3">
-                <label class="flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-50 cursor-pointer group">
-                    <input type="checkbox" class="w-5 h-5 rounded border-neutral-300 text-primary-900 focus:ring-primary-300" />
-                    <span class="text-sm text-neutral-700 group-hover:text-neutral-900">Read Surah Kahf</span>
+                <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-gradient-to-r hover:from-secondary-50 hover:to-white cursor-pointer group transition-all border-2 border-transparent hover:border-secondary-200 shadow-sm hover:shadow-md">
+                    <input type="checkbox" class="w-5 h-5 rounded border-secondary-300 text-secondary-600 focus:ring-secondary-400 focus:ring-2" />
+                    <span class="text-sm text-neutral-700 group-hover:text-secondary-900 font-medium">Read Surah Kahf</span>
                 </label>
-                <label class="flex items-center gap-3 p-2 rounded-lg hover:bg-neutral-50 cursor-pointer group">
-                    <input type="checkbox" class="w-5 h-5 rounded border-neutral-300 text-primary-900 focus:ring-primary-300" />
-                    <span class="text-sm text-neutral-700 group-hover:text-neutral-900">Morning Adhkar</span>
+                <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-gradient-to-r hover:from-secondary-50 hover:to-white cursor-pointer group transition-all border-2 border-transparent hover:border-secondary-200 shadow-sm hover:shadow-md">
+                    <input type="checkbox" class="w-5 h-5 rounded border-secondary-300 text-secondary-600 focus:ring-secondary-400 focus:ring-2" />
+                    <span class="text-sm text-neutral-700 group-hover:text-secondary-900 font-medium">Morning Adhkar</span>
                 </label>
             </div>
 
@@ -221,6 +376,60 @@
          </Card>
       </div>
     </div>
+
+    <!-- Quick Note Modal -->
+    <Modal :show="showQuickNoteModal" @close="showQuickNoteModal = false">
+      <div class="p-6">
+        <h3 class="text-lg font-bold text-neutral-900 mb-4">Quick Note</h3>
+        
+        <form @submit.prevent="saveQuickNote">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-2">Title</label>
+              <input
+                v-model="quickNoteForm.title"
+                type="text"
+                class="w-full rounded-lg border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                placeholder="Note title (optional)"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-2">Content</label>
+              <textarea
+                v-model="quickNoteForm.content"
+                rows="4"
+                class="w-full rounded-lg border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                placeholder="Write your note here..."
+                required
+              ></textarea>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-2">Attach to Lesson (optional)</label>
+              <select
+                v-model="quickNoteForm.lesson_id"
+                class="w-full rounded-lg border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+              >
+                <option :value="null">No lesson</option>
+                <option v-for="lesson in availableLessons" :key="lesson.id" :value="lesson.id">
+                  {{ lesson.title }} ({{ lesson.course_title }})
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 mt-6">
+            <Button type="button" variant="secondary" @click="showQuickNoteModal = false">
+              Cancel
+            </Button>
+            <Button type="submit" :loading="quickNoteForm.processing">
+              Save Note
+            </Button>
+          </div>
+        </form>
+      </div>
+    </Modal>
   </AppShell>
 </template>
 
@@ -229,18 +438,28 @@ import AppShell from '@/Layouts/AppShell.vue';
 import Card from '@/Components/Common/Card.vue';
 import Button from '@/Components/Common/Button.vue';
 import Badge from '@/Components/Common/Badge.vue';
-import { Play, PlayCircle, FileText, MessageCircle, Tag } from 'lucide-vue-next';
-import { Link, usePage, router } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import Modal from '@/Components/Modal.vue';
+import { Play, PlayCircle, FileText, MessageCircle, Tag, CheckCircle, BookOpen, Clock, Flame, Plus } from 'lucide-vue-next';
+import { Link, usePage, useForm, router } from '@inertiajs/vue3';
+import { computed, ref, onMounted } from 'vue';
 import { route } from 'ziggy-js';
 
 const page = usePage();
 
 const props = defineProps({
     stats: Object,
-    recent_activity: Array,
+    continue_watching: {
+        type: Array,
+        default: () => [],
+    },
+    watch_time: Object,
+    streak: Object,
+    recent_notes: {
+        type: Array,
+        default: () => [],
+    },
     continue_learning: Object,
-    latest_notes: Array,
+    recent_activity: Array,
     latest_community_posts: Array,
 });
 
@@ -250,9 +469,49 @@ const userName = computed(() => {
     return fullName.split(' ')[0];
 });
 
+// Quick Note Modal
+const showQuickNoteModal = ref(false);
+const quickNoteForm = useForm({
+    title: '',
+    content: '',
+    lesson_id: null,
+    scope: 'personal',
+});
+
+// Available lessons for quick note (from continue watching + continue learning)
+const availableLessons = computed(() => {
+    const lessons = [];
+    
+    if (props.continue_learning?.lesson_id) {
+        lessons.push({
+            id: props.continue_learning.lesson_id,
+            title: props.continue_learning.lesson_title,
+            course_title: props.continue_learning.course_title,
+        });
+    }
+    
+    props.continue_watching?.forEach(lesson => {
+        if (!lessons.find(l => l.id === lesson.lesson_id)) {
+            lessons.push({
+                id: lesson.lesson_id,
+                title: lesson.lesson_title,
+                course_title: lesson.course_title,
+            });
+        }
+    });
+    
+    return lessons;
+});
+
+function formatTime(seconds) {
+    if (!seconds || seconds < 0) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
 function goToLesson() {
     if (!props.continue_learning || !props.continue_learning.lesson_id) {
-        // If no lesson, go to course
         if (props.continue_learning?.course_id) {
             router.visit(route('courses.show', props.continue_learning.course_id));
         }
@@ -265,20 +524,40 @@ function goToLesson() {
     }));
 }
 
+function goToLessonFromContinue(lesson) {
+    router.visit(route('lessons.show', {
+        course: lesson.course_id,
+        lesson: lesson.lesson_id
+    }));
+}
+
+function goToNote(note) {
+    router.visit(route('notes.index'));
+}
+
 function goToDiscussion(discussionId) {
     router.visit(route('discussions.show', discussionId));
 }
 
-function handleActivityClick(activity) {
-    if (activity.type === 'lesson_completed' && activity.lesson_id && activity.course_id) {
-        router.visit(route('lessons.show', {
-            course: activity.course_id,
-            lesson: activity.lesson_id
-        }));
-    } else if (activity.type === 'note_created') {
-        router.visit(route('notes.index'));
-    } else if (activity.type === 'discussion_created') {
-        router.visit(route('discussions.show', activity.id));
+function saveQuickNote() {
+    const data = {
+        title: quickNoteForm.title || 'Untitled Note',
+        content: quickNoteForm.content,
+    };
+    
+    if (quickNoteForm.lesson_id) {
+        data.noteable_type = 'App\\Models\\Lesson';
+        data.noteable_id = quickNoteForm.lesson_id;
     }
+    
+    quickNoteForm.transform(() => data).post(route('notes.store'), {
+        preserveScroll: true,
+        onSuccess: () => {
+            showQuickNoteModal.value = false;
+            quickNoteForm.reset();
+            // Reload dashboard to show new note
+            router.reload({ only: ['recent_notes'] });
+        }
+    });
 }
 </script>

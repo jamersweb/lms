@@ -85,13 +85,20 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Reminder Time</label>
-            <input
-              v-model="form.reminder_time"
-              type="time"
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Link to Lesson (Optional)</label>
+            <select
+              v-model="form.lesson_id"
               class="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-100 focus:border-primary-300"
-            />
-            <p class="mt-1 text-xs text-neutral-500">Optional: Set a daily reminder time</p>
+            >
+              <option value="">No lesson link</option>
+              <option v-for="lesson in lessons" :key="lesson.id" :value="lesson.id">
+                {{ lesson.course_title }} → {{ lesson.module_title }} → {{ lesson.title }}
+              </option>
+            </select>
+            <p class="mt-1 text-xs text-neutral-500">
+              If linked, this habit will be automatically activated when the student completes the lesson
+            </p>
+            <p v-if="form.errors.lesson_id" class="mt-1 text-sm text-red-600">{{ form.errors.lesson_id }}</p>
           </div>
 
           <div class="flex items-center gap-3 pt-4 border-t border-neutral-100">
@@ -120,6 +127,7 @@ import { ArrowLeft } from 'lucide-vue-next';
 const props = defineProps({
   users: Array,
   selectedUserId: [Number, String],
+  lessons: Array,
 });
 
 const form = useForm({
@@ -128,6 +136,7 @@ const form = useForm({
   description: '',
   frequency_type: 'daily',
   target_per_day: 1,
+  lesson_id: '',
 });
 
 const submit = () => {

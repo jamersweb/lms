@@ -116,7 +116,11 @@
                       ]"
                     >
                        <div class="flex items-center gap-4 flex-1">
-                          <div :class="[
+                          <!-- Lesson Image or Icon -->
+                          <div v-if="lesson.image" class="h-12 w-12 rounded-lg overflow-hidden shrink-0 border border-neutral-200">
+                            <img :src="lesson.image" :alt="lesson.title" class="w-full h-full object-cover" />
+                          </div>
+                          <div v-else :class="[
                              'h-8 w-8 rounded-full flex items-center justify-center shrink-0 border',
                              lesson.is_completed
                                  ? 'bg-emerald-50 border-emerald-200 text-emerald-600'

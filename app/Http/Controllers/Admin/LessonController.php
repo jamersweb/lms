@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Lesson;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class LessonController extends Controller
@@ -31,7 +33,8 @@ class LessonController extends Controller
         $rules = [
             'module_id' => 'required|exists:modules,id',
             'title' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:lessons',
+            'slug' => 'nullable|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // 5MB
             'video_provider' => 'required|in:youtube,mp4,external,vimeo',
             'sort_order' => 'integer',
             'is_free_preview' => 'boolean',
@@ -39,29 +42,40 @@ class LessonController extends Controller
             'video_file' => 'nullable|required_if:video_provider,mp4|file|mimetypes:video/mp4|max:512000', // 500MB
             'external_video_url' => 'nullable|required_if:video_provider,external|url',
             'transcript_file' => 'nullable|file|mimes:vtt,srt|max:512', // 512KB
+            'release_at' => 'nullable|date',
+            'release_day_offset' => 'nullable|integer|min:0|max:365',
         ];
 
         $validated = $request->validate($rules);
 
-        if ($request->hasFile('video_file')) {
-            $path = $request->file('video_file')->store('videos', 'public');
-            $validated['video_path'] = $path;
-        }
+        // Wrap lesson creation and transcript upload in transaction
+        $lesson = DB::transaction(function () use ($request, $validated, $parser) {
+            if ($request->hasFile('image')) {
+                $validated['image'] = $request->file('image')->store('lessons', 'public');
+            }
 
-        $lesson = Lesson::create($validated);
+            if ($request->hasFile('video_file')) {
+                $path = $request->file('video_file')->store('videos', 'public');
+                $validated['video_path'] = $path;
+            }
 
-        if ($request->hasFile('transcript_file')) {
-            $content = file_get_contents($request->file('transcript_file')->getRealPath());
-            $segments = $parser->parse($content);
-            $lesson->transcriptSegments()->createMany($segments);
-        }
+            $lesson = Lesson::create($validated);
 
-        return redirect()->route('admin.lessons.index');
+            if ($request->hasFile('transcript_file')) {
+                $content = file_get_contents($request->file('transcript_file')->getRealPath());
+                $segments = $parser->parse($content);
+                $lesson->transcriptSegments()->createMany($segments);
+            }
+
+            return $lesson;
+        });
+
+        return redirect()->route('admin.lessons.edit', $lesson);
     }
 
     public function edit(Lesson $lesson)
     {
-        $lesson->load('contentRule', 'task');
+        $lesson->load('contentRule', 'task', 'resource');
 
         return Inertia::render('Admin/Lessons/Edit', [
             'lesson' => [
@@ -69,6 +83,7 @@ class LessonController extends Controller
                 'module_id' => $lesson->module_id,
                 'title' => $lesson->title,
                 'slug' => $lesson->slug,
+                'image' => $lesson->image ? Storage::url($lesson->image) : null,
                 'video_provider' => $lesson->video_provider,
                 'youtube_video_id' => $lesson->youtube_video_id,
                 'external_video_url' => $lesson->external_video_url,
@@ -94,6 +109,13 @@ class LessonController extends Controller
                 'required_days' => $lesson->task->required_days,
                 'unlock_next_lesson' => $lesson->task->unlock_next_lesson,
             ] : null,
+            'resource' => $lesson->resource ? [
+                'id' => $lesson->resource->id,
+                'sunnah_pointers' => $lesson->resource->sunnah_pointers,
+                'duas_text' => $lesson->resource->duas_text,
+                'audio_path' => $lesson->resource->audio_path,
+                'pdf_path' => $lesson->resource->pdf_path,
+            ] : null,
             'release_at' => $lesson->release_at ? $lesson->release_at->toIso8601String() : null,
             'release_day_offset' => $lesson->release_day_offset,
         ]);
@@ -104,7 +126,8 @@ class LessonController extends Controller
         $rules = [
             'module_id' => 'required|exists:modules,id',
             'title' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:lessons,slug,' . $lesson->id,
+            'slug' => 'nullable|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // 5MB
             'video_provider' => 'required|in:youtube,mp4,external,vimeo',
             'sort_order' => 'integer',
             'is_free_preview' => 'boolean',
@@ -127,16 +150,30 @@ class LessonController extends Controller
              }
         }
 
-        $lesson->update($validated);
+        // Wrap in transaction to ensure data consistency
+        DB::transaction(function () use ($lesson, $validated, $request, $parser) {
+            if ($request->hasFile('image')) {
+                // Delete old image if exists
+                if ($lesson->image) {
+                    Storage::disk('public')->delete($lesson->image);
+                }
+                $validated['image'] = $request->file('image')->store('lessons', 'public');
+            } else {
+                // Keep existing image if no new file uploaded
+                unset($validated['image']);
+            }
 
-        if ($request->hasFile('transcript_file')) {
-            $content = file_get_contents($request->file('transcript_file')->getRealPath());
-            $segments = $parser->parse($content);
+            $lesson->update($validated);
 
-            // Replace existing segments
-            $lesson->transcriptSegments()->delete();
-            $lesson->transcriptSegments()->createMany($segments);
-        }
+            if ($request->hasFile('transcript_file')) {
+                $content = file_get_contents($request->file('transcript_file')->getRealPath());
+                $segments = $parser->parse($content);
+
+                // Replace existing segments
+                $lesson->transcriptSegments()->delete();
+                $lesson->transcriptSegments()->createMany($segments);
+            }
+        });
 
         return redirect()->route('admin.lessons.index');
     }

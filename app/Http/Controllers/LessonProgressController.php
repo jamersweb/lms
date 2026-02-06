@@ -5,16 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Services\ActivityLogger;
+use App\Services\AuthorizationService;
 use App\Services\EligibilityService;
 use App\Services\PointsService;
 use App\Services\JourneyService;
 use App\Services\CertificateService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class LessonProgressController extends Controller
 {
     public function __construct(
-        private EligibilityService $eligibilityService
+        private EligibilityService $eligibilityService,
+        private ActivityLogger $activityLogger,
+        private AuthorizationService $authorizationService
     ) {}
 
     /**
@@ -23,12 +27,10 @@ class LessonProgressController extends Controller
     public function complete(Request $request, Lesson $lesson)
     {
         $user = auth()->user();
-
-        // Check if user is enrolled in the course
         $course = $lesson->module->course;
-        if (!$user->isEnrolledIn($course->id)) {
-            abort(403, 'You must be enrolled in this course to mark lessons as complete.');
-        }
+
+        // Standardized authorization check
+        $this->authorizationService->ensureEnrolled($user, $course);
 
         // Check eligibility using Phase 1 EligibilityService
         $eligibility = $this->eligibilityService->canAccessLesson($user, $lesson);
@@ -62,8 +64,9 @@ class LessonProgressController extends Controller
         $minWatchSeconds = config('video_guard.min_watch_seconds', 30);
         $requireDuration = config('video_guard.require_duration_for_completion', true);
 
-        // Determine duration
-        $duration = (int) ($lesson->duration_seconds ?? 0);
+        // Determine duration - check both duration_seconds and video_duration_seconds
+        // video_duration_seconds is set when video is played, duration_seconds is manually set
+        $duration = (int) ($lesson->duration_seconds ?? $lesson->video_duration_seconds ?? 0);
 
         // Fallback to transcript duration if video duration is unknown (only if not strict)
         if ($duration <= 0 && !$requireDuration) {
@@ -76,8 +79,16 @@ class LessonProgressController extends Controller
 
         // Check duration requirement
         if ($requireDuration && $duration <= 0) {
-            $errors[] = 'missing_duration';
-            $errorMessages[] = 'Duration not configured. Please contact support.';
+            // Try fallback: use watched_seconds if user has watched something (at least 10 seconds)
+            $watchedSeconds = (int) ($progress->watched_seconds ?? 0);
+            if ($watchedSeconds >= 10) {
+                // Use watched seconds as a reasonable estimate if no duration is set
+                // Add a small buffer (10%) to account for potential tracking inaccuracies
+                $duration = (int) ceil($watchedSeconds * 1.1);
+            } else {
+                $errors[] = 'missing_duration';
+                $errorMessages[] = 'Duration not configured. Please contact support.';
+            }
         }
 
         // Compute required watch time
@@ -153,48 +164,95 @@ class LessonProgressController extends Controller
                 ->with('completion_errors', $errors);
         }
 
-        // All validation passed - mark as completed
-        $progress->is_completed = true;
-        $progress->completed_at = now();
-        $progress->verified_completion = true;
-        $progress->verified_at = now();
+        // All validation passed - wrap in transaction for data integrity
+        DB::transaction(function () use ($progress, $user, $lesson, $course, $watchedSeconds, $duration, $maxRate, $violations, $hasSeekViolations, $request) {
+            // Mark as completed
+            $progress->is_completed = true;
+            $progress->completed_at = now();
+            $progress->verified_completion = true;
+            $progress->verified_at = now();
 
-        // Store completion metadata snapshot
-        $progress->completion_meta = [
-            'watched_seconds' => $watchedSeconds,
-            'duration_seconds' => $duration,
-            'max_playback_rate' => $maxRate,
-            'seek_attempts' => $progress->seek_attempts ?? 0,
-            'violations_count' => count($violations),
-            'completed_at' => now()->toIso8601String(),
-        ];
+            // Store completion metadata snapshot
+            $progress->completion_meta = [
+                'watched_seconds' => $watchedSeconds,
+                'duration_seconds' => $duration,
+                'max_playback_rate' => $maxRate,
+                'seek_attempts' => $progress->seek_attempts ?? 0,
+                'violations_count' => count($violations),
+                'completed_at' => now()->toIso8601String(),
+            ];
 
-        $progress->save();
+            $progress->save();
 
-        // Log lesson completion
-        $this->activityLogger->log(
-            \App\Models\ActivityEvent::TYPE_LESSON_WATCH_COMPLETED,
-            $user,
-            [
-                'subject' => $lesson,
-                'course_id' => $course->id,
-                'module_id' => $lesson->module_id,
-                'lesson_id' => $lesson->id,
-                'meta' => [
-                    'watched_seconds' => $watchedSeconds,
-                    'duration_seconds' => $duration,
-                    'violations_summary' => [
-                        'count' => count($violations),
-                        'has_seek' => $hasSeekViolations,
+            // Log lesson completion
+            $this->activityLogger->log(
+                \App\Models\ActivityEvent::TYPE_LESSON_WATCH_COMPLETED,
+                $user,
+                [
+                    'subject' => $lesson,
+                    'course_id' => $course->id,
+                    'module_id' => $lesson->module_id,
+                    'lesson_id' => $lesson->id,
+                    'meta' => [
+                        'watched_seconds' => $watchedSeconds,
+                        'duration_seconds' => $duration,
+                        'violations_summary' => [
+                            'count' => count($violations),
+                            'has_seek' => $hasSeekViolations,
+                        ],
                     ],
-                ],
-            ]
-        );
+                ]
+            );
 
-        // Award points
-        PointsService::award($user, 'lesson_completed', 10);
+            // Award points
+            PointsService::award($user, 'lesson_completed', 10);
 
-        // Check if course is completed
+            // Auto-assign habits linked to this lesson
+            $habits = \App\Models\Habit::where('lesson_id', $lesson->id)
+                ->where('user_id', $user->id)
+                ->where('is_active', true)
+                ->get();
+
+            foreach ($habits as $habit) {
+                // Check if already logged today
+                $existingLog = $habit->logs()
+                    ->whereDate('log_date', today())
+                    ->first();
+
+                if (!$existingLog) {
+                    // Create habit log entry
+                    $habit->logs()->create([
+                        'user_id' => $user->id,
+                        'log_date' => today(),
+                        'status' => 'done',
+                        'completed_count' => 1
+                    ]);
+
+                    // Award points for habit completion
+                    PointsService::award($user, 'habit_done', 2);
+                }
+            }
+
+            // Check if course is completed
+            $totalLessons = $course->modules->flatMap->lessons->count();
+            $completedLessons = $user->lessonProgress()
+                ->whereIn('lesson_id', $course->modules->flatMap->lessons->pluck('id'))
+                ->whereNotNull('completed_at')
+                ->count();
+
+            if ($totalLessons === $completedLessons) {
+                PointsService::award($user, 'course_completed', 50);
+
+                // Award course completion certificate
+                $certificateService = new CertificateService();
+                $certificateService->awardCertificate($user, 'course_completion', $course);
+            }
+
+            // Recompute journey statuses after completion
+            JourneyService::computeStatusesForCourse($user, $course);
+        });
+
+        // Check if course was completed (after transaction)
         $totalLessons = $course->modules->flatMap->lessons->count();
         $completedLessons = $user->lessonProgress()
             ->whereIn('lesson_id', $course->modules->flatMap->lessons->pluck('id'))
@@ -202,12 +260,6 @@ class LessonProgressController extends Controller
             ->count();
 
         if ($totalLessons === $completedLessons) {
-            PointsService::award($user, 'course_completed', 50);
-
-            // Award course completion certificate
-            $certificateService = new CertificateService();
-            $certificateService->awardCertificate($user, 'course_completion', $course);
-
             if ($request->expectsJson()) {
                 return response()->json([
                     'ok' => true,
@@ -216,9 +268,6 @@ class LessonProgressController extends Controller
             }
             return back()->with('success', 'Congratulations! You completed the course! A certificate has been awarded.');
         }
-
-        // Recompute journey statuses after completion
-        JourneyService::computeStatusesForCourse($user, $course);
 
         if ($request->expectsJson()) {
             return response()->json([

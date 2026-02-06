@@ -1,7 +1,7 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { Eye, EyeOff, Mail, Lock, User, Loader2 } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { ref, getCurrentInstance, inject } from 'vue';
 
 const form = useForm({
     name: '',
@@ -12,6 +12,15 @@ const form = useForm({
 
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
+
+// Get route helper - try inject first (provided by ZiggyVue), then global property, then fallback
+const route = inject('route', null) || 
+    getCurrentInstance()?.appContext.config.globalProperties.route ||
+    (typeof window !== 'undefined' && window.route) ||
+    ((name) => {
+        console.error('Route helper not available. Route name:', name);
+        return '#';
+    });
 
 const submit = () => {
     form.post(route('register'), {
@@ -36,7 +45,7 @@ const submit = () => {
             <!-- Overlay Content -->
             <div class="relative z-10 flex flex-col justify-between p-12 text-white">
                 <div>
-                    <img src="/images/logo.png" alt="Tazkiyah Tarbiyah" class="h-16" />
+                    <img src="/images/white-logo-2048x673.avif" alt="Tazkiyah Tarbiyah" class="h-16 drop-shadow-lg" />
                 </div>
                 
                 <div class="max-w-md">
@@ -89,7 +98,9 @@ const submit = () => {
             <div class="w-full max-w-md">
                 <!-- Mobile Logo -->
                 <div class="lg:hidden mb-8 text-center">
-                    <img src="/images/logo.png" alt="Tazkiyah Tarbiyah" class="h-14 mx-auto" />
+                    <div class="inline-flex items-center justify-center p-4 bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-neutral-200/50">
+                        <img src="/images/white-logo-2048x673.avif" alt="Tazkiyah Tarbiyah" class="h-14 mx-auto drop-shadow-md" />
+                    </div>
                 </div>
                 
                 <!-- Header -->

@@ -2,7 +2,7 @@
   <AppShell>
     <Head :title="`Admin - Edit ${lesson.title}`" />
 
-    <div class="max-w-2xl">
+    <div class="w-full">
       <!-- Header -->
       <div class="mb-8">
         <Link href="/admin/lessons" class="inline-flex items-center gap-2 text-neutral-600 hover:text-primary-600 mb-4">
@@ -39,19 +39,45 @@
             class="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
             required
           />
+          <p class="mt-1 text-xs text-neutral-500">URL slug will be automatically updated when title changes</p>
           <p v-if="form.errors.title" class="mt-1 text-sm text-red-600">{{ form.errors.title }}</p>
         </div>
 
-        <!-- Slug -->
+        <!-- Lesson Image -->
         <div>
-          <label class="block text-sm font-medium text-neutral-700 mb-2">URL Slug *</label>
-          <input
-            v-model="form.slug"
-            type="text"
-            class="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
-            required
-          />
-          <p v-if="form.errors.slug" class="mt-1 text-sm text-red-600">{{ form.errors.slug }}</p>
+          <label class="block text-sm font-medium text-neutral-700 mb-2">Lesson Image</label>
+          <div class="space-y-4">
+            <div v-if="imagePreview || lesson.image" class="relative w-full max-w-md">
+              <img 
+                :src="imagePreview || lesson.image" 
+                alt="Preview" 
+                class="w-full h-48 object-cover rounded-xl border border-neutral-200" 
+              />
+              <button
+                type="button"
+                @click="clearImage"
+                class="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+              >
+                <X class="w-4 h-4" />
+              </button>
+            </div>
+            <div>
+              <label class="block w-full px-4 py-2.5 border-2 border-dashed border-neutral-300 rounded-xl hover:border-primary-400 cursor-pointer transition-colors bg-neutral-50 hover:bg-neutral-100">
+                <input
+                  type="file"
+                  @change="handleImageChange"
+                  accept="image/*"
+                  class="hidden"
+                />
+                <div class="text-center">
+                  <span class="text-sm font-medium text-neutral-700">Click to upload image</span>
+                  <p class="text-xs text-neutral-500 mt-1">JPG, PNG, or WebP (max 5MB)</p>
+                </div>
+              </label>
+              <p class="mt-1 text-xs text-neutral-500">Upload an image for the lesson</p>
+            </div>
+          </div>
+          <p v-if="form.errors.image" class="mt-1 text-sm text-red-600">{{ form.errors.image }}</p>
         </div>
 
         <!-- Video Provider -->
@@ -254,6 +280,102 @@
         />
       </div>
 
+      <!-- Lesson Resources -->
+      <div class="mt-8 bg-white rounded-xl border border-neutral-200 p-6">
+        <h3 class="text-lg font-semibold text-neutral-900 mb-4">Sunnah & Dua Resources</h3>
+        <p class="text-sm text-neutral-600 mb-4">
+          Add Sunnah pointers and Duas that will be shown to students after completing this lesson.
+        </p>
+
+        <form @submit.prevent="submitResources" class="space-y-4" enctype="multipart/form-data">
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">
+              Sunnah Pointers
+            </label>
+            <textarea
+              v-model="resourceForm.sunnah_pointers"
+              rows="4"
+              class="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
+              placeholder="Enter Sunnah pointers and reminders..."
+            ></textarea>
+            <p class="mt-1 text-xs text-neutral-500">
+              Short pointers about Sunnah practices related to this lesson
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">
+              Duas (Arabic/Urdu/English)
+            </label>
+            <textarea
+              v-model="resourceForm.duas_text"
+              rows="6"
+              class="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
+              placeholder="Enter Duas text..."
+              dir="rtl"
+            ></textarea>
+            <p class="mt-1 text-xs text-neutral-500">
+              Duas related to this lesson (supports Arabic, Urdu, and English)
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">
+              Dua Audio File (Optional)
+            </label>
+            <input
+              type="file"
+              @change="e => resourceForm.audio_file = e.target.files[0]"
+              accept="audio/mp3,audio/wav,audio/ogg"
+              class="w-full"
+            />
+            <p v-if="resource?.audio_path" class="mt-2 text-sm text-neutral-600">
+              Current: {{ resource.audio_path }}
+            </p>
+            <p class="mt-1 text-xs text-neutral-500">
+              Upload audio file for Dua pronunciation (MP3, WAV, or OGG, max 10MB)
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">
+              Lesson Notes PDF (Optional)
+            </label>
+            <input
+              type="file"
+              @change="e => resourceForm.pdf_file = e.target.files[0]"
+              accept="application/pdf"
+              class="w-full"
+            />
+            <p v-if="resource?.pdf_path" class="mt-2 text-sm text-neutral-600">
+              Current: {{ resource.pdf_path }}
+            </p>
+            <p class="mt-1 text-xs text-neutral-500">
+              Upload PDF file with lesson notes (max 5MB)
+            </p>
+          </div>
+
+          <div class="flex gap-3">
+            <button
+              type="submit"
+              :disabled="resourceForm.processing"
+              class="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50"
+            >
+              {{ resource ? 'Update Resources' : 'Save Resources' }}
+            </button>
+            <button
+              v-if="resource"
+              type="button"
+              @click="deleteResources"
+              :disabled="resourceForm.processing"
+              class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+            >
+              Delete Resources
+            </button>
+          </div>
+        </form>
+      </div>
+
       <!-- Task Management -->
       <div class="mt-8 bg-white rounded-xl border border-neutral-200 p-6">
         <h3 class="text-lg font-semibold text-neutral-900 mb-4">Practice Task</h3>
@@ -356,7 +478,8 @@
 <script setup>
 import AppShell from '@/Layouts/AppShell.vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
-import { ArrowLeft, Loader2, Youtube, ExternalLink, Film } from 'lucide-vue-next';
+import { ArrowLeft, Loader2, Youtube, ExternalLink, Film, X } from 'lucide-vue-next';
+import { ref } from 'vue';
 import ContentRuleForm from '@/Components/Admin/ContentRuleForm.vue';
 
 const props = defineProps({
@@ -364,6 +487,7 @@ const props = defineProps({
   modules: Array,
   contentRule: Object,
   task: Object,
+  resource: Object,
 });
 
 // Format release_at for datetime-local input (ISO string without timezone)
@@ -381,7 +505,7 @@ const formatReleaseAt = (isoString) => {
 const form = useForm({
   module_id: props.lesson.module_id,
   title: props.lesson.title,
-  slug: props.lesson.slug,
+  image: null,
   video_provider: props.lesson.video_provider || 'youtube',
   youtube_video_id: props.lesson.youtube_video_id || '',
   external_video_url: props.lesson.external_video_url || '',
@@ -393,6 +517,25 @@ const form = useForm({
   release_day_offset: props.lesson.release_day_offset ?? null,
   _method: 'put',
 });
+
+const imagePreview = ref(null);
+
+function handleImageChange(event) {
+  const file = event.target.files[0];
+  if (file) {
+    form.image = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      imagePreview.value = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function clearImage() {
+  form.image = null;
+  imagePreview.value = null;
+}
 
 function submit() {
   form.post(`/admin/lessons/${props.lesson.id}`, {
@@ -430,6 +573,35 @@ function deleteTask() {
 function deleteLesson() {
   if (confirm(`Are you sure you want to delete "${props.lesson.title}"? This cannot be undone.`)) {
     router.delete(`/admin/lessons/${props.lesson.id}`);
+  }
+}
+
+const resourceForm = useForm({
+  sunnah_pointers: props.resource?.sunnah_pointers || '',
+  duas_text: props.resource?.duas_text || '',
+  audio_file: null,
+  pdf_file: null,
+});
+
+function submitResources() {
+  resourceForm.post(route('admin.lessons.resources.store', { lesson: props.lesson.id }), {
+    forceFormData: true,
+    preserveScroll: true,
+    onSuccess: () => {
+      router.reload({ only: ['resource'] });
+      resourceForm.reset();
+    },
+  });
+}
+
+function deleteResources() {
+  if (confirm('Are you sure you want to delete these resources?')) {
+    router.delete(route('admin.lessons.resources.destroy', { lesson: props.lesson.id }), {
+      preserveScroll: true,
+      onSuccess: () => {
+        router.reload({ only: ['resource'] });
+      },
+    });
   }
 }
 </script>

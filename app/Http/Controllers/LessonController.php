@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
+use App\Services\AuthorizationService;
 use App\Services\EligibilityService;
 use App\Services\JourneyService;
 use App\Services\ProgressionService;
@@ -25,9 +26,12 @@ class LessonController extends Controller
         ]);
 
         $user = $request->user();
-        $course = $lesson->module->course;
+        if (!$user) {
+            abort(403);
+        }
 
-        if (! $user || (! $user->isEnrolledIn($course->id) && ! $lesson->is_free_preview)) {
+        $authorizationService = app(AuthorizationService::class);
+        if (!$authorizationService->hasLessonAccess($user, $lesson)) {
             abort(403);
         }
 
@@ -43,14 +47,32 @@ class LessonController extends Controller
 
     public function show($courseId, $lessonId)
     {
-        $course = Course::with(['modules.lessons', 'contentRule'])->findOrFail($courseId);
+        // Eager load all relationships to prevent N+1 queries
+        $course = Course::with([
+            'modules' => function($query) {
+                $query->orderBy('sort_order')->orderBy('id');
+            },
+            'modules.lessons' => function($query) {
+                $query->orderBy('sort_order')->orderBy('id');
+            },
+            'contentRule'
+        ])->findOrFail($courseId);
+        
         $lesson = Lesson::with([
             'module.contentRule',
             'module.course.contentRule',
-            'reflections',
-            'transcriptSegments',
+            'reflections' => function($query) use ($lessonId) {
+                // Pre-filter reflections for current user if authenticated
+                if (Auth::check()) {
+                    $query->where('user_id', Auth::id());
+                }
+            },
+            'transcriptSegments' => function($query) {
+                $query->orderBy('start_seconds');
+            },
             'contentRule',
-            'task'
+            'task',
+            'resource'
         ])->findOrFail($lessonId);
 
         $user = Auth::user();
@@ -103,10 +125,13 @@ class LessonController extends Controller
             }
         }
 
-        // Check enrollment (unless it's a free preview)
-        if ($user && ! $lesson->is_free_preview && ! $user->isEnrolledIn($course->id)) {
-            return redirect()->route('courses.show', $course)
-                ->with('error', 'You must enroll in this course to access the lessons.');
+        // Standardized authorization check (unless it's a free preview)
+        if ($user && !$lesson->is_free_preview) {
+            $authorizationService = app(AuthorizationService::class);
+            if (!$authorizationService->hasLessonAccess($user, $lesson)) {
+                return redirect()->route('courses.show', $course)
+                    ->with('error', 'You must enroll in this course to access the lessons.');
+            }
         }
 
         $completedLessonIds = [];
@@ -122,11 +147,13 @@ class LessonController extends Controller
                 JourneyService::ensureProgressRecords($user, $course);
             }
 
+            // Eager load all lesson progress in one query
             $lessonIds = $course->modules->flatMap->lessons->pluck('id');
             if ($lessonIds->isNotEmpty()) {
                 $progress = LessonProgress::query()
                     ->where('user_id', $user->id)
                     ->whereIn('lesson_id', $lessonIds)
+                    ->with('lesson') // Eager load lesson relationship if needed
                     ->get();
 
                 $completedLessonIds = $progress
@@ -196,6 +223,11 @@ class LessonController extends Controller
                     ];
                 })
                 ->toArray();
+
+            // Load video progress for resume functionality
+            $videoProgress = \App\Models\LessonVideoProgress::forUserAndLesson($user->id, $lesson->id);
+        } else {
+            $videoProgress = null;
         }
 
         // Build flat playlist from all modules
@@ -242,7 +274,7 @@ class LessonController extends Controller
                 'id' => $lesson->id,
                 'title' => $lesson->title,
                 'description' => 'Part of the course: '.$course->title,
-                'video_url' => $lesson->video_url,
+                'video_url' => $lesson->video_url ?? $lesson->external_video_url,
                 'video_provider' => $lesson->video_provider,
                 'youtube_video_id' => $lesson->youtube_video_id,
                 'duration' => $this->formatDuration($lesson->duration_seconds),
@@ -251,9 +283,14 @@ class LessonController extends Controller
                 'requires_reflection' => (bool) $lesson->requires_reflection,
                 'reflection_requires_approval' => (bool) $lesson->reflection_requires_approval,
                 'transcript_text' => $lesson->transcript_text,
-                'transcript_segments' => $lesson->transcriptSegments()
-                    ->get(['id', 'start_seconds', 'end_seconds', 'text'])
-                    ->toArray(),
+                'transcript_segments' => $lesson->relationLoaded('transcriptSegments') 
+                    ? $lesson->transcriptSegments->map(fn($seg) => [
+                        'id' => $seg->id,
+                        'start_seconds' => $seg->start_seconds,
+                        'end_seconds' => $seg->end_seconds,
+                        'text' => $seg->text,
+                    ])->toArray()
+                    : $lesson->transcriptSegments()->get(['id', 'start_seconds', 'end_seconds', 'text'])->toArray(),
                 'next_lesson_id' => $nextLessonId,
                 'prev_lesson_id' => $prevLessonId,
                 'status' => $statusByLessonId[$lesson->id] ?? 'available',
@@ -263,6 +300,12 @@ class LessonController extends Controller
                     'watched_seconds' => $currentLessonProgress->watched_seconds ?? 0,
                     'max_playback_rate' => $currentLessonProgress->max_playback_rate ?? 1.0,
                     'seek_attempts' => $currentLessonProgress->seek_attempts ?? 0,
+                ] : null,
+                'video_progress' => $videoProgress ? [
+                    'last_position_seconds' => $videoProgress->last_position_seconds,
+                    'percent_complete' => $videoProgress->percent_complete,
+                    'is_completed' => $videoProgress->is_completed,
+                    'duration_seconds' => $videoProgress->duration_seconds,
                 ] : null,
             ],
             'playlist' => $playlist,

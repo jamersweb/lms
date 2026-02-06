@@ -2,7 +2,7 @@
   <div class="relative" ref="dropdownRef">
     <button
       @click="toggleDropdown"
-      class="p-2 text-neutral-400 hover:text-primary-900 transition-colors relative"
+      class="p-2 text-primary-600 hover:text-primary-700 transition-colors relative"
       aria-label="Notifications"
     >
       <Bell class="h-5 w-5" />

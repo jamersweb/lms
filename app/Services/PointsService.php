@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\PointsEvent;
+use Illuminate\Support\Facades\DB;
 
 class PointsService
 {
@@ -23,26 +24,30 @@ class PointsService
     /**
      * Award points once for a unique event (idempotent).
      * If the event key already exists, return the existing event.
+     * Uses database transaction with lock to prevent race conditions.
      */
     public function awardOnce(string $eventKey, int $userId, int $points, string $eventType): PointsEvent
     {
-        // Check if event already exists
-        $existing = PointsEvent::where('key', $eventKey)
-            ->where('user_id', $userId)
-            ->first();
+        return DB::transaction(function () use ($eventKey, $userId, $points, $eventType) {
+            // Check if event already exists with lock to prevent race conditions
+            $existing = PointsEvent::where('key', $eventKey)
+                ->where('user_id', $userId)
+                ->lockForUpdate()
+                ->first();
 
-        if ($existing) {
-            return $existing;
-        }
+            if ($existing) {
+                return $existing;
+            }
 
-        // Create new event
-        return PointsEvent::create([
-            'user_id' => $userId,
-            'key' => $eventKey,
-            'event_type' => $eventType,
-            'points' => $points,
-            'description' => self::getDescription($eventType)
-        ]);
+            // Create new event
+            return PointsEvent::create([
+                'user_id' => $userId,
+                'key' => $eventKey,
+                'event_type' => $eventType,
+                'points' => $points,
+                'description' => self::getDescription($eventType)
+            ]);
+        });
     }
 
     /**

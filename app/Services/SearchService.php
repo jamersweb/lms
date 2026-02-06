@@ -36,7 +36,7 @@ class SearchService
         if ($driver === 'mysql') {
             // Prefer FULLTEXT if available
             $base->whereRaw('MATCH(seg.text) AGAINST (? IN BOOLEAN MODE)', [$query]);
-            $base->orderByDesc(DB::raw('MATCH(seg.text) AGAINST ("'.$query.'" IN BOOLEAN MODE)'));
+            $base->orderByDesc(DB::raw('MATCH(seg.text) AGAINST (? IN BOOLEAN MODE)', [$query]));
         } else {
             $like = '%' . $this->escapeLike($query) . '%';
             $base->where('seg.text', 'like', $like);

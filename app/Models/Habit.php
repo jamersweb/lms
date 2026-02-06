@@ -10,7 +10,7 @@ class Habit extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'title', 'description', 'frequency_type', 
+        'user_id', 'lesson_id', 'title', 'description', 'frequency_type', 
         'frequency_days', 'target_per_day', 'is_active', 'sort_order'
     ];
 
@@ -27,5 +27,10 @@ class Habit extends Model
     public function logs()
     {
         return $this->hasMany(HabitLog::class);
+    }
+
+    public function lesson()
+    {
+        return $this->belongsTo(Lesson::class);
     }
 }

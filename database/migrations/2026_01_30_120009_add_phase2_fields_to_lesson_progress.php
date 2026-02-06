@@ -22,20 +22,30 @@ return new class extends Migration
                 }
             }
 
-            // Add seek_attempts if missing
+            // Rename max_playback_rate_seen to max_playback_rate if needed (do this FIRST)
+            if (Schema::hasColumn('lesson_progress', 'max_playback_rate_seen') &&
+                !Schema::hasColumn('lesson_progress', 'max_playback_rate')) {
+                $table->renameColumn('max_playback_rate_seen', 'max_playback_rate');
+            }
+        });
+
+        // Separate callback to ensure rename is committed before using the column
+        Schema::table('lesson_progress', function (Blueprint $table) {
+            // Add seek_attempts if missing (after ensuring max_playback_rate exists)
             if (!Schema::hasColumn('lesson_progress', 'seek_attempts')) {
-                $table->integer('seek_attempts')->default(0)->after('max_playback_rate');
+                // Determine which column to use as reference - use verified_at as safe fallback
+                $afterColumn = 'verified_at'; // Safe fallback that should exist
+                if (Schema::hasColumn('lesson_progress', 'max_playback_rate')) {
+                    $afterColumn = 'max_playback_rate';
+                } elseif (Schema::hasColumn('lesson_progress', 'seek_detected')) {
+                    $afterColumn = 'seek_detected';
+                }
+                $table->integer('seek_attempts')->default(0)->after($afterColumn);
             }
 
             // Add violations JSON if missing
             if (!Schema::hasColumn('lesson_progress', 'violations')) {
                 $table->json('violations')->nullable()->after('seek_attempts');
-            }
-
-            // Rename max_playback_rate_seen to max_playback_rate if needed
-            if (Schema::hasColumn('lesson_progress', 'max_playback_rate_seen') &&
-                !Schema::hasColumn('lesson_progress', 'max_playback_rate')) {
-                $table->renameColumn('max_playback_rate_seen', 'max_playback_rate');
             }
         });
     }
