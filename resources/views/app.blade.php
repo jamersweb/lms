@@ -20,7 +20,7 @@
     </head>
     <body class="font-sans antialiased">
         @inertia
-        {{-- If app never mounts (white screen), show message after 12s and log any early errors --}}
+        {{-- If app never mounts (white screen), after 12s show message or last stored error --}}
         <script>
             (function() {
                 var shown = false;
@@ -32,9 +32,15 @@
                         var t = (window.__inertiaLoadStart && (Date.now() - window.__inertiaLoadStart > 12000)) ? true : false;
                         if (t || (document.readyState === 'complete' && !document.querySelector('[data-page]') && !app.textContent)) {
                             shown = true;
-                            app.innerHTML = '<div style="padding:2rem;text-align:center;font-family:sans-serif;color:#333;">' +
-                                '<p style="font-size:1.1rem;">Page did not load. Open Developer Tools (F12) → Console tab and check for red errors.</p>' +
-                                '<p style="margin-top:1rem;font-size:0.9rem;color:#666;">Send a screenshot of the Console errors to fix the issue.</p></div>';
+                            var last = '';
+                            try { last = sessionStorage.getItem('inertia_last_error') || ''; } catch (_) {}
+                            if (last) {
+                                app.innerHTML = '<div style="padding:2rem;font-family:monospace;font-size:13px;background:#1e293b;color:#f1f5f9;white-space:pre-wrap;min-height:100vh;">' +
+                                    '<strong style="color:#f87171;">Last error (copy and send this):</strong><br><br>' + last.replace(/</g, '&lt;') + '</div>';
+                            } else {
+                                app.innerHTML = '<div style="padding:2rem;text-align:center;font-family:sans-serif;color:#333;">' +
+                                    '<p style="font-size:1.1rem;">Page did not load. Open F12 → Console and send a screenshot of red errors.</p></div>';
+                            }
                         }
                     }
                 }
