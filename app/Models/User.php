@@ -28,6 +28,8 @@ class User extends Authenticatable
         'whatsapp_opt_in',
         'email_reminders_opt_in',
         'last_active_at',
+        'locale',
+        'content_locale',
         // Note: 'is_admin' intentionally excluded for security - set via admin controllers only
     ];
 
@@ -113,6 +115,11 @@ class User extends Authenticatable
     public function lessonProgress()
     {
         return $this->hasMany(LessonProgress::class);
+    }
+
+    public function lessonQuizAttempts()
+    {
+        return $this->hasMany(LessonQuizAttempt::class);
     }
 
     public function pointsEvents()

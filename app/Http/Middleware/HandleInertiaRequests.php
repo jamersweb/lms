@@ -42,11 +42,17 @@ class HandleInertiaRequests extends Middleware
             }
         }
 
+        $contentLocale = $user?->content_locale
+            ?? $request->session()->get('content_locale')
+            ?? app()->getLocale();
+
         return [
             ...parent::share($request),
             'auth' => [
                 'user' => $user,
             ],
+            'locale' => app()->getLocale(),
+            'content_locale' => $contentLocale,
             'unread_notifications_count' => $unreadCount,
         ];
     }

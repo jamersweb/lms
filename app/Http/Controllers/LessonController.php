@@ -72,10 +72,14 @@ class LessonController extends Controller
             },
             'contentRule',
             'task',
-            'resource'
+            'resource',
+            'quizQuestions' => function($query) {
+                $query->orderBy('sort_order');
+            },
         ])->findOrFail($lessonId);
 
         $user = Auth::user();
+        $contentLocale = $user?->content_locale ?? app()->getLocale();
 
         // Check progression (combines eligibility + sequential unlocking)
         if ($user) {
@@ -224,10 +228,34 @@ class LessonController extends Controller
                 })
                 ->toArray();
 
+            // Quiz: only send questions with options (no correct answer); only if lesson has quiz
+            $quizData = null;
+            $quizAttemptData = null;
+            if ($lesson->relationLoaded('quizQuestions') && $lesson->quizQuestions->isNotEmpty()) {
+                $quizData = $lesson->quizQuestions->map(fn($q) => [
+                    'id' => $q->id,
+                    'question_text' => $q->question_text,
+                    'options' => $q->options,
+                ])->toArray();
+                $attempt = \App\Models\LessonQuizAttempt::where('user_id', $user->id)
+                    ->where('lesson_id', $lesson->id)
+                    ->first();
+                if ($attempt) {
+                    $quizAttemptData = [
+                        'score' => $attempt->score,
+                        'total_questions' => $attempt->total_questions,
+                        'passed' => $attempt->passed,
+                        'completed_at' => $attempt->completed_at->toIso8601String(),
+                    ];
+                }
+            }
+
             // Load video progress for resume functionality
             $videoProgress = \App\Models\LessonVideoProgress::forUserAndLesson($user->id, $lesson->id);
         } else {
             $videoProgress = null;
+            $quizData = null;
+            $quizAttemptData = null;
         }
 
         // Build flat playlist from all modules
@@ -255,7 +283,7 @@ class LessonController extends Controller
 
                 $playlist[] = [
                     'id' => $l->id,
-                    'title' => $l->title,
+                    'title' => $l->getLocalizedTitle($contentLocale),
                     'duration' => $this->formatDuration($l->duration_seconds),
                     'is_completed' => in_array($l->id, $completedLessonIds, true),
                     'status' => $status,
@@ -268,15 +296,23 @@ class LessonController extends Controller
         return Inertia::render('Lessons/Show', [
             'course' => [
                 'id' => $course->id,
-                'title' => $course->title,
+                'title' => $course->getLocalizedTitle($contentLocale),
             ],
             'lesson' => [
                 'id' => $lesson->id,
-                'title' => $lesson->title,
-                'description' => 'Part of the course: '.$course->title,
-                'video_url' => $lesson->video_url ?? $lesson->external_video_url,
+                'title' => $lesson->getLocalizedTitle($contentLocale),
+                'description' => 'Part of the course: '.$course->getLocalizedTitle($contentLocale),
+                'video_url' => match($lesson->video_provider) {
+                    'youtube' => $lesson->youtube_video_id ? 'https://www.youtube.com/embed/' . $lesson->youtube_video_id : null,
+                    'external' => $lesson->external_video_url,
+                    'mp4' => $lesson->video_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($lesson->video_path) : null,
+                    'vimeo' => $lesson->external_video_url,
+                    default => $lesson->external_video_url,
+                },
                 'video_provider' => $lesson->video_provider,
-                'youtube_video_id' => $lesson->youtube_video_id,
+                // Only pass youtube_video_id if provider is actually 'youtube'
+                // This prevents VideoGuardPlayer from using wrong video ID when provider is 'external'
+                'youtube_video_id' => $lesson->video_provider === 'youtube' ? $lesson->youtube_video_id : null,
                 'duration' => $this->formatDuration($lesson->duration_seconds),
                 'duration_seconds' => $lesson->duration_seconds,
                 'video_duration_seconds' => $lesson->video_duration_seconds,
@@ -313,6 +349,8 @@ class LessonController extends Controller
             'reflection' => $reflectionData,
             'task' => $taskData ?? null,
             'notes' => $lessonNotes,
+            'quiz' => $quizData ?? null,
+            'quiz_attempt' => $quizAttemptData ?? null,
         ]);
     }
 
@@ -328,5 +366,34 @@ class LessonController extends Controller
         }
 
         return sprintf('%dm', $minutes);
+    }
+
+    /**
+     * Build the correct video URL based on the lesson's video provider.
+     */
+    private function buildVideoUrl(Lesson $lesson): ?string
+    {
+        switch ($lesson->video_provider) {
+            case 'youtube':
+                if ($lesson->youtube_video_id) {
+                    return 'https://www.youtube.com/embed/' . $lesson->youtube_video_id;
+                }
+                return null;
+
+            case 'external':
+                return $lesson->external_video_url;
+
+            case 'mp4':
+                if ($lesson->video_path) {
+                    return \Illuminate\Support\Facades\Storage::disk('public')->url($lesson->video_path);
+                }
+                return null;
+
+            case 'vimeo':
+                return $lesson->external_video_url;
+
+            default:
+                return $lesson->external_video_url;
+        }
     }
 }

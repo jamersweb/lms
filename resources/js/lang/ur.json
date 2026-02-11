@@ -1,0 +1,138 @@
+{
+  "auth": {
+    "login": {
+      "title": "خوش آمدید",
+      "subtitle": "اپنے روحانی سفر کو جاری رکھنے کے لئے سائن اِن کریں"
+    },
+    "register": {
+      "title": "اکاؤنٹ بنائیں",
+      "subtitle": "تزکیہ و تربیہ کے سفر کا آغاز کریں"
+    }
+  },
+  "dashboard": {
+    "welcome": "خوش آمدید، :name",
+    "quote": "\"اعمال میں سب سے افضل وہ ہے جو مسلسل ہو، اگرچہ کم ہو۔\" — نبی محمد ﷺ",
+    "cards": {
+      "watched_label": "دیکھے گئے",
+      "watched_sub": ":total دروس میں سے",
+      "remaining_label": "باقی",
+      "remaining_sub": "دروس باقی ہیں",
+      "watch_time_label": "دیکھنے کا وقت",
+      "watch_time_sub": "کل دیکھا گیا",
+      "streak_label": "لگاتار دن",
+      "streak_sub_singular": "دن مسلسل",
+      "streak_sub_plural": "دن مسلسل",
+      "quizzes_completed_label": "مکمل شدہ کوئز",
+      "quizzes_completed_sub": ":total دروس جن میں کوئز ہے",
+      "quizzes_remaining_label": "باقی کوئز",
+      "quizzes_remaining_sub": "پہلے سبق مکمل کریں، پھر کوئز حل کریں"
+    },
+    "sections": {
+      "continue_watching_title": "دیکھنا جاری رکھیں",
+      "continue_watching_view_all": "سب دیکھیں →",
+      "continue_learning_badge": "جاری سبق",
+      "continue_learning_resume": "سبق دوبارہ شروع کریں",
+      "continue_learning_cta": "سفر جاری رکھیں",
+      "video_progress_label": "ویڈیو کی پیش رفت",
+      "resume_from": ":time سے دوبارہ شروع کریں",
+      "quizzes_to_complete_title": "مکمل کرنے والے کوئز",
+      "quizzes_to_complete_cta": "کوئز حل کریں →"
+    }
+  },
+  "nav": {
+    "dashboard": "ڈیش بورڈ",
+    "my_courses": "میرے کورسز",
+    "habit_tracker": "عادتوں کا ٹریکَر",
+    "community": "کمیونٹی",
+    "certificates": "سرٹیفیکیٹس",
+    "admin_panel": "ایڈمن پینل",
+    "admin_dashboard": "ایڈمن ڈیش بورڈ",
+    "admin_users": "صارفین",
+    "admin_courses": "کورسز",
+    "admin_modules": "ماڈیولز",
+    "admin_lessons": "اسباق",
+    "admin_habits": "عادتیں",
+    "admin_moderation": "نگرانی",
+    "sign_out": "لاگ آؤٹ"
+  },
+  "courses": {
+    "index": {
+      "title": "کورسز دریافت کریں",
+      "subtitle": "دل و روح کے تزکیہ کے لئے منتخب دروس۔",
+      "search_placeholder": "کورس تلاش کریں...",
+      "filter_all_levels": "تمام درجے",
+      "level_beginner": "ابتدائی",
+      "level_intermediate": "درمیانہ",
+      "level_advanced": "اعلیٰ",
+      "level_default": "تمام درجے",
+      "meta_lessons": "دروس",
+      "meta_duration": "مدت",
+      "action_locked": "لاکڈ",
+      "action_view": "کورس دیکھیں",
+      "empty_title": "کوئی کورس نہیں ملا",
+      "empty_subtitle": "جلد نئے کورسز شامل کیے جائیں گے، ان شاء اللہ۔"
+    },
+    "show": {
+      "level_badge": "درجہ",
+      "lessons_count": "دروس",
+      "progress_label": "مکمل",
+      "enroll_button": "اندراج کریں",
+      "enrolling_button": "اندراج ہو رہا ہے...",
+      "curriculum_title": "کورس کا نصاب",
+      "module_locked_badge": "لاکڈ",
+      "module_lessons_count": ":count دروس",
+      "lesson_next_badge": "اگلا",
+      "lesson_locked_badge": "لاکڈ",
+      "lesson_lock_prev": "پہلے پچھلا سبق مکمل کریں",
+      "lesson_lock_reflection": "ریفلیکشن ضروری ہے",
+      "lesson_lock_task": "عملی مشق مکمل کریں",
+      "lesson_lock_not_released": "ابھی جاری نہیں ہوا",
+      "lesson_lock_not_next": "سبق ترتیب وار مکمل کریں",
+      "lesson_lock_generic": "لاکڈ",
+      "lesson_task_progress": "ٹاسک کی پیش رفت: :done / :required دن",
+      "lesson_release_in": ":time بعد دستیاب ہوگا",
+      "lesson_meta_video": "ویڈیو • :duration",
+      "continue_prefix": "Continue:",
+      "already_enrolled": "آپ پہلے ہی اس کورس میں داخل ہیں۔"
+    }
+  },
+  "lessons": {
+    "tabs": {
+      "overview": "جائزہ",
+      "resources": "دعا اور وسائل",
+      "reflection": "تدبر",
+      "quiz": "کویز",
+      "notes": "نوٹس"
+    },
+    "reflection": {
+      "complete_first": "براہِ کرم پہلے پورا درس دیکھیں، پھر اپنا reflection جمع کریں۔",
+      "prompt_submit": "اگلا سبق کھولنے کے لیے اس سبق کا reflection جمع کریں۔",
+      "submitted": "آپ کا reflection محفوظ ہو گیا ہے۔ ضرورت ہو تو آپ اسے بعد میں بھی تبدیل کر سکتے ہیں۔",
+      "label_takeaway": "روحانی حاصل",
+      "placeholder_takeaway": "آپ نے اس سبق سے کیا سیکھا؟ اور اسے اپنی زندگی میں کیسے اپنائیں گے؟ (کم از کم 30 الفاظ)",
+      "min_chars": "کم از کم 30 الفاظ ضروری ہیں",
+      "characters": "الفاظ",
+      "status_label": "اسٹیٹس:",
+      "teacher_note_label": "استاد کا نوٹ:",
+      "submit_button": "Reflection جمع کریں",
+      "update_button": "Reflection اپ ڈیٹ کریں"
+    },
+    "quiz": {
+      "complete_first": "براہِ کرم پہلے پورا درس دیکھیں، پھر کوئز حل کریں۔",
+      "result_title": "آپ کا نتیجہ",
+      "passed": "پاس",
+      "not_passed": "پاس نہیں ہو سکے (60٪ درکار ہے)۔ نیچے سے دوبارہ کوشش کریں۔",
+      "retake_button": "کوئز دوبارہ حل کریں",
+      "select_all": "تمام درست جوابات منتخب کریں۔",
+      "submit_button": "کوئز جمع کریں",
+      "submit_error": "کوئز جمع کرنے میں مسئلہ آیا، دوبارہ کوشش کریں۔"
+    },
+    "overview": {
+      "objectives_title": "اس سبق میں آپ کو یہ کرنا ہے",
+      "objective_1": "پورا سبق توجہ اور دل کی حاضری کے ساتھ دیکھیں۔",
+      "objective_2": "اہم نکات اور اپنے ذاتی تاثرات کو نوٹس میں لکھیں۔",
+      "objective_3": "Reflection، کوئز اور جو بھی عملی مشق دی گئی ہو اسے مکمل کریں۔"
+    }
+  }
+}
+

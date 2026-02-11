@@ -4,11 +4,17 @@
     <div class="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900 p-8 text-white shadow-lg">
       <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0YzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00eiIvPjwvZz48L2c+PC9zdmc+')] opacity-20"></div>
       <div class="relative z-10">
-        <h1 class="font-serif text-4xl font-bold mb-2 drop-shadow-sm">
-          Welcome back, {{ userName }}
+        <h1
+          class="font-serif text-4xl font-bold mb-2 drop-shadow-sm"
+          :class="$page?.props?.locale === 'ur' ? 'text-right' : ''"
+        >
+          {{ t('dashboard.welcome', { name: userName }) }}
         </h1>
-        <p class="text-white/90 text-lg">
-          "The best of deeds is that which is done consistently, even if it is small." — Prophet Muhammad (ﷺ)
+        <p
+          class="text-white/90 text-lg"
+          :class="$page?.props?.locale === 'ur' ? 'text-right' : ''"
+        >
+          {{ t('dashboard.quote') }}
         </p>
       </div>
     </div>
@@ -20,9 +26,13 @@
         <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
         <div class="relative z-10 flex items-center justify-between">
           <div>
-            <p class="text-xs font-medium text-white/90 uppercase tracking-wide mb-1">Watched</p>
+            <p class="text-xs font-medium text-white/90 uppercase tracking-wide mb-1">
+              {{ t('dashboard.cards.watched_label') }}
+            </p>
             <p class="text-4xl font-serif font-bold text-white drop-shadow-sm">{{ stats.watched_lessons }}</p>
-            <p class="text-xs text-white/80 mt-1">of {{ stats.total_lessons }} lessons</p>
+            <p class="text-xs text-white/80 mt-1">
+              {{ t('dashboard.cards.watched_sub', { total: stats.total_lessons }) }}
+            </p>
           </div>
           <div class="h-14 w-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/30 transition-colors shadow-lg">
             <CheckCircle class="w-7 h-7 text-white" />
@@ -35,9 +45,13 @@
         <div class="absolute top-0 right-0 w-32 h-32 bg-primary-100/50 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
         <div class="relative z-10 flex items-center justify-between">
           <div>
-            <p class="text-xs font-medium text-primary-700 uppercase tracking-wide mb-1">Remaining</p>
+            <p class="text-xs font-medium text-primary-700 uppercase tracking-wide mb-1">
+              {{ t('dashboard.cards.remaining_label') }}
+            </p>
             <p class="text-4xl font-serif font-bold text-primary-900">{{ stats.remaining_lessons }}</p>
-            <p class="text-xs text-primary-600 mt-1">lessons to go</p>
+            <p class="text-xs text-primary-600 mt-1">
+              {{ t('dashboard.cards.remaining_sub') }}
+            </p>
           </div>
           <div class="h-14 w-14 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center group-hover:from-primary-200 group-hover:to-primary-300 transition-all shadow-md">
             <BookOpen class="w-7 h-7 text-primary-700" />
@@ -50,9 +64,13 @@
         <div class="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
         <div class="relative z-10 flex items-center justify-between">
           <div>
-            <p class="text-xs font-medium text-white/90 uppercase tracking-wide mb-1">Watch Time</p>
+            <p class="text-xs font-medium text-white/90 uppercase tracking-wide mb-1">
+              {{ t('dashboard.cards.watch_time_label') }}
+            </p>
             <p class="text-4xl font-serif font-bold text-white drop-shadow-sm">{{ stats.total_watch_time_formatted }}</p>
-            <p class="text-xs text-white/80 mt-1">total watched</p>
+            <p class="text-xs text-white/80 mt-1">
+              {{ t('dashboard.cards.watch_time_sub') }}
+            </p>
           </div>
           <div class="h-14 w-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/30 transition-colors shadow-lg">
             <Clock class="w-7 h-7 text-white" />
@@ -66,12 +84,52 @@
         <div class="absolute top-0 right-0 w-32 h-32 bg-secondary-400/30 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
         <div class="relative z-10 flex items-center justify-between">
           <div>
-            <p class="text-xs font-medium text-white/90 uppercase tracking-wide mb-1">Streak</p>
+            <p class="text-xs font-medium text-white/90 uppercase tracking-wide mb-1">
+              {{ t('dashboard.cards.streak_label') }}
+            </p>
             <p class="text-4xl font-serif font-bold text-white drop-shadow-sm">{{ stats.current_streak }}</p>
-            <p class="text-xs text-white/80 mt-1">{{ stats.current_streak === 1 ? 'day' : 'days' }} in a row</p>
+            <p class="text-xs text-white/80 mt-1">
+              {{ stats.current_streak === 1 ? t('dashboard.cards.streak_sub_singular') : t('dashboard.cards.streak_sub_plural') }}
+            </p>
           </div>
           <div class="h-14 w-14 rounded-full bg-gradient-to-br from-secondary-400 to-secondary-600 flex items-center justify-center group-hover:from-secondary-300 group-hover:to-secondary-500 transition-all shadow-lg animate-pulse">
             <Flame class="w-7 h-7 text-white" />
+          </div>
+        </div>
+      </Card>
+    </div>
+
+    <!-- Quiz Stats Row (if any quizzes exist) -->
+    <div v-if="stats.total_quizzes_available > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+      <Card class="border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-white hover:shadow-lg transition-all">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-emerald-700 uppercase tracking-wide mb-1">
+              {{ t('dashboard.cards.quizzes_completed_label') }}
+            </p>
+            <p class="text-3xl font-serif font-bold text-emerald-900">{{ stats.completed_quizzes || 0 }}</p>
+            <p class="text-xs text-emerald-600 mt-1">
+              {{ t('dashboard.cards.quizzes_completed_sub', { total: stats.total_quizzes_available }) }}
+            </p>
+          </div>
+          <div class="h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center">
+            <CheckCircle class="w-6 h-6 text-emerald-700" />
+          </div>
+        </div>
+      </Card>
+      <Card class="border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-white hover:shadow-lg transition-all">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-amber-700 uppercase tracking-wide mb-1">
+              {{ t('dashboard.cards.quizzes_remaining_label') }}
+            </p>
+            <p class="text-3xl font-serif font-bold text-amber-900">{{ stats.remaining_quizzes || 0 }}</p>
+            <p class="text-xs text-amber-600 mt-1">
+              {{ t('dashboard.cards.quizzes_remaining_sub') }}
+            </p>
+          </div>
+          <div class="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center">
+            <BookOpen class="w-6 h-6 text-amber-700" />
           </div>
         </div>
       </Card>
@@ -147,9 +205,11 @@
             <div class="flex items-center justify-between pb-2 border-b border-primary-100">
               <h2 class="text-lg font-bold text-primary-900 flex items-center gap-2">
                 <div class="h-1 w-1 rounded-full bg-primary-600 animate-pulse"></div>
-                Continue Watching
+                {{ t('dashboard.sections.continue_watching_title') }}
               </h2>
-              <Link :href="route('courses.index')" class="text-sm font-medium text-primary-600 hover:text-primary-800 transition-colors font-semibold">View All →</Link>
+              <Link :href="route('courses.index')" class="text-sm font-medium text-primary-600 hover:text-primary-800 transition-colors font-semibold">
+                {{ t('dashboard.sections.continue_watching_view_all') }}
+              </Link>
             </div>
           </template>
 
@@ -181,8 +241,74 @@
                   </div>
                 </div>
                 <Button size="sm" variant="ghost" class="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  Resume
+                  {{ t('dashboard.sections.continue_learning_resume') }}
                 </Button>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <!-- Remaining Quizzes (lesson completed, quiz not taken) -->
+        <Card v-if="remaining_quizzes_list && remaining_quizzes_list.length > 0" class="shadow-lg border-t-4 border-t-amber-500 bg-gradient-to-br from-white to-amber-50/20">
+          <template #header>
+            <div class="flex items-center justify-between pb-2 border-b border-amber-100">
+              <h2 class="text-lg font-bold text-amber-900 flex items-center gap-2">
+                <div class="h-1 w-1 rounded-full bg-amber-500 animate-pulse"></div>
+                {{ t('dashboard.sections.quizzes_to_complete_title') }}
+              </h2>
+            </div>
+          </template>
+          <div class="space-y-3">
+            <div
+              v-for="item in remaining_quizzes_list"
+              :key="item.lesson_id"
+              class="p-4 rounded-xl border-2 border-amber-100 hover:border-amber-300 hover:bg-amber-50/50 transition-all cursor-pointer group"
+              @click="goToLessonQuiz(item)"
+            >
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0">
+                  <h4 class="text-sm font-semibold text-neutral-900 group-hover:text-amber-900">
+                    {{ item.lesson_title }}
+                  </h4>
+                  <p class="text-xs text-neutral-500 mt-0.5">{{ item.course_title }}</p>
+                </div>
+                <span class="text-xs font-medium text-amber-700 shrink-0">
+                  {{ t('dashboard.sections.quizzes_to_complete_cta') }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <!-- Course Milestones -->
+        <Card v-if="course_milestones && course_milestones.length > 0" class="shadow-lg border-t-4 border-t-primary-500 bg-gradient-to-br from-white to-primary-50/20">
+          <template #header>
+            <div class="flex items-center justify-between pb-2 border-b border-primary-100">
+              <h2 class="text-lg font-bold text-primary-900 flex items-center gap-2">
+                <div class="h-1 w-1 rounded-full bg-primary-600 animate-pulse"></div>
+                Course Milestones
+              </h2>
+            </div>
+          </template>
+          <div class="space-y-3">
+            <div
+              v-for="course in course_milestones"
+              :key="course.course_id"
+              class="p-4 rounded-xl border-2 border-primary-100 hover:border-primary-400 hover:bg-primary-50/40 transition-all cursor-pointer"
+              @click="goToCourse(course)"
+            >
+              <div class="flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                  <h4 class="text-sm font-semibold text-neutral-900 mb-1">
+                    {{ course.course_title }}
+                  </h4>
+                  <p class="text-xs text-primary-700 font-medium">
+                    {{ course.label }} • {{ course.progress }}%
+                  </p>
+                </div>
+                <div class="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 text-white flex items-center justify-center text-xs font-semibold">
+                  {{ course.progress }}%
+                </div>
               </div>
             </div>
           </div>
@@ -280,14 +406,14 @@
       <!-- Right Column: Stats & Quick Actions -->
       <div class="space-y-6">
          <!-- Learning Habits / Streak Widget -->
-         <Card class="shadow-lg bg-gradient-to-br from-primary-100 via-white to-secondary-50 border-2 border-primary-200">
+         <Card v-if="watch_time" class="shadow-lg bg-gradient-to-br from-primary-100 via-white to-secondary-50 border-2 border-primary-200">
             <template #header>
-                <div class="flex items-center justify-between pb-2 border-b border-primary-200">
-                    <h3 class="font-bold text-primary-900 flex items-center gap-2">
-                      <div class="h-1 w-1 rounded-full bg-primary-600 animate-pulse"></div>
-                      Daily Goal
-                    </h3>
-                    <Flame v-if="streak.badge" :class="[
+            <div class="flex items-center justify-between pb-2 border-b border-primary-200">
+                <h3 class="font-bold text-primary-900 flex items-center gap-2">
+                  <div class="h-1 w-1 rounded-full bg-primary-600 animate-pulse"></div>
+                  Daily Goal
+                </h3>
+                    <Flame v-if="streak?.badge" :class="[
                       'w-6 h-6',
                       streak.badge.color === 'secondary' ? 'text-secondary-600' : 'text-primary-600'
                     ]" />
@@ -298,22 +424,22 @@
               <!-- Daily Goal Progress -->
               <div>
                 <div class="flex items-center justify-between mb-2">
-                  <span class="text-sm font-medium text-neutral-700">Watch {{ watch_time.daily_goal_minutes }} min/day</span>
-                  <span class="text-xs font-semibold text-primary-900">{{ Math.round(watch_time.daily_goal_progress) }}%</span>
+                  <span class="text-sm font-medium text-neutral-700">Watch {{ watch_time?.daily_goal_minutes ?? 0 }} min/day</span>
+                  <span class="text-xs font-semibold text-primary-900">{{ Math.round(watch_time?.daily_goal_progress ?? 0) }}%</span>
                 </div>
                 <div class="w-full bg-neutral-200 rounded-full h-4 overflow-hidden shadow-inner">
                   <div
                     class="bg-gradient-to-r from-primary-500 via-primary-600 to-primary-700 h-4 rounded-full transition-all duration-700 shadow-sm"
-                    :style="{ width: Math.min(watch_time.daily_goal_progress, 100) + '%' }"
+                    :style="{ width: Math.min(watch_time?.daily_goal_progress ?? 0, 100) + '%' }"
                   ></div>
                 </div>
                 <p class="text-xs text-neutral-500 mt-1">
-                  {{ watch_time.today_minutes }} / {{ watch_time.daily_goal_minutes }} minutes today
+                  {{ watch_time?.today_minutes ?? 0 }} / {{ watch_time?.daily_goal_minutes ?? 0 }} minutes today
                 </p>
               </div>
 
               <!-- Streak Badge -->
-              <div v-if="streak.badge" class="pt-4 border-t border-neutral-200">
+              <div v-if="streak?.badge" class="pt-4 border-t border-neutral-200">
                 <div class="flex items-center gap-3">
                   <div :class="[
                     'h-12 w-12 rounded-full flex items-center justify-center',
@@ -325,7 +451,7 @@
                   </div>
                   <div>
                     <p class="text-xs font-medium text-neutral-600 uppercase tracking-wide">{{ streak.badge.label }}</p>
-                    <p class="text-lg font-serif font-bold text-neutral-900">{{ streak.days }} day streak</p>
+                    <p class="text-lg font-serif font-bold text-neutral-900">{{ streak?.days ?? 0 }} day streak</p>
                   </div>
                 </div>
               </div>
@@ -443,8 +569,10 @@ import { Play, PlayCircle, FileText, MessageCircle, Tag, CheckCircle, BookOpen, 
 import { Link, usePage, useForm, router } from '@inertiajs/vue3';
 import { computed, ref, onMounted } from 'vue';
 import { route } from 'ziggy-js';
+import { useI18n } from '@/i18n';
 
 const page = usePage();
+const { t } = useI18n();
 
 const props = defineProps({
     stats: Object,
@@ -459,6 +587,14 @@ const props = defineProps({
         default: () => [],
     },
     continue_learning: Object,
+    remaining_quizzes_list: {
+        type: Array,
+        default: () => [],
+    },
+    course_milestones: {
+        type: Array,
+        default: () => [],
+    },
     recent_activity: Array,
     latest_community_posts: Array,
 });
@@ -531,12 +667,23 @@ function goToLessonFromContinue(lesson) {
     }));
 }
 
+function goToLessonQuiz(item) {
+    router.visit(route('lessons.show', {
+        course: item.course_id,
+        lesson: item.lesson_id
+    }));
+}
+
 function goToNote(note) {
     router.visit(route('notes.index'));
 }
 
 function goToDiscussion(discussionId) {
     router.visit(route('discussions.show', discussionId));
+}
+
+function goToCourse(course) {
+    router.visit(route('courses.show', course.course_id));
 }
 
 function saveQuickNote() {

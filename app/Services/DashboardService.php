@@ -5,6 +5,9 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\LessonVideoProgress;
 use App\Models\LessonProgress;
+use App\Models\LessonReflection;
+use App\Models\LessonQuizAttempt;
+use App\Models\TaskProgress;
 use App\Models\Note;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -55,6 +58,12 @@ class DashboardService
         // Get continue learning (next lesson in course)
         $continueLearning = $this->getContinueLearning($user, $enrollments);
 
+        // Get remaining quizzes (completed lessons with quiz not yet taken)
+        $remainingQuizzesList = $this->getRemainingQuizzesList($user, $enrollments);
+
+        // Get simple course milestone summaries
+        $courseMilestones = $this->getCourseMilestones($user, $enrollments);
+
         return [
             'stats' => $stats,
             'continue_watching' => $continueWatching,
@@ -62,7 +71,119 @@ class DashboardService
             'streak' => $streak,
             'recent_notes' => $recentNotes,
             'continue_learning' => $continueLearning,
+            'remaining_quizzes_list' => $remainingQuizzesList,
+            'course_milestones' => $courseMilestones,
         ];
+    }
+
+    /**
+     * Get list of lessons that have a quiz and are completed by user but quiz not yet taken.
+     */
+    private function getRemainingQuizzesList(User $user, $enrollments): array
+    {
+        $allLessonIds = $enrollments->flatMap(function($enrollment) {
+            return $enrollment->course->modules->flatMap->lessons->pluck('id');
+        })->unique();
+
+        $completedLessonIds = $user->lessonProgress()
+            ->whereIn('lesson_id', $allLessonIds)
+            ->whereNotNull('completed_at')
+            ->pluck('lesson_id');
+
+        $attemptedQuizLessonIds = $user->lessonQuizAttempts()
+            ->whereIn('lesson_id', $allLessonIds)
+            ->pluck('lesson_id');
+
+        $remaining = $completedLessonIds->diff($attemptedQuizLessonIds);
+        if ($remaining->isEmpty()) {
+            return [];
+        }
+
+        $lessons = \App\Models\Lesson::with('module.course')
+            ->whereIn('id', $remaining)
+            ->whereHas('quizQuestions')
+            ->orderBy('sort_order')
+            ->limit(10)
+            ->get();
+
+        return $lessons->map(function($lesson) {
+            return [
+                'lesson_id' => $lesson->id,
+                'lesson_title' => $lesson->title,
+                'course_id' => $lesson->module->course_id,
+                'course_title' => $lesson->module->course->title,
+            ];
+        })->toArray();
+    }
+
+    /**
+     * Get milestone-style summaries for each enrolled course.
+     *
+     * This does not persist badges; it just surfaces simple progress bands:
+     * - <25%: "just_started"
+     * - 25-49%: "making_progress"
+     * - 50-74%: "halfway_there"
+     * - 75-99%: "almost_finished"
+     * - 100%: "completed"
+     */
+    private function getCourseMilestones(User $user, $enrollments): array
+    {
+        $milestones = [];
+
+        foreach ($enrollments as $enrollment) {
+            $course = $enrollment->course;
+            if (! $course) {
+                continue;
+            }
+
+            $lessonIds = $course->modules->flatMap->lessons->pluck('id');
+            $totalLessons = $lessonIds->count();
+
+            if ($totalLessons === 0) {
+                continue;
+            }
+
+            $completedLessons = $user->lessonProgress()
+                ->whereIn('lesson_id', $lessonIds)
+                ->whereNotNull('completed_at')
+                ->count();
+
+            $progress = round(($completedLessons / $totalLessons) * 100);
+
+            if ($progress === 0) {
+                continue;
+            }
+
+            if ($progress >= 100) {
+                $level = 'completed';
+                $label = 'Completed';
+            } elseif ($progress >= 75) {
+                $level = 'almost_finished';
+                $label = 'Almost finished';
+            } elseif ($progress >= 50) {
+                $level = 'halfway_there';
+                $label = 'Halfway there';
+            } elseif ($progress >= 25) {
+                $level = 'making_progress';
+                $label = 'Making progress';
+            } else {
+                $level = 'just_started';
+                $label = 'Just started';
+            }
+
+            $milestones[] = [
+                'course_id' => $course->id,
+                'course_title' => $course->title,
+                'progress' => $progress,
+                'level' => $level,
+                'label' => $label,
+            ];
+        }
+
+        // Return up to 3 courses, highest progress first
+        usort($milestones, fn($a, $b) => $b['progress'] <=> $a['progress']);
+
+        return array_slice($milestones, 0, 3);
     }
 
     /**
@@ -90,6 +211,21 @@ class DashboardService
         // Current streak (days with watch activity)
         $currentStreak = $this->calculateWatchStreak($user);
 
+        // Quiz stats: lessons with quiz that user has completed (video) vs quiz attempted
+        $lessonIdsWithQuiz = \App\Models\Lesson::whereIn('id', $allLessonIds->toArray())
+            ->whereHas('quizQuestions')
+            ->pluck('id');
+        $completedLessonIdsSet = $user->lessonProgress()
+            ->whereIn('lesson_id', $allLessonIds)
+            ->whereNotNull('completed_at')
+            ->pluck('lesson_id');
+        $lessonsCompletedWithQuiz = $completedLessonIdsSet->intersect($lessonIdsWithQuiz)->values();
+        $quizAttemptLessonIds = $user->lessonQuizAttempts()
+            ->whereIn('lesson_id', $allLessonIds)
+            ->pluck('lesson_id');
+        $completedQuizzes = $quizAttemptLessonIds->count();
+        $remainingQuizzes = $lessonsCompletedWithQuiz->diff($quizAttemptLessonIds)->count();
+
         return [
             'watched_lessons' => $watchedLessons,
             'remaining_lessons' => $remainingLessons,
@@ -99,6 +235,9 @@ class DashboardService
             'current_streak' => $currentStreak,
             'courses_enrolled' => $user->enrollments()->count(),
             'total_points' => \App\Services\PointsService::getTotalPoints($user),
+            'completed_quizzes' => $completedQuizzes,
+            'remaining_quizzes' => $remainingQuizzes,
+            'total_quizzes_available' => $lessonIdsWithQuiz->count(),
         ];
     }
 
@@ -205,23 +344,62 @@ class DashboardService
     }
 
     /**
-     * Calculate watch streak (consecutive days with video watch activity).
+     * Calculate streak (consecutive days with meaningful learning activity).
+     *
+     * Meaningful activity includes:
+     * - Watching any lesson video (LessonVideoProgress)
+     * - Submitting a reflection (LessonReflection)
+     * - Completing a quiz (LessonQuizAttempt)
+     * - Checking in to a practice task (TaskProgress last_checkin_on)
      */
     private function calculateWatchStreak(User $user): int
     {
-        // Get distinct dates where user watched videos (from video progress or lesson progress)
-        $watchDates = LessonVideoProgress::where('user_id', $user->id)
-            ->where('updated_at', '>=', now()->subDays(60)) // Check last 60 days
-            ->selectRaw('DATE(updated_at) as watch_date')
+        $since = now()->subDays(60);
+
+        $dates = collect();
+
+        // 1) Video watch activity
+        $videoDates = LessonVideoProgress::where('user_id', $user->id)
+            ->where('updated_at', '>=', $since)
+            ->selectRaw('DATE(updated_at) as d')
             ->distinct()
-            ->orderByDesc('watch_date')
-            ->pluck('watch_date')
+            ->pluck('d');
+
+        // 2) Reflections submitted
+        $reflectionDates = LessonReflection::where('user_id', $user->id)
+            ->whereNotNull('submitted_at')
+            ->where('submitted_at', '>=', $since)
+            ->selectRaw('DATE(submitted_at) as d')
+            ->distinct()
+            ->pluck('d');
+
+        // 3) Quizzes completed
+        $quizDates = LessonQuizAttempt::where('user_id', $user->id)
+            ->whereNotNull('completed_at')
+            ->where('completed_at', '>=', $since)
+            ->selectRaw('DATE(completed_at) as d')
+            ->distinct()
+            ->pluck('d');
+
+        // 4) Task check-ins (last_checkin_on)
+        $taskDates = TaskProgress::where('user_id', $user->id)
+            ->whereNotNull('last_checkin_on')
+            ->where('last_checkin_on', '>=', $since->copy()->startOfDay())
+            ->selectRaw('DATE(last_checkin_on) as d')
+            ->distinct()
+            ->pluck('d');
+
+        $dates = $dates
+            ->merge($videoDates)
+            ->merge($reflectionDates)
+            ->merge($quizDates)
+            ->merge($taskDates)
             ->map(fn($date) => Carbon::parse($date)->format('Y-m-d'))
             ->unique()
-            ->values()
-            ->toArray();
+            ->sortDesc()
+            ->values();
 
-        if (empty($watchDates)) {
+        if ($dates->isEmpty()) {
             return 0;
         }
 
@@ -229,10 +407,9 @@ class DashboardService
         $currentDate = Carbon::today();
         $expectedDate = $currentDate->copy();
 
-        foreach ($watchDates as $watchDate) {
-            $date = Carbon::parse($watchDate);
+        foreach ($dates as $day) {
+            $date = Carbon::parse($day);
             
-            // Check if this date matches the expected date (today, yesterday, etc.)
             if ($date->isSameDay($expectedDate)) {
                 $streak++;
                 $expectedDate->subDay(); // Next expected date is one day earlier

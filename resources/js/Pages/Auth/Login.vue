@@ -40,49 +40,19 @@ const submit = () => {
     <Head title="Sign In - Tazkiyah Tarbiyah" />
     
     <div class="min-h-screen flex">
-        <!-- Left Side - Background Image -->
-        <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-            <img 
-                src="/images/auth-bg.png" 
-                alt="Islamic Architecture" 
-                class="absolute inset-0 w-full h-full object-cover"
-            />
-            <div class="absolute inset-0 bg-gradient-to-br from-primary-900/80 via-primary-900/60 to-primary-950/90"></div>
-            
-            <!-- Overlay Content -->
-            <div class="relative z-10 flex flex-col justify-between p-12 text-white">
-                <div>
-                    <img src="/images/white-logo-2048x673.avif" alt="Tazkiyah Tarbiyah" class="h-16 drop-shadow-lg" />
-                </div>
-                
-                <div class="max-w-md">
-                    <h1 class="font-serif text-4xl font-bold mb-4 leading-tight">
-                        Footsteps of the Prophet Muhammad ﷺ
-                    </h1>
-                    <p class="text-white/80 text-lg leading-relaxed">
-                        To live like him is to live with purpose. Embark on your spiritual journey of inner purification and Islamic guidance.
-                    </p>
-                    
-                    <div class="mt-8 flex items-center gap-6">
-                        <div class="text-center">
-                            <div class="text-3xl font-bold">10+</div>
-                            <div class="text-sm text-white/60">Courses</div>
-                        </div>
-                        <div class="w-px h-12 bg-white/20"></div>
-                        <div class="text-center">
-                            <div class="text-3xl font-bold">40+</div>
-                            <div class="text-sm text-white/60">Lessons</div>
-                        </div>
-                        <div class="w-px h-12 bg-white/20"></div>
-                        <div class="text-center">
-                            <div class="text-3xl font-bold">∞</div>
-                            <div class="text-sm text-white/60">Barakah</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="text-sm text-white/50">
-                    © 2026 Tazkiyah Tarbiyah. All Rights Reserved.
+        <!-- Left Side - Brand (maroon, logo only) -->
+        <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#7a0a0a]">
+            <div class="relative z-10 flex flex-col justify-center items-center w-full p-12">
+                <img 
+                    src="/images/logo-tazkiyah.png" 
+                    alt="Tazkiyah Tarbiyah" 
+                    class="max-w-sm w-full h-auto object-contain"
+                />
+                <p class="mt-8 text-white/70 text-center text-sm max-w-xs">
+                    Your path of inner purification and character development
+                </p>
+                <div class="mt-auto pt-12 text-xs text-white/40">
+                    © 2026 Tazkiyah Tarbiyah
                 </div>
             </div>
         </div>
@@ -92,15 +62,23 @@ const submit = () => {
             <div class="w-full max-w-md">
                 <!-- Mobile Logo -->
                 <div class="lg:hidden mb-8 text-center">
-                    <div class="inline-flex items-center justify-center p-4 bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-neutral-200/50">
-                        <img src="/images/white-logo-2048x673.avif" alt="Tazkiyah Tarbiyah" class="h-14 mx-auto drop-shadow-md" />
-                    </div>
+                    <img src="/images/logo-tazkiyah.png" alt="Tazkiyah Tarbiyah" class="h-16 mx-auto object-contain" />
                 </div>
                 
                 <!-- Header -->
                 <div class="text-center mb-8">
-                    <h2 class="font-serif text-3xl font-bold text-primary-900 mb-2">Welcome Back</h2>
-                    <p class="text-neutral-600">Sign in to continue your spiritual journey</p>
+                    <h2 class="font-serif text-3xl font-bold text-primary-900 mb-2">
+                        {{ $page.props.locale === 'ur' ? 'خوش آمدید' : ($page.props.locale === 'en_roman' ? 'Dobara Ahlan o Sahlan' : 'Welcome Back') }}
+                    </h2>
+                    <p class="text-neutral-600">
+                        {{
+                          $page.props.locale === 'ur'
+                            ? 'اپنے روحانی سفر کو جاری رکھنے کے لئے سائن اِن کریں'
+                            : $page.props.locale === 'en_roman'
+                              ? 'Apni roohani safar jari rakhne ke liye sign in karein'
+                              : 'Sign in to continue your spiritual journey'
+                        }}
+                    </p>
                 </div>
                 
                 <!-- Status Message -->

@@ -45,6 +45,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('lesson-progress.show');
     Route::post('/lessons/{lesson}/reflection', [\App\Http\Controllers\LessonReflectionController::class, 'store'])
         ->name('lessons.reflection');
+    Route::post('/lessons/{lesson}/quiz', [\App\Http\Controllers\LessonQuizController::class, 'store'])
+        ->name('lessons.quiz.store')
+        ->middleware('throttle:20,1');
     Route::get('/lessons/{lesson}/resources', [\App\Http\Controllers\LessonResourceController::class, 'show'])
         ->name('lessons.resources.show');
     Route::get('/lessons/{lesson}/resources/pdf', [\App\Http\Controllers\LessonResourceController::class, 'exportPdf'])
@@ -156,6 +159,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/dua-wall/{dua}/pray', [\App\Http\Controllers\DuaWallController::class, 'pray'])
         ->name('dua.pray')
         ->middleware('throttle:30,1');
+
+    // Locale switcher
+    Route::post('/locale', [\App\Http\Controllers\LocaleController::class, 'update'])
+        ->name('locale.update');
 });
 
 // Admin routes
@@ -187,6 +194,8 @@ Route::middleware(['auth', \App\Http\Middleware\IsAdmin::class])->prefix('admin'
         ->name('lessons.task.upsert');
     Route::delete('/lessons/{lesson}/task', [\App\Http\Controllers\Admin\TaskController::class, 'destroy'])
         ->name('lessons.task.destroy');
+    Route::put('/lessons/{lesson}/quiz', [\App\Http\Controllers\Admin\LessonQuizController::class, 'update'])
+        ->name('lessons.quiz.update');
     Route::post('/lessons/{lesson}/resources', [\App\Http\Controllers\Admin\LessonResourceController::class, 'store'])
         ->name('lessons.resources.store');
     Route::delete('/lessons/{lesson}/resources', [\App\Http\Controllers\Admin\LessonResourceController::class, 'destroy'])

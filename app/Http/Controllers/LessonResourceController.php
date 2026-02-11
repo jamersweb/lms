@@ -82,6 +82,7 @@ class LessonResourceController extends Controller
     {
         $user = auth()->user();
         $authorizationService = app(AuthorizationService::class);
+        $contentLocale = $user?->content_locale ?? app()->getLocale();
         
         // Standardized authorization check (doesn't require completion for viewing)
         try {
@@ -114,8 +115,8 @@ class LessonResourceController extends Controller
         }
 
         return response()->json([
-            'sunnah_pointers' => $resource->sunnah_pointers,
-            'duas_text' => $resource->duas_text,
+            'sunnah_pointers' => $resource->getLocalizedSunnahPointers($contentLocale),
+            'duas_text' => $resource->getLocalizedDuasText($contentLocale),
             'audio_path' => $resource->audio_path ? asset('storage/' . $resource->audio_path) : null,
             'can_view' => $canView,
         ]);

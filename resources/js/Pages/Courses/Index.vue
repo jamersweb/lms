@@ -3,8 +3,18 @@
     <!-- Header & Filters -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
        <div>
-         <h1 class="font-serif text-3xl font-bold text-primary-900">Explore Courses</h1>
-         <p class="text-neutral-500 mt-1">Discover knowledge to purify the heart and soul.</p>
+         <h1
+           class="font-serif text-3xl font-bold text-primary-900"
+           :class="$page.props.locale === 'ur' ? 'text-right' : ''"
+         >
+           {{ t('courses.index.title') }}
+         </h1>
+         <p
+           class="text-neutral-500 mt-1"
+           :class="$page.props.locale === 'ur' ? 'text-right' : ''"
+         >
+           {{ t('courses.index.subtitle') }}
+         </p>
        </div>
 
        <div class="flex flex-col sm:flex-row gap-3">
@@ -13,17 +23,17 @@
              <div class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400">🔍</div>
              <input
                type="text"
-               placeholder="Search courses..."
+               :placeholder="t('courses.index.search_placeholder')"
                class="pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:ring-primary-300 focus:border-primary-900 text-sm w-full sm:w-64"
              />
           </div>
 
           <!-- Filter -->
           <select class="py-2 pl-3 pr-8 border border-neutral-300 rounded-lg focus:ring-primary-300 focus:border-primary-900 text-sm bg-white">
-             <option>All Levels</option>
-             <option>Beginner</option>
-             <option>Intermediate</option>
-             <option>Advanced</option>
+             <option>{{ t('courses.index.filter_all_levels') }}</option>
+             <option>{{ t('courses.index.level_beginner') }}</option>
+             <option>{{ t('courses.index.level_intermediate') }}</option>
+             <option>{{ t('courses.index.level_advanced') }}</option>
           </select>
        </div>
     </div>
@@ -53,10 +63,10 @@
                   course.level === 'Intermediate' ? 'bg-secondary-500/90 text-white' : '',
                   course.level === 'Advanced' ? 'bg-primary-900/90 text-white' : '',
                   !course.level ? 'bg-white/90 text-neutral-700' : ''
-                ]">{{ course.level || 'All Levels' }}</span>
+                ]">{{ course.level || t('courses.index.level_default') }}</span>
                 <span v-if="course.is_locked" class="backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500/90 text-white flex items-center gap-1">
                   <Lock class="w-3 h-3" />
-                  Locked
+                  {{ t('courses.index.action_locked') }}
                 </span>
               </div>
             </div>
@@ -84,7 +94,7 @@
               <div class="flex items-center text-xs text-neutral-400 gap-4 mb-4 border-t border-neutral-100 pt-3">
                 <span class="flex items-center gap-1">
                   <BookOpen class="w-3.5 h-3.5" />
-                  {{ course.lessons_count }} Lessons
+                  {{ course.lessons_count }} {{ t('courses.index.meta_lessons') }}
                 </span>
                 <span class="flex items-center gap-1">
                   <Clock class="w-3.5 h-3.5" />
@@ -100,7 +110,7 @@
                     ? 'text-neutral-500 bg-neutral-100 cursor-not-allowed'
                     : 'text-primary-900 bg-primary-50 group-hover:bg-primary-900 group-hover:text-white'
                 ]">
-                   {{ course.is_locked ? 'Locked' : 'View Course' }}
+                   {{ course.is_locked ? t('courses.index.action_locked') : t('courses.index.action_view') }}
                 </div>
               </div>
             </div>
@@ -109,8 +119,8 @@
     </div>
     <div v-else class="text-center py-20 bg-white rounded-xl border border-dashed border-neutral-300">
        <BookOpen class="w-12 h-12 mx-auto text-neutral-300 mb-4" />
-       <h3 class="text-lg font-medium text-neutral-900">No courses found</h3>
-       <p class="text-neutral-500 mt-1">Check back soon for new content.</p>
+       <h3 class="text-lg font-medium text-neutral-900">{{ t('courses.index.empty_title') }}</h3>
+       <p class="text-neutral-500 mt-1">{{ t('courses.index.empty_subtitle') }}</p>
     </div>
   </AppShell>
 </template>
@@ -119,10 +129,13 @@
 import AppShell from '@/Layouts/AppShell.vue';
 import { Link } from '@inertiajs/vue3';
 import { BookOpen, Clock, Lock } from 'lucide-vue-next';
+import { useI18n } from '@/i18n';
 
 defineProps({
     courses: Array
 });
+
+const { t } = useI18n();
 
 // Get initials from course title for placeholder
 const getInitials = (title) => {

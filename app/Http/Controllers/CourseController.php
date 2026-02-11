@@ -23,6 +23,7 @@ class CourseController extends Controller
     public function index()
     {
         $user = auth()->user();
+        $contentLocale = $user?->content_locale ?? app()->getLocale();
         $eligibilityService = app(EligibilityService::class);
         $showLockedCourses = config('lms.show_locked_courses', true);
 
@@ -36,7 +37,7 @@ class CourseController extends Controller
             },
             'modules.lessons.contentRule'
         ])->get()
-            ->map(function($course) use ($user, $eligibilityService, $showLockedCourses) {
+            ->map(function($course) use ($user, $eligibilityService, $showLockedCourses, $contentLocale) {
                 // Check course-level eligibility
                 $courseResult = $eligibilityService->canAccessCourse($user, $course);
 
@@ -74,9 +75,9 @@ class CourseController extends Controller
 
                 return [
                     'id' => $course->id,
-                    'title' => $course->title,
+                    'title' => $course->getLocalizedTitle($contentLocale),
                     'instructor' => $course->instructor,
-                    'description' => $course->description,
+                    'description' => $course->getLocalizedDescription($contentLocale),
                     'thumbnail' => $course->thumbnail ? Storage::url($course->thumbnail) : ('https://ui-avatars.com/api/?name=' . urlencode(substr($course->title, 0, 2)) . '&background=059669&color=fff&size=400'),
                     'lessons_count' => $lessonsCount,
                     'duration' => gmdate('H\h i\m', $totalDuration),
@@ -121,6 +122,7 @@ class CourseController extends Controller
     public function show(Course $course)
     {
         $user = auth()->user();
+        $contentLocale = $user?->content_locale ?? app()->getLocale();
         $eligibilityService = app(EligibilityService::class);
         $progressionService = app(ProgressionService::class);
 
@@ -181,7 +183,7 @@ class CourseController extends Controller
         $releaseScheduleService = app(\App\Services\ReleaseScheduleService::class);
 
         // Format modules with lesson completion status and lock metadata
-        $modules = $course->modules->map(function($module) use ($user, $course, $eligibilityService, $progressionService, $releaseScheduleService) {
+        $modules = $course->modules->map(function($module) use ($user, $course, $eligibilityService, $progressionService, $releaseScheduleService, $contentLocale) {
             $moduleResult = $eligibilityService->canAccessModule($user, $module);
 
             // Get first incomplete lesson in this module for "is_next" flag
@@ -195,7 +197,7 @@ class CourseController extends Controller
                 'is_locked' => !$moduleResult->allowed,
                 'lock_reasons' => $moduleResult->reasons,
                 'lock_message' => LockMessage::fromEligibility($moduleResult),
-                'lessons' => $module->lessons->map(function($lesson) use ($user, $eligibilityService, $progressionService, $firstIncomplete, $releaseScheduleService) {
+                'lessons' => $module->lessons->map(function($lesson) use ($user, $eligibilityService, $progressionService, $firstIncomplete, $releaseScheduleService, $contentLocale) {
                     // Use ProgressionService for combined eligibility + sequential check
                     $lessonResult = $progressionService->canAccessLesson($user, $lesson);
                     $isCompleted = $user && $user->lessonProgress()
@@ -234,7 +236,7 @@ class CourseController extends Controller
 
                     return [
                         'id' => $lesson->id,
-                        'title' => $lesson->title,
+                        'title' => $lesson->getLocalizedTitle($contentLocale),
                         'image' => $lesson->image ? \Illuminate\Support\Facades\Storage::url($lesson->image) : null,
                         'duration' => gmdate('i\m', $lesson->duration_seconds ?? 0),
                         'is_completed' => $isCompleted,
@@ -260,9 +262,9 @@ class CourseController extends Controller
         return \Inertia\Inertia::render('Courses/Show', [
             'course' => [
                 'id' => $course->id,
-                'title' => $course->title,
+                'title' => $course->getLocalizedTitle($contentLocale),
                 'instructor' => $course->instructor,
-                'description' => $course->description,
+                'description' => $course->getLocalizedDescription($contentLocale),
                 'thumbnail' => $course->thumbnail ? Storage::url($course->thumbnail) : ('https://ui-avatars.com/api/?name=' . urlencode(substr($course->title, 0, 2)) . '&background=059669&color=fff&size=400'),
                 'lessons_count' => $visibleLessons->count(),
                 'duration' => gmdate('H\h i\m', $visibleLessons->sum('duration_seconds')),

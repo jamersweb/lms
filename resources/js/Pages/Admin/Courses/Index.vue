@@ -45,7 +45,15 @@
             <tr v-for="course in filteredCourses" :key="course.id" class="hover:bg-neutral-50 transition-colors">
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
-                  <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-primary-800 to-primary-950 flex items-center justify-center text-white font-serif font-bold text-lg">
+                  <div v-if="course.thumbnail && course.thumbnail.trim()" class="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-neutral-200">
+                    <img 
+                      :src="course.thumbnail" 
+                      :alt="course.title" 
+                      class="w-full h-full object-cover"
+                      @error="(e) => { e.target.style.display = 'none'; }"
+                    />
+                  </div>
+                  <div v-else class="w-12 h-12 rounded-lg bg-gradient-to-br from-primary-800 to-primary-950 flex items-center justify-center text-white font-serif font-bold text-lg">
                     {{ course.title?.charAt(0) }}
                   </div>
                   <div>

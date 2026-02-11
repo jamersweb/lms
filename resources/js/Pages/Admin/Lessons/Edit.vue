@@ -30,7 +30,7 @@
           <p v-if="form.errors.module_id" class="mt-1 text-sm text-red-600">{{ form.errors.module_id }}</p>
         </div>
 
-        <!-- Title -->
+        <!-- Titles (Multilingual) -->
         <div>
           <label class="block text-sm font-medium text-neutral-700 mb-2">Lesson Title *</label>
           <input
@@ -39,8 +39,42 @@
             class="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
             required
           />
-          <p class="mt-1 text-xs text-neutral-500">URL slug will be automatically updated when title changes</p>
+          <p class="mt-1 text-xs text-neutral-500">Used as default; you can override per language below.</p>
           <p v-if="form.errors.title" class="mt-1 text-sm text-red-600">{{ form.errors.title }}</p>
+        </div>
+
+        <div class="border border-neutral-100 rounded-xl p-4 bg-neutral-50 space-y-4">
+          <div class="flex flex-wrap gap-2 text-xs font-medium text-neutral-600 mb-2">
+            <span class="px-2 py-0.5 rounded-full bg-white border border-neutral-200">Content language titles</span>
+          </div>
+
+          <div class="grid gap-4 md:grid-cols-3">
+            <div>
+              <label class="block text-xs font-medium text-neutral-700 mb-1">Title (English)</label>
+              <input
+                v-model="form.title_en"
+                type="text"
+                class="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-neutral-700 mb-1">Title (Roman)</label>
+              <input
+                v-model="form.title_en_roman"
+                type="text"
+                class="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-neutral-700 mb-1">Title (Urdu)</label>
+              <input
+                v-model="form.title_ur"
+                type="text"
+                class="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
+                dir="rtl"
+              />
+            </div>
+          </div>
         </div>
 
         <!-- Lesson Image -->
@@ -284,39 +318,76 @@
       <div class="mt-8 bg-white rounded-xl border border-neutral-200 p-6">
         <h3 class="text-lg font-semibold text-neutral-900 mb-4">Sunnah & Dua Resources</h3>
         <p class="text-sm text-neutral-600 mb-4">
-          Add Sunnah pointers and Duas that will be shown to students after completing this lesson.
+          Add Sunnah pointers and Duas in different languages. Students will see them based on their content language preference.
         </p>
 
         <form @submit.prevent="submitResources" class="space-y-4" enctype="multipart/form-data">
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">
-              Sunnah Pointers
-            </label>
-            <textarea
-              v-model="resourceForm.sunnah_pointers"
-              rows="4"
-              class="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
-              placeholder="Enter Sunnah pointers and reminders..."
-            ></textarea>
-            <p class="mt-1 text-xs text-neutral-500">
-              Short pointers about Sunnah practices related to this lesson
-            </p>
+          <div class="grid gap-4 md:grid-cols-3">
+            <div class="md:col-span-3">
+              <label class="block text-sm font-medium text-neutral-700 mb-2">
+                Sunnah Pointers (English)
+              </label>
+              <textarea
+                v-model="resourceForm.sunnah_pointers_en"
+                rows="3"
+                class="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
+              ></textarea>
+            </div>
+            <div class="md:col-span-3">
+              <label class="block text-sm font-medium text-neutral-700 mb-2">
+                Sunnah Pointers (Roman)
+              </label>
+              <textarea
+                v-model="resourceForm.sunnah_pointers_en_roman"
+                rows="3"
+                class="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
+              ></textarea>
+            </div>
+            <div class="md:col-span-3">
+              <label class="block text-sm font-medium text-neutral-700 mb-2">
+                Sunnah Pointers (Urdu)
+              </label>
+              <textarea
+                v-model="resourceForm.sunnah_pointers_ur"
+                rows="3"
+                class="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
+                dir="rtl"
+              ></textarea>
+            </div>
           </div>
 
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">
-              Duas (Arabic/Urdu/English)
-            </label>
-            <textarea
-              v-model="resourceForm.duas_text"
-              rows="6"
-              class="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
-              placeholder="Enter Duas text..."
-              dir="rtl"
-            ></textarea>
-            <p class="mt-1 text-xs text-neutral-500">
-              Duas related to this lesson (supports Arabic, Urdu, and English)
-            </p>
+          <div class="grid gap-4 md:grid-cols-3">
+            <div class="md:col-span-3">
+              <label class="block text-sm font-medium text-neutral-700 mb-2">
+                Duas (English)
+              </label>
+              <textarea
+                v-model="resourceForm.duas_text_en"
+                rows="4"
+                class="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
+              ></textarea>
+            </div>
+            <div class="md:col-span-3">
+              <label class="block text-sm font-medium text-neutral-700 mb-2">
+                Duas (Roman)
+              </label>
+              <textarea
+                v-model="resourceForm.duas_text_en_roman"
+                rows="4"
+                class="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
+              ></textarea>
+            </div>
+            <div class="md:col-span-3">
+              <label class="block text-sm font-medium text-neutral-700 mb-2">
+                Duas (Urdu / Arabic)
+              </label>
+              <textarea
+                v-model="resourceForm.duas_text_ur"
+                rows="4"
+                class="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
+                dir="rtl"
+              ></textarea>
+            </div>
           </div>
 
           <div>
@@ -324,17 +395,19 @@
               Dua Audio File (Optional)
             </label>
             <input
+              ref="audioFileInput"
               type="file"
-              @change="e => resourceForm.audio_file = e.target.files[0]"
-              accept="audio/mp3,audio/wav,audio/ogg"
+              @change="e => { resourceForm.audio_file = e.target.files?.[0] ?? null; }"
+              accept=".mp3,.wav,.ogg,.m4a,audio/mpeg,audio/mp3,audio/wav,audio/ogg,audio/x-m4a"
               class="w-full"
             />
             <p v-if="resource?.audio_path" class="mt-2 text-sm text-neutral-600">
               Current: {{ resource.audio_path }}
             </p>
             <p class="mt-1 text-xs text-neutral-500">
-              Upload audio file for Dua pronunciation (MP3, WAV, or OGG, max 10MB)
+              Upload audio file for Dua pronunciation (MP3, WAV, OGG, M4A — max 10MB)
             </p>
+            <p v-if="resourceForm.errors.audio_file" class="mt-1 text-sm text-red-600">{{ resourceForm.errors.audio_file }}</p>
           </div>
 
           <div>
@@ -342,9 +415,10 @@
               Lesson Notes PDF (Optional)
             </label>
             <input
+              ref="pdfFileInput"
               type="file"
-              @change="e => resourceForm.pdf_file = e.target.files[0]"
-              accept="application/pdf"
+              @change="e => { resourceForm.pdf_file = e.target.files?.[0] ?? null; }"
+              accept=".pdf,application/pdf"
               class="w-full"
             />
             <p v-if="resource?.pdf_path" class="mt-2 text-sm text-neutral-600">
@@ -353,6 +427,7 @@
             <p class="mt-1 text-xs text-neutral-500">
               Upload PDF file with lesson notes (max 5MB)
             </p>
+            <p v-if="resourceForm.errors.pdf_file" class="mt-1 text-sm text-red-600">{{ resourceForm.errors.pdf_file }}</p>
           </div>
 
           <div class="flex gap-3">
@@ -371,6 +446,86 @@
               class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50"
             >
               Delete Resources
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Quiz Questions -->
+      <div class="mt-8 bg-white rounded-xl border border-neutral-200 p-6">
+        <h3 class="text-lg font-semibold text-neutral-900 mb-4">Lesson Quiz</h3>
+        <p class="text-sm text-neutral-600 mb-4">
+          Add multiple-choice questions. Students can select one or more answers. Tick the checkboxes for each correct option.
+        </p>
+
+        <form @submit.prevent="submitQuiz" class="space-y-6">
+          <div
+            v-for="(q, qIdx) in quizForm.questions"
+            :key="qIdx"
+            class="border border-neutral-200 rounded-xl p-4 bg-neutral-50 space-y-3"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium text-neutral-600">Question {{ qIdx + 1 }}</span>
+              <button
+                type="button"
+                @click="removeQuizQuestion(qIdx)"
+                class="text-red-600 hover:text-red-800 text-sm"
+              >
+                Remove
+              </button>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-1">Question text</label>
+              <textarea
+                v-model="q.question_text"
+                rows="2"
+                class="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm"
+                placeholder="e.g., What is Sunnat?"
+              ></textarea>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-1">Options (one per line)</label>
+              <textarea
+                :value="(q.options || []).join('\n')"
+                @input="q.options = $event.target.value.split('\n').filter(Boolean)"
+                rows="4"
+                class="w-full px-4 py-2 border border-neutral-200 rounded-lg text-sm"
+                placeholder="Option A&#10;Option B&#10;Option C"
+              ></textarea>
+            </div>
+            <div v-if="(q.options || []).length > 0">
+              <label class="block text-sm font-medium text-neutral-700 mb-2">Correct option(s) — select all that apply</label>
+              <div class="flex flex-wrap gap-3">
+                <label
+                  v-for="(opt, optIndex) in (q.options || [])"
+                  :key="optIndex"
+                  class="flex items-center gap-2 px-3 py-2 rounded-lg border border-neutral-200 bg-white cursor-pointer hover:border-primary-300"
+                >
+                  <input
+                    type="checkbox"
+                    :checked="(q.correct_indices || []).includes(optIndex)"
+                    @change="toggleQuizCorrectIndex(q, optIndex)"
+                    class="rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  <span class="text-sm text-neutral-700">{{ opt }}</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            @click="addQuizQuestion"
+            class="px-4 py-2 border-2 border-dashed border-neutral-300 rounded-xl text-sm font-medium text-neutral-600 hover:border-primary-400 hover:text-primary-700"
+          >
+            + Add Question
+          </button>
+          <div class="flex gap-3">
+            <button
+              type="submit"
+              :disabled="quizForm.processing"
+              class="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50"
+            >
+              {{ quizForm.processing ? 'Saving...' : 'Save Quiz' }}
             </button>
           </div>
         </form>
@@ -505,6 +660,9 @@ const formatReleaseAt = (isoString) => {
 const form = useForm({
   module_id: props.lesson.module_id,
   title: props.lesson.title,
+  title_en: props.lesson.title_en || '',
+  title_en_roman: props.lesson.title_en_roman || '',
+  title_ur: props.lesson.title_ur || '',
   image: null,
   video_provider: props.lesson.video_provider || 'youtube',
   youtube_video_id: props.lesson.youtube_video_id || '',
@@ -515,8 +673,62 @@ const form = useForm({
   is_free_preview: Boolean(props.lesson.is_free_preview),
   release_at: formatReleaseAt(props.lesson.release_at),
   release_day_offset: props.lesson.release_day_offset ?? null,
-  _method: 'put',
 });
+
+const quizForm = useForm({
+  questions: (props.lesson.quiz_questions || []).length
+    ? props.lesson.quiz_questions.map((q) => ({
+        question_text: q.question_text,
+        options: Array.isArray(q.options) ? [...q.options] : [],
+        correct_indices: Array.isArray(q.correct_indices) ? [...q.correct_indices] : (q.correct_index !== undefined && q.correct_index !== null ? [q.correct_index] : []),
+      }))
+    : [],
+});
+
+const resourceForm = useForm({
+  sunnah_pointers: props.resource?.sunnah_pointers || '',
+  sunnah_pointers_en: props.resource?.sunnah_pointers_en || '',
+  sunnah_pointers_en_roman: props.resource?.sunnah_pointers_en_roman || '',
+  sunnah_pointers_ur: props.resource?.sunnah_pointers_ur || '',
+  duas_text: props.resource?.duas_text || '',
+  duas_text_en: props.resource?.duas_text_en || '',
+  duas_text_en_roman: props.resource?.duas_text_en_roman || '',
+  duas_text_ur: props.resource?.duas_text_ur || '',
+  audio_file: null,
+  pdf_file: null,
+});
+function addQuizQuestion() {
+  quizForm.questions.push({ question_text: '', options: [], correct_indices: [] });
+}
+function removeQuizQuestion(index) {
+  quizForm.questions.splice(index, 1);
+}
+function toggleQuizCorrectIndex(q, optIndex) {
+  if (!q.correct_indices) q.correct_indices = [];
+  const i = q.correct_indices.indexOf(optIndex);
+  if (i === -1) {
+    q.correct_indices.push(optIndex);
+  } else {
+    q.correct_indices.splice(i, 1);
+  }
+}
+function submitQuiz() {
+  const payload = {
+    questions: quizForm.questions
+      .filter((q) => q.question_text && (q.options || []).length >= 2)
+      .map((q) => ({
+        question_text: q.question_text,
+        options: Array.isArray(q.options) ? q.options : [],
+        correct_indices: Array.isArray(q.correct_indices)
+          ? q.correct_indices.filter((idx) => idx >= 0 && idx < (q.options || []).length).map((idx) => Number(idx))
+          : [],
+      })),
+  };
+  quizForm.transform(() => payload).put(route('admin.lessons.quiz.update', { lesson: props.lesson.id }), {
+    preserveScroll: true,
+    onSuccess: () => router.reload({ only: ['lesson'] }),
+  });
+}
 
 const imagePreview = ref(null);
 
@@ -538,8 +750,20 @@ function clearImage() {
 }
 
 function submit() {
-  form.post(`/admin/lessons/${props.lesson.id}`, {
+  form.transform((data) => {
+    return {
+      ...data,
+      _method: 'PUT',
+    };
+  }).post(`/admin/lessons/${props.lesson.id}`, {
     forceFormData: true,
+    preserveScroll: true,
+    onSuccess: () => {
+      // Clear image preview after successful update
+      imagePreview.value = null;
+      // Reload the page to get updated lesson data including new image
+      router.reload({ only: ['lesson'] });
+    },
   });
 }
 
@@ -576,12 +800,8 @@ function deleteLesson() {
   }
 }
 
-const resourceForm = useForm({
-  sunnah_pointers: props.resource?.sunnah_pointers || '',
-  duas_text: props.resource?.duas_text || '',
-  audio_file: null,
-  pdf_file: null,
-});
+const audioFileInput = ref(null);
+const pdfFileInput = ref(null);
 
 function submitResources() {
   resourceForm.post(route('admin.lessons.resources.store', { lesson: props.lesson.id }), {
@@ -590,6 +810,10 @@ function submitResources() {
     onSuccess: () => {
       router.reload({ only: ['resource'] });
       resourceForm.reset();
+      resourceForm.audio_file = null;
+      resourceForm.pdf_file = null;
+      if (audioFileInput.value) audioFileInput.value.value = '';
+      if (pdfFileInput.value) pdfFileInput.value.value = '';
     },
   });
 }

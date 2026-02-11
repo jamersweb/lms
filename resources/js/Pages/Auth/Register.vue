@@ -33,62 +33,19 @@ const submit = () => {
     <Head title="Create Account - Tazkiyah Tarbiyah" />
     
     <div class="min-h-screen flex">
-        <!-- Left Side - Background Image -->
-        <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-            <img 
-                src="/images/auth-bg.png" 
-                alt="Islamic Architecture" 
-                class="absolute inset-0 w-full h-full object-cover"
-            />
-            <div class="absolute inset-0 bg-gradient-to-br from-primary-900/80 via-primary-900/60 to-primary-950/90"></div>
-            
-            <!-- Overlay Content -->
-            <div class="relative z-10 flex flex-col justify-between p-12 text-white">
-                <div>
-                    <img src="/images/white-logo-2048x673.avif" alt="Tazkiyah Tarbiyah" class="h-16 drop-shadow-lg" />
-                </div>
-                
-                <div class="max-w-md">
-                    <h1 class="font-serif text-4xl font-bold mb-4 leading-tight">
-                        Begin Your Spiritual Journey
-                    </h1>
-                    <p class="text-white/80 text-lg leading-relaxed mb-6">
-                        Join thousands of seekers on the path of Tazkiyah (inner purification) and Tarbiyah (character development).
-                    </p>
-                    
-                    <div class="space-y-4">
-                        <div class="flex items-start gap-3">
-                            <div class="h-6 w-6 rounded-full bg-secondary-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <div class="h-2 w-2 rounded-full bg-secondary-400"></div>
-                            </div>
-                            <div>
-                                <div class="font-medium">Guided Mentorship</div>
-                                <div class="text-sm text-white/60">Learn from authentic Islamic scholars</div>
-                            </div>
-                        </div>
-                        <div class="flex items-start gap-3">
-                            <div class="h-6 w-6 rounded-full bg-secondary-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <div class="h-2 w-2 rounded-full bg-secondary-400"></div>
-                            </div>
-                            <div>
-                                <div class="font-medium">Structured Learning</div>
-                                <div class="text-sm text-white/60">Progress through curated courses</div>
-                            </div>
-                        </div>
-                        <div class="flex items-start gap-3">
-                            <div class="h-6 w-6 rounded-full bg-secondary-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <div class="h-2 w-2 rounded-full bg-secondary-400"></div>
-                            </div>
-                            <div>
-                                <div class="font-medium">Spiritual Growth</div>
-                                <div class="text-sm text-white/60">Track your habits and progress</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="text-sm text-white/50">
-                    © 2026 Tazkiyah Tarbiyah. All Rights Reserved.
+        <!-- Left Side - Brand (maroon, logo only) -->
+        <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#7a0a0a]">
+            <div class="relative z-10 flex flex-col justify-center items-center w-full p-12">
+                <img 
+                    src="/images/logo-tazkiyah.png" 
+                    alt="Tazkiyah Tarbiyah" 
+                    class="max-w-sm w-full h-auto object-contain"
+                />
+                <p class="mt-8 text-white/70 text-center text-sm max-w-xs">
+                    Your path of inner purification and character development
+                </p>
+                <div class="mt-auto pt-12 text-xs text-white/40">
+                    © 2026 Tazkiyah Tarbiyah
                 </div>
             </div>
         </div>
@@ -98,15 +55,23 @@ const submit = () => {
             <div class="w-full max-w-md">
                 <!-- Mobile Logo -->
                 <div class="lg:hidden mb-8 text-center">
-                    <div class="inline-flex items-center justify-center p-4 bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-neutral-200/50">
-                        <img src="/images/white-logo-2048x673.avif" alt="Tazkiyah Tarbiyah" class="h-14 mx-auto drop-shadow-md" />
-                    </div>
+                    <img src="/images/logo-tazkiyah.png" alt="Tazkiyah Tarbiyah" class="h-16 mx-auto object-contain" />
                 </div>
                 
                 <!-- Header -->
                 <div class="text-center mb-8">
-                    <h2 class="font-serif text-3xl font-bold text-primary-900 mb-2">Create Account</h2>
-                    <p class="text-neutral-600">Start your journey of spiritual growth</p>
+                    <h2 class="font-serif text-3xl font-bold text-primary-900 mb-2">
+                        {{ $page.props.locale === 'ur' ? 'اکاؤنٹ بنائیں' : ($page.props.locale === 'en_roman' ? 'Account Banayein' : 'Create Account') }}
+                    </h2>
+                    <p class="text-neutral-600">
+                        {{
+                          $page.props.locale === 'ur'
+                            ? 'اپنی روحانی تربیت کا سفر شروع کریں'
+                            : $page.props.locale === 'en_roman'
+                              ? 'Apni roohani tarbiyat ka safar shuru karein'
+                              : 'Start your journey of spiritual growth'
+                        }}
+                    </p>
                 </div>
                 
                 <!-- Form -->

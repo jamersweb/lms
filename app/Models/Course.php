@@ -11,7 +11,21 @@ class Course extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'slug', 'description', 'instructor', 'level', 'thumbnail', 'sort_order'];
+    protected $fillable = [
+        'title',
+        'slug',
+        'description',
+        'instructor',
+        'level',
+        'thumbnail',
+        'sort_order',
+        'title_en',
+        'title_en_roman',
+        'title_ur',
+        'description_en',
+        'description_en_roman',
+        'description_ur',
+    ];
 
     /**
      * Boot the model.
@@ -51,6 +65,51 @@ class Course extends Model
         }
 
         return $slug;
+    }
+
+    /**
+     * Get title in preferred content locale with graceful fallback.
+     */
+    public function getLocalizedTitle(string $locale): string
+    {
+        $field = match ($locale) {
+            'en_roman' => 'title_en_roman',
+            'ur' => 'title_ur',
+            default => 'title_en',
+        };
+
+        if (!empty($this->{$field})) {
+            return $this->{$field};
+        }
+
+        // Fallbacks
+        if (!empty($this->title_en)) {
+            return $this->title_en;
+        }
+
+        return $this->title ?? '';
+    }
+
+    /**
+     * Get description in preferred content locale with graceful fallback.
+     */
+    public function getLocalizedDescription(string $locale): ?string
+    {
+        $field = match ($locale) {
+            'en_roman' => 'description_en_roman',
+            'ur' => 'description_ur',
+            default => 'description_en',
+        };
+
+        if (!empty($this->{$field})) {
+            return $this->{$field};
+        }
+
+        if (!empty($this->description_en)) {
+            return $this->description_en;
+        }
+
+        return $this->description;
     }
 
     public function modules()

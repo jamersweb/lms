@@ -6,6 +6,7 @@
         :video-id="effectiveYoutubeId"
         :start-seconds="startSeconds"
         :title="title"
+        :allow-free-seek="props.allowFreeSeek"
         @ready="onYouTubeReady"
         @heartbeat="onYouTubeHeartbeat"
         @ended="onYouTubeEnded"
@@ -121,6 +122,10 @@ const props = defineProps({
     default: null,
   },
   autoplay: {
+    type: Boolean,
+    default: false,
+  },
+  allowFreeSeek: {
     type: Boolean,
     default: false,
   },
@@ -295,15 +300,15 @@ const onMp4TimeUpdate = () => {
 
   const currentTime = el.currentTime || 0;
 
-  // Block forward seeks
-  if (!isSeeking) {
-    // Allow backward seeks
+  // When lesson is completed, allow free seeking (drag to any time)
+  if (props.allowFreeSeek) {
+    lastAllowedTime = Math.max(lastAllowedTime, currentTime);
+  } else if (!isSeeking) {
+    // Block forward seeks (only when lesson not completed)
     if (currentTime < lastAllowedTime - 0.5) {
       lastAllowedTime = currentTime;
     } else {
-      // Block forward jumps beyond threshold
       if (currentTime > lastAllowedTime + MAX_FORWARD_JUMP) {
-        // Block the seek
         try {
           el.currentTime = lastAllowedTime;
           seekBlockedCount++;
@@ -312,7 +317,6 @@ const onMp4TimeUpdate = () => {
           // ignore
         }
       } else {
-        // Small forward movement allowed (normal playback)
         lastAllowedTime = Math.max(lastAllowedTime, currentTime);
       }
     }
@@ -380,21 +384,22 @@ const onMp4Seeking = () => {
   isSeeking = true;
   const currentTime = el.currentTime || 0;
 
-  // Block forward seeks immediately
-  if (currentTime > lastAllowedTime + MAX_FORWARD_JUMP) {
-    try {
-      el.currentTime = lastAllowedTime;
-      seekBlockedCount++;
-      showToast('Skipping ahead is disabled');
-    } catch {
-      // ignore
+  if (props.allowFreeSeek) {
+    lastAllowedTime = Math.max(lastAllowedTime, currentTime);
+  } else {
+    if (currentTime > lastAllowedTime + MAX_FORWARD_JUMP) {
+      try {
+        el.currentTime = lastAllowedTime;
+        seekBlockedCount++;
+        showToast('Skipping ahead is disabled');
+      } catch {
+        // ignore
+      }
+    } else if (currentTime < lastAllowedTime) {
+      lastAllowedTime = currentTime;
     }
-  } else if (currentTime < lastAllowedTime) {
-    // Backward seek allowed
-    lastAllowedTime = currentTime;
   }
 
-  // Reset after a short delay
   setTimeout(() => {
     isSeeking = false;
   }, 1000);
@@ -408,8 +413,7 @@ watch(
     if (!el || typeof value !== 'number' || Number.isNaN(value)) return;
     const targetTime = Math.max(0, value);
 
-    // Only allow if it's backward or within threshold
-    if (targetTime <= lastAllowedTime + MAX_FORWARD_JUMP) {
+    if (props.allowFreeSeek || targetTime <= lastAllowedTime + MAX_FORWARD_JUMP) {
       try {
         el.currentTime = targetTime;
         lastHeartbeatPosition = targetTime;
@@ -418,7 +422,6 @@ watch(
         // ignore seek errors
       }
     } else {
-      // Block forward seek
       showToast('Skipping ahead is disabled');
     }
   }

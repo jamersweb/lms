@@ -31,7 +31,7 @@
           <p v-if="form.errors.module_id" class="mt-1 text-sm text-red-600">{{ form.errors.module_id }}</p>
         </div>
 
-        <!-- Title -->
+        <!-- Titles (Multilingual) -->
         <div>
           <label class="block text-sm font-medium text-neutral-700 mb-2">Lesson Title *</label>
           <input 
@@ -41,8 +41,42 @@
             placeholder="e.g., Introduction to Tazkiyah"
             required
           />
-          <p class="mt-1 text-xs text-neutral-500">URL slug will be automatically generated from the title</p>
+          <p class="mt-1 text-xs text-neutral-500">Used as default; you can override per language below.</p>
           <p v-if="form.errors.title" class="mt-1 text-sm text-red-600">{{ form.errors.title }}</p>
+        </div>
+
+        <div class="border border-neutral-100 rounded-xl p-4 bg-neutral-50 space-y-4">
+          <div class="flex flex-wrap gap-2 text-xs font-medium text-neutral-600 mb-2">
+            <span class="px-2 py-0.5 rounded-full bg-white border border-neutral-200">Content language titles</span>
+          </div>
+
+          <div class="grid gap-4 md:grid-cols-3">
+            <div>
+              <label class="block text-xs font-medium text-neutral-700 mb-1">Title (English)</label>
+              <input
+                v-model="form.title_en"
+                type="text"
+                class="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-neutral-700 mb-1">Title (Roman)</label>
+              <input
+                v-model="form.title_en_roman"
+                type="text"
+                class="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-neutral-700 mb-1">Title (Urdu)</label>
+              <input
+                v-model="form.title_ur"
+                type="text"
+                class="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
+                dir="rtl"
+              />
+            </div>
+          </div>
         </div>
 
         <!-- Lesson Image -->
@@ -437,6 +471,9 @@ const route = inject('route', null) ||
 const form = useForm({
   module_id: '',
   title: '',
+  title_en: '',
+  title_en_roman: '',
+  title_ur: '',
   image: null,
   video_provider: 'youtube',
   youtube_video_id: '',

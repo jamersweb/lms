@@ -18,7 +18,9 @@ class Lesson extends Model
         'duration_seconds', 'video_duration_seconds', 'is_free_preview',
         'allowed_gender', 'requires_bayah', 'min_level', 'sort_order',
         'requires_reflection', 'reflection_requires_approval',
-        'release_at', 'release_day_offset'
+        'release_at', 'release_day_offset',
+        'title_en', 'title_en_roman', 'title_ur',
+        'summary_en', 'summary_en_roman', 'summary_ur',
     ];
 
     /**
@@ -70,6 +72,46 @@ class Lesson extends Model
         'release_at' => 'datetime',
         'release_day_offset' => 'integer',
     ];
+
+    /**
+     * Get title in preferred content locale with graceful fallback.
+     */
+    public function getLocalizedTitle(string $locale): string
+    {
+        $field = match ($locale) {
+            'en_roman' => 'title_en_roman',
+            'ur' => 'title_ur',
+            default => 'title_en',
+        };
+
+        if (!empty($this->{$field})) {
+            return $this->{$field};
+        }
+
+        if (!empty($this->title_en)) {
+            return $this->title_en;
+        }
+
+        return $this->title ?? '';
+    }
+
+    /**
+     * Get summary/description in preferred content locale with graceful fallback.
+     */
+    public function getLocalizedSummary(string $locale): ?string
+    {
+        $field = match ($locale) {
+            'en_roman' => 'summary_en_roman',
+            'ur' => 'summary_ur',
+            default => 'summary_en',
+        };
+
+        if (!empty($this->{$field})) {
+            return $this->{$field};
+        }
+
+        return $this->summary_en ?? null;
+    }
 
     /**
      * Get the video URL based on provider
@@ -170,6 +212,30 @@ class Lesson extends Model
     public function habits()
     {
         return $this->hasMany(Habit::class);
+    }
+
+    /**
+     * Quiz questions for this lesson.
+     */
+    public function quizQuestions()
+    {
+        return $this->hasMany(LessonQuizQuestion::class)->orderBy('sort_order');
+    }
+
+    /**
+     * Quiz attempts for this lesson.
+     */
+    public function quizAttempts()
+    {
+        return $this->hasMany(LessonQuizAttempt::class);
+    }
+
+    /**
+     * Whether this lesson has a quiz.
+     */
+    public function hasQuiz(): bool
+    {
+        return $this->quizQuestions()->exists();
     }
 
     /**

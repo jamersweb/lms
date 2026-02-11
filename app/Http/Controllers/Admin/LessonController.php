@@ -16,8 +16,27 @@ class LessonController extends Controller
      */
     public function index()
     {
+        $lessons = Lesson::with('module.course')->orderBy('sort_order')->get()->map(function ($lesson) {
+            return [
+                'id' => $lesson->id,
+                'title' => $lesson->title,
+                'slug' => $lesson->slug,
+                'image' => $lesson->image ? Storage::disk('public')->url($lesson->image) : null,
+                'video_provider' => $lesson->video_provider,
+                'is_free_preview' => $lesson->is_free_preview,
+                'module' => $lesson->module ? [
+                    'id' => $lesson->module->id,
+                    'title' => $lesson->module->title,
+                    'course' => $lesson->module->course ? [
+                        'id' => $lesson->module->course->id,
+                        'title' => $lesson->module->course->title,
+                    ] : null,
+                ] : null,
+            ];
+        });
+
         return Inertia::render('Admin/Lessons/Index', [
-            'lessons' => Lesson::with('module.course')->orderBy('sort_order')->get()
+            'lessons' => $lessons
         ]);
     }
 
@@ -33,6 +52,9 @@ class LessonController extends Controller
         $rules = [
             'module_id' => 'required|exists:modules,id',
             'title' => 'required|string|max:255',
+            'title_en' => 'nullable|string|max:255',
+            'title_en_roman' => 'nullable|string|max:255',
+            'title_ur' => 'nullable|string|max:255',
             'slug' => 'nullable|string|max:255',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // 5MB
             'video_provider' => 'required|in:youtube,mp4,external,vimeo',
@@ -75,15 +97,18 @@ class LessonController extends Controller
 
     public function edit(Lesson $lesson)
     {
-        $lesson->load('contentRule', 'task', 'resource');
+        $lesson->load('contentRule', 'task', 'resource', 'quizQuestions');
 
         return Inertia::render('Admin/Lessons/Edit', [
             'lesson' => [
                 'id' => $lesson->id,
                 'module_id' => $lesson->module_id,
                 'title' => $lesson->title,
+                'title_en' => $lesson->title_en,
+                'title_en_roman' => $lesson->title_en_roman,
+                'title_ur' => $lesson->title_ur,
                 'slug' => $lesson->slug,
-                'image' => $lesson->image ? Storage::url($lesson->image) : null,
+                'image' => $lesson->image ? Storage::disk('public')->url($lesson->image) : null,
                 'video_provider' => $lesson->video_provider,
                 'youtube_video_id' => $lesson->youtube_video_id,
                 'external_video_url' => $lesson->external_video_url,
@@ -118,6 +143,13 @@ class LessonController extends Controller
             ] : null,
             'release_at' => $lesson->release_at ? $lesson->release_at->toIso8601String() : null,
             'release_day_offset' => $lesson->release_day_offset,
+            'quiz_questions' => $lesson->quizQuestions->map(fn($q) => [
+                'id' => $q->id,
+                'question_text' => $q->question_text,
+                'options' => $q->options,
+                'correct_index' => $q->correct_index,
+                'correct_indices' => $q->getCorrectIndices(),
+            ])->values()->toArray(),
         ]);
     }
 
@@ -126,6 +158,9 @@ class LessonController extends Controller
         $rules = [
             'module_id' => 'required|exists:modules,id',
             'title' => 'required|string|max:255',
+            'title_en' => 'nullable|string|max:255',
+            'title_en_roman' => 'nullable|string|max:255',
+            'title_ur' => 'nullable|string|max:255',
             'slug' => 'nullable|string|max:255',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // 5MB
             'video_provider' => 'required|in:youtube,mp4,external,vimeo',
@@ -175,7 +210,7 @@ class LessonController extends Controller
             }
         });
 
-        return redirect()->route('admin.lessons.index');
+        return redirect()->route('admin.lessons.edit', $lesson)->with('success', 'Lesson updated successfully.');
     }
 
     public function destroy(Lesson $lesson)

@@ -103,6 +103,18 @@
                 </div>
               </div>
 
+              <!-- Generic Lesson Objectives -->
+              <div class="mt-4 p-4 bg-white rounded-xl border border-neutral-200">
+                <h3 class="text-sm font-semibold text-neutral-900 mb-2">
+                  {{ t('lessons.overview.objectives_title') }}
+                </h3>
+                <ul class="list-disc pl-5 space-y-1 text-sm text-neutral-700">
+                  <li>{{ t('lessons.overview.objective_1') }}</li>
+                  <li>{{ t('lessons.overview.objective_2') }}</li>
+                  <li>{{ t('lessons.overview.objective_3') }}</li>
+                </ul>
+              </div>
+
               <div class="mt-6 flex flex-col gap-2">
                 <Button 
                   v-if="lesson.prev_lesson_id" 
@@ -125,54 +137,105 @@
               </div>
             </div>
 
-            <!-- Transcript -->
-            <div v-if="activeTab === 'Transcript'" class="max-w-none text-neutral-700 font-serif leading-relaxed text-sm">
-                  <div v-if="!lesson.transcript_segments || !lesson.transcript_segments.length" class="text-sm text-neutral-500">
-                    Transcript is not available for this lesson yet.
-                  </div>
-                  <div v-else class="space-y-2">
-                    <div
-                      v-for="segment in lesson.transcript_segments"
-                      :key="segment.id"
-                      class="flex items-start gap-3"
-                    >
-                      <button
-                        type="button"
-                        class="mt-0.5 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-neutral-100 text-neutral-700 hover:bg-primary-100 hover:text-primary-800"
-                        @click="seekTo(segment.start_seconds)"
-                      >
-                        {{ formatTime(segment.start_seconds) }}
-                      </button>
-                      <p
-                        class="flex-1"
-                        v-html="highlightText(segment.text)"
-                      ></p>
+            <!-- Dua & Resources -->
+            <div v-if="activeTab === 'Dua & Resources'" class="space-y-4 max-w-none text-neutral-700 text-sm">
+              <div v-if="resourcesLoading" class="text-center py-8">
+                <Loader2 class="w-8 h-8 text-neutral-400 mx-auto mb-3 animate-spin" />
+                <p class="text-neutral-500">Loading resources...</p>
+              </div>
+              <template v-else-if="lessonResources">
+                <div v-if="lessonResources.can_view === false" class="bg-amber-50 border border-amber-100 text-amber-800 px-4 py-3 rounded-lg">
+                  Complete the lesson to view Sunnah & Dua resources.
+                </div>
+                <template v-else>
+                  <div v-if="lessonResources.sunnah_pointers" class="mb-4">
+                    <h3 class="font-semibold text-primary-800 mb-2 flex items-center gap-2">
+                      <BookOpen class="w-4 h-4" />
+                      Sunnah Pointers
+                    </h3>
+                    <div class="bg-primary-50 border border-primary-100 rounded-lg p-4">
+                      <p class="whitespace-pre-wrap leading-relaxed">{{ lessonResources.sunnah_pointers }}</p>
                     </div>
                   </div>
-                </div>
+                  <div v-if="lessonResources.duas_text" class="mb-4">
+                    <h3 class="font-semibold text-primary-800 mb-2 flex items-center gap-2">
+                      <Heart class="w-4 h-4" />
+                      Duas
+                    </h3>
+                    <div class="bg-amber-50 border border-amber-100 rounded-lg p-4">
+                      <p class="whitespace-pre-wrap leading-relaxed text-right" dir="rtl">{{ lessonResources.duas_text }}</p>
+                    </div>
+                  </div>
+                  <div v-if="lessonResources.audio_path" class="mb-4">
+                    <h3 class="font-semibold text-primary-800 mb-2 flex items-center gap-2">
+                      <Volume2 class="w-4 h-4" />
+                      Dua Pronunciation
+                    </h3>
+                    <audio controls class="w-full rounded-lg">
+                      <source :src="lessonResources.audio_path" type="audio/mpeg">
+                      Your browser does not support the audio element.
+                    </audio>
+                  </div>
+                  <!-- PDF viewer (shown after lesson complete) -->
+                  <div v-if="lessonResources.can_view && (lessonResources.sunnah_pointers || lessonResources.duas_text)" class="mb-4">
+                    <h3 class="font-semibold text-primary-800 mb-2 flex items-center gap-2">
+                      <FileText class="w-4 h-4" />
+                      Sunnah & Dua PDF
+                    </h3>
+                    <div class="rounded-lg border border-neutral-200 overflow-hidden bg-neutral-100" style="min-height: 420px;">
+                      <iframe
+                        :src="resourcesPdfViewUrl"
+                        title="Sunnah & Dua Resources PDF"
+                        class="w-full border-0"
+                        style="height: 420px;"
+                      />
+                    </div>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      @click="downloadResourcesPdf"
+                      :disabled="resourcesPdfDownloading"
+                      class="w-full mt-2"
+                    >
+                      <Download v-if="!resourcesPdfDownloading" class="w-4 h-4 mr-2 inline" />
+                      <Loader2 v-else class="w-4 h-4 mr-2 inline animate-spin" />
+                      {{ resourcesPdfDownloading ? 'Downloading...' : 'Download PDF' }}
+                    </Button>
+                  </div>
+                  <div v-if="!lessonResources.sunnah_pointers && !lessonResources.duas_text && !lessonResources.audio_path" class="text-center py-6 text-neutral-500">
+                    <FileText class="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>No resources available for this lesson.</p>
+                  </div>
+                </template>
+              </template>
+              <div v-else class="text-center py-6 text-neutral-500">
+                <FileText class="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p>No resources available for this lesson.</p>
+              </div>
+            </div>
 
             <!-- Reflection -->
-            <div v-if="activeTab === 'Reflection'" class="space-y-4">
+            <div v-if="activeTab === t('lessons.tabs.reflection')" class="space-y-4">
                    <div v-if="!lesson.is_completed" class="bg-amber-50 border border-amber-100 text-amber-800 text-sm px-4 py-3 rounded-lg">
-                     Complete the lesson video first before submitting your reflection.
+                     {{ t('lessons.reflection.complete_first') }}
                    </div>
                    <div v-else-if="!reflection" class="bg-blue-50 border border-blue-100 text-blue-800 text-sm px-4 py-3 rounded-lg">
-                     Submit your reflection for this lesson to unlock the next lesson.
+                     {{ t('lessons.reflection.prompt_submit') }}
                    </div>
                    <div v-else class="bg-emerald-50 border border-emerald-100 text-emerald-800 text-sm px-4 py-3 rounded-lg">
-                     Your reflection has been submitted. You can update it below if needed.
+                     {{ t('lessons.reflection.submitted') }}
                    </div>
 
                    <div>
                      <label class="block text-sm font-medium text-neutral-700 mb-2">
-                       Spiritual Takeaway <span class="text-red-500">*</span>
+                       {{ t('lessons.reflection.label_takeaway') }} <span class="text-red-500">*</span>
                      </label>
                      <textarea
                        v-model="reflectionForm.takeaway"
                        rows="6"
                        :disabled="!lesson.is_completed"
                        class="w-full rounded-xl border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 p-3 text-sm disabled:bg-neutral-100 disabled:cursor-not-allowed"
-                       placeholder="What did you take from this lesson? How will you apply it in your life? (Minimum 30 characters)"
+                       :placeholder="t('lessons.reflection.placeholder_takeaway')"
                        minlength="30"
                        maxlength="5000"
                      ></textarea>
@@ -181,10 +244,10 @@
                          {{ reflectionForm.errors.takeaway }}
                        </p>
                        <p v-else-if="reflectionForm.takeaway.length > 0 && reflectionForm.takeaway.length < 30" class="text-xs text-amber-600">
-                         Minimum 30 characters required ({{ reflectionForm.takeaway.length }}/30)
+                         {{ t('lessons.reflection.min_chars') }} ({{ reflectionForm.takeaway.length }}/30)
                        </p>
                        <p v-else class="text-xs text-neutral-500">
-                         {{ reflectionForm.takeaway.length }} / 5,000 characters
+                         {{ reflectionForm.takeaway.length }} / 5,000 {{ t('lessons.reflection.characters') }}
                        </p>
                      </div>
                    </div>
@@ -192,13 +255,13 @@
                    <div class="flex items-center justify-between">
                      <div v-if="reflection">
                        <p class="text-xs text-neutral-500">
-                         Status:
+                         {{ t('lessons.reflection.status_label') }}
                          <span class="font-medium capitalize" :class="reflectionStatusClass">
                            {{ reflection.review_status }}
                          </span>
                        </p>
                        <p v-if="reflection.teacher_note" class="text-xs text-neutral-600 mt-1">
-                         Teacher note: {{ reflection.teacher_note }}
+                         {{ t('lessons.reflection.teacher_note_label') }} {{ reflection.teacher_note }}
                        </p>
                      </div>
                      <Button
@@ -206,7 +269,7 @@
                        :disabled="!lesson.is_completed || reflectionForm.takeaway.length < 30"
                        @click="submitReflection"
                      >
-                       {{ reflection ? 'Update reflection' : 'Submit reflection' }}
+                       {{ reflection ? t('lessons.reflection.update_button') : t('lessons.reflection.submit_button') }}
                      </Button>
                    </div>
                 </div>
@@ -264,6 +327,67 @@
                     </div>
                   </div>
                 </div>
+
+            <!-- Quiz Tab -->
+            <div v-if="activeTab === t('lessons.tabs.quiz') && hasQuiz" class="space-y-4">
+              <div v-if="!lesson.is_completed" class="bg-amber-50 border border-amber-100 text-amber-800 text-sm px-4 py-3 rounded-lg">
+                {{ t('lessons.quiz.complete_first') }}
+              </div>
+              <template v-else>
+                <div v-if="quiz_attempt && !showRetakeQuizForm" class="bg-neutral-50 rounded-xl border border-neutral-200 p-4 mb-4">
+                  <h3 class="font-semibold text-neutral-900 mb-2">
+                    {{ t('lessons.quiz.result_title') }}
+                  </h3>
+                  <p class="text-sm text-neutral-700">
+                    You scored <strong>{{ quiz_attempt.score }} / {{ quiz_attempt.total_questions }}</strong>
+                    ({{ quiz_attempt.total_questions ? Math.round((quiz_attempt.score / quiz_attempt.total_questions) * 100) : 0 }}%).
+                  </p>
+                  <p class="mt-2">
+                    <span v-if="quiz_attempt.passed" class="inline-flex items-center gap-1 text-emerald-700 font-medium">
+                      <Check class="w-4 h-4" /> {{ t('lessons.quiz.passed') }}
+                    </span>
+                    <span v-else class="text-amber-700 font-medium">
+                      {{ t('lessons.quiz.not_passed') }}
+                    </span>
+                  </p>
+                  <Button variant="secondary" size="sm" class="mt-3" @click="showRetakeQuizForm = true">
+                    {{ t('lessons.quiz.retake_button') }}
+                  </Button>
+                </div>
+                <form v-else @submit.prevent="submitQuiz" class="space-y-6">
+                  <div v-for="(q, qIndex) in quiz" :key="q.id" class="border border-neutral-200 rounded-xl p-4 bg-white">
+                    <p class="font-medium text-neutral-900 mb-3">{{ qIndex + 1 }}. {{ q.question_text }}</p>
+                    <p class="text-xs text-neutral-500 mb-2">
+                      {{ t('lessons.quiz.select_all') }}
+                    </p>
+                    <div class="space-y-2">
+                      <label
+                        v-for="(opt, optIndex) in (q.options || [])"
+                        :key="optIndex"
+                        class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
+                        :class="getQuizAnswer(q.id).includes(optIndex) ? 'border-primary-500 bg-primary-50' : 'border-neutral-200 hover:border-primary-300'"
+                      >
+                        <input
+                          type="checkbox"
+                          :checked="getQuizAnswer(q.id).includes(optIndex)"
+                          @change="toggleQuizAnswer(q.id, optIndex)"
+                          class="rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+                        />
+                        <span class="text-sm text-neutral-800">{{ opt }}</span>
+                      </label>
+                    </div>
+                  </div>
+                  <Button
+                    type="submit"
+                    :loading="quizSubmitting"
+                    variant="primary"
+                    class="w-full"
+                  >
+                    {{ t('lessons.quiz.submit_button') }}
+                  </Button>
+                </form>
+              </template>
+            </div>
 
             <!-- Notes Tab -->
             <div v-if="activeTab === 'Notes'" class="space-y-4">
@@ -326,6 +450,7 @@
                   :lesson-id="lesson.id"
                   :title="lesson.title"
                   :duration-seconds="lesson.duration_seconds"
+                  :allow-free-seek="lesson.is_completed"
                   @ready="onPlayerReady"
                   @heartbeat="onPlayerHeartbeat"
                   @ended="onPlayerEnded"
@@ -464,10 +589,11 @@ import Button from '@/Components/Common/Button.vue';
 import Modal from '@/Components/Modal.vue';
 import PostLessonSummaryCard from '@/Components/PostLessonSummaryCard.vue';
 import SidePanelNotebook from '@/Components/SidePanelNotebook.vue';
-import { Check, Play, Plus, FileText, Pin, Trash2 } from 'lucide-vue-next';
+import { Check, Play, Plus, FileText, Pin, Trash2, BookOpen, Heart, Volume2, Download, Loader2 } from 'lucide-vue-next';
 import { Link, usePage, useForm, router } from '@inertiajs/vue3';
-import { computed, ref, onMounted, onBeforeUnmount, getCurrentInstance, inject } from 'vue';
+import { computed, ref, watch, onMounted, onBeforeUnmount, getCurrentInstance, inject } from 'vue';
 import axios from 'axios';
+import { useI18n } from '@/i18n';
 
 const props = defineProps({
   course: Object,
@@ -489,13 +615,43 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  quiz: {
+    type: Array,
+    default: null,
+  },
+  quiz_attempt: {
+    type: Object,
+    default: null,
+  },
 });
 
-const tabs = ['Overview', 'Transcript', 'Reflection', 'Notes'];
-const activeTab = ref('Overview');
+const { t, locale } = useI18n();
+
+const hasQuiz = computed(() => props.quiz && props.quiz.length > 0);
+const tabs = computed(() => {
+  const baseTabs = [
+    t('lessons.tabs.overview'),
+    t('lessons.tabs.resources'),
+    t('lessons.tabs.reflection'),
+  ];
+  if (hasQuiz.value) baseTabs.push(t('lessons.tabs.quiz'));
+  baseTabs.push(t('lessons.tabs.notes'));
+  return baseTabs;
+});
+const activeTab = ref(t('lessons.tabs.overview'));
 const showNoteModal = ref(false);
 const showPostLessonSummary = ref(false);
 const showSidePanel = ref(false);
+
+const lessonResources = ref(null);
+const resourcesLoading = ref(false);
+const resourcesPdfDownloading = ref(false);
+
+const resourcesPdfViewUrl = computed(() => {
+  if (!lessonResources.value || !lessonResources.value.can_view) return '';
+  if (!lessonResources.value.sunnah_pointers && !lessonResources.value.duas_text) return '';
+  return route('lessons.resources.pdf.view', { lesson: props.lesson.id });
+});
 
 const page = usePage();
 
@@ -669,6 +825,48 @@ const reflectionForm = useForm({
 const completionForm = useForm({});
 const checkinForm = useForm({});
 
+// Quiz state: per question id -> array of selected option indices (multiple answers)
+const quizAnswers = ref({});
+const quizSubmitting = ref(false);
+const showRetakeQuizForm = ref(false);
+
+function getQuizAnswer(questionId) {
+  const a = quizAnswers.value[questionId];
+  return Array.isArray(a) ? a : [];
+}
+function toggleQuizAnswer(questionId, optIndex) {
+  if (!quizAnswers.value[questionId]) {
+    quizAnswers.value[questionId] = [];
+  }
+  const arr = quizAnswers.value[questionId];
+  const i = arr.indexOf(optIndex);
+  if (i === -1) {
+    arr.push(optIndex);
+  } else {
+    arr.splice(i, 1);
+  }
+  quizAnswers.value = { ...quizAnswers.value };
+}
+
+async function submitQuiz() {
+  const answers = {};
+  props.quiz.forEach(q => {
+    answers[q.id] = getQuizAnswer(q.id);
+  });
+  quizSubmitting.value = true;
+  try {
+    const { data } = await axios.post(route('lessons.quiz.store', { lesson: props.lesson.id }), { answers });
+    if (data) {
+      router.reload({ only: ['quiz_attempt'] });
+    }
+  } catch (err) {
+    const msg = err.response?.data?.message || t('lessons.quiz.submit_error');
+    alert(msg);
+  } finally {
+    quizSubmitting.value = false;
+  }
+}
+
 const markComplete = () => {
   completionForm.post(route('lessons.complete', { lesson: props.lesson.id }), {
     preserveScroll: true,
@@ -756,4 +954,49 @@ const goToLesson = (lessonId) => {
     lesson: lessonId 
   }));
 };
+
+function fetchLessonResources() {
+  if (!props.lesson?.id) return;
+  resourcesLoading.value = true;
+  lessonResources.value = null;
+  axios.get(route('lessons.resources.show', { lesson: props.lesson.id }))
+    .then((res) => {
+      lessonResources.value = res.data;
+    })
+    .catch(() => {
+      lessonResources.value = null;
+    })
+    .finally(() => {
+      resourcesLoading.value = false;
+    });
+}
+
+function downloadResourcesPdf() {
+  if (!props.lesson?.id) return;
+  resourcesPdfDownloading.value = true;
+  const url = route('lessons.resources.pdf', { lesson: props.lesson.id });
+  axios.get(url, { responseType: 'blob' })
+    .then((response) => {
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = `lesson-resources-${(props.lesson.title || props.lesson.id).replace(/\s+/g, '-')}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(link.href);
+    })
+    .catch(() => {
+      alert('Failed to download PDF.');
+    })
+    .finally(() => {
+      resourcesPdfDownloading.value = false;
+    });
+}
+
+watch(activeTab, (tab) => {
+  if (tab === 'Dua & Resources') {
+    fetchLessonResources();
+  }
+});
 </script>

@@ -150,6 +150,8 @@ class DashboardController extends Controller
             'streak' => $dashboardData['streak'],
             'recent_notes' => $dashboardData['recent_notes'],
             'continue_learning' => $dashboardData['continue_learning'],
+            'remaining_quizzes_list' => $dashboardData['remaining_quizzes_list'] ?? [],
+            'course_milestones' => $dashboardData['course_milestones'] ?? [],
             'recent_activity' => $recentActivity,
             'latest_community_posts' => $latestCommunityPosts,
         ]);

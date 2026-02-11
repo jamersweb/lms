@@ -110,6 +110,10 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  allowFreeSeek: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 // YouTube thumbnail URL
@@ -324,11 +328,14 @@ function createPlayer() {
               if (!player || !player.getCurrentTime) return;
               const currentTime = player.getCurrentTime() || 0;
 
+              if (props.allowFreeSeek) {
+                lastAllowedTime = Math.max(lastAllowedTime, currentTime);
+                return;
+              }
               if (currentTime < lastAllowedTime - 0.5) {
                 lastAllowedTime = currentTime;
                 return;
               }
-
               if (currentTime > lastAllowedTime + 1.25) {
                 player.seekTo(lastAllowedTime, true);
               } else {
@@ -434,18 +441,18 @@ function seekTo(event) {
   const newTime = percent * duration.value;
   const currentTime = player.getCurrentTime ? player.getCurrentTime() : 0;
 
-  // Anti-cheat: Only allow backward seeks or small forward seeks (within 1.25 seconds)
-  // Block forward seeks beyond the allowed threshold
-  if (newTime > currentTime + 1.25) {
-    // Don't allow forward seeks beyond threshold
+  if (props.allowFreeSeek) {
+    if (player.seekTo) {
+      player.seekTo(newTime, true);
+      currentTime.value = newTime;
+      lastAllowedTime = newTime;
+    }
     return;
   }
-
-  // Allow backward seeks or small forward seeks
+  if (newTime > currentTime + 1.25) return;
   if (player.seekTo) {
     player.seekTo(newTime, true);
     currentTime.value = newTime;
-    // Update lastAllowedTime only if it's a backward seek or within threshold
     if (newTime <= currentTime + 1.25) {
       lastAllowedTime = newTime;
     }
@@ -535,16 +542,15 @@ watch(
       const currentTime = player.getCurrentTime ? player.getCurrentTime() : 0;
       const newTime = Math.max(0, value);
 
-      // Anti-cheat: Only allow backward seeks or small forward seeks (within 1.25 seconds)
-      if (newTime > currentTime + 1.25) {
-        // Don't allow forward seeks beyond threshold
+      if (props.allowFreeSeek) {
+        player.seekTo(newTime, true);
+        currentTime.value = newTime;
+        lastAllowedTime = newTime;
         return;
       }
-
-      // Allow backward seeks or small forward seeks
+      if (newTime > currentTime + 1.25) return;
       player.seekTo(newTime, true);
       currentTime.value = newTime;
-      // Update lastAllowedTime only if it's a backward seek or within threshold
       if (newTime <= currentTime + 1.25) {
         lastAllowedTime = newTime;
       }

@@ -47,7 +47,15 @@
             <tr v-for="lesson in filteredLessons" :key="lesson.id" class="hover:bg-neutral-50 transition-colors">
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-800 to-primary-950 flex items-center justify-center">
+                  <div v-if="lesson.image && lesson.image.trim()" class="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-neutral-200">
+                    <img 
+                      :src="lesson.image" 
+                      :alt="lesson.title" 
+                      class="w-full h-full object-cover"
+                      @error="(e) => { e.target.style.display = 'none'; }"
+                    />
+                  </div>
+                  <div v-else class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-800 to-primary-950 flex items-center justify-center">
                     <Video class="w-5 h-5 text-white" />
                   </div>
                   <div>

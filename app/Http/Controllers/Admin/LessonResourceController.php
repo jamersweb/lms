@@ -17,37 +17,87 @@ class LessonResourceController extends Controller
     {
         $validated = $request->validate([
             'sunnah_pointers' => 'nullable|string',
+            'sunnah_pointers_en' => 'nullable|string',
+            'sunnah_pointers_en_roman' => 'nullable|string',
+            'sunnah_pointers_ur' => 'nullable|string',
             'duas_text' => 'nullable|string',
-            'audio_file' => 'nullable|file|mimes:mp3,wav,ogg|max:10240', // 10MB
+            'duas_text_en' => 'nullable|string',
+            'duas_text_en_roman' => 'nullable|string',
+            'duas_text_ur' => 'nullable|string',
+            'audio_file' => [
+                'nullable',
+                'file',
+                'max:10240', // 10MB
+                'mimes:mp3,wav,ogg,m4a',
+                'mimetypes:audio/mpeg,audio/mp3,audio/x-wav,audio/wav,audio/ogg,audio/x-m4a,audio/mp4',
+            ],
             'pdf_file' => 'nullable|file|mimes:pdf|max:5120', // 5MB
         ]);
 
-        // Ensure at least one field is provided
-        if (empty($validated['sunnah_pointers']) && 
-            empty($validated['duas_text']) && 
-            !$request->hasFile('audio_file') && 
-            !$request->hasFile('pdf_file') &&
-            !$resource) {
+        $resource = $lesson->resource;
+        $hasNewContent = ! empty(trim($validated['sunnah_pointers'] ?? ''))
+            || ! empty(trim($validated['sunnah_pointers_en'] ?? ''))
+            || ! empty(trim($validated['sunnah_pointers_en_roman'] ?? ''))
+            || ! empty(trim($validated['sunnah_pointers_ur'] ?? ''))
+            || ! empty(trim($validated['duas_text'] ?? ''))
+            || ! empty(trim($validated['duas_text_en'] ?? ''))
+            || ! empty(trim($validated['duas_text_en_roman'] ?? ''))
+            || ! empty(trim($validated['duas_text_ur'] ?? ''))
+            || $request->hasFile('audio_file')
+            || $request->hasFile('pdf_file');
+        $hasExistingContent = $resource
+            && (
+                trim($resource->sunnah_pointers ?? '') !== ''
+                || trim($resource->sunnah_pointers_en ?? '') !== ''
+                || trim($resource->sunnah_pointers_en_roman ?? '') !== ''
+                || trim($resource->sunnah_pointers_ur ?? '') !== ''
+                || trim($resource->duas_text ?? '') !== ''
+                || trim($resource->duas_text_en ?? '') !== ''
+                || trim($resource->duas_text_en_roman ?? '') !== ''
+                || trim($resource->duas_text_ur ?? '') !== ''
+                || $resource->audio_path
+                || $resource->pdf_path
+            );
+        if (! $hasNewContent && ! $hasExistingContent) {
             return back()->withErrors([
-                'sunnah_pointers' => 'Please provide at least one resource (Sunnah pointers, Duas, audio, or PDF).'
+                'sunnah_pointers' => 'Please provide at least one resource (Sunnah pointers, Duas, audio, or PDF).',
             ]);
         }
 
-        $resource = $lesson->resource ?? new LessonResource(['lesson_id' => $lesson->id]);
+        $resource = $resource ?? new LessonResource(['lesson_id' => $lesson->id]);
 
         // Handle file uploads
         if ($request->hasFile('audio_file')) {
+            if ($resource->audio_path && Storage::disk('public')->exists($resource->audio_path)) {
+                Storage::disk('public')->delete($resource->audio_path);
+            }
             $audioPath = $request->file('audio_file')->store('lesson-resources/audio', 'public');
             $validated['audio_path'] = $audioPath;
         }
 
         if ($request->hasFile('pdf_file')) {
+            if ($resource->pdf_path && Storage::disk('public')->exists($resource->pdf_path)) {
+                Storage::disk('public')->delete($resource->pdf_path);
+            }
             $pdfPath = $request->file('pdf_file')->store('lesson-resources/pdf', 'public');
             $validated['pdf_path'] = $pdfPath;
         }
 
-        // Update or create resource
-        $resource->fill($validated);
+        // Only fill fields that belong on the model (exclude uploaded file objects)
+        $resource->sunnah_pointers = $validated['sunnah_pointers'] ?? $resource->sunnah_pointers;
+        $resource->sunnah_pointers_en = $validated['sunnah_pointers_en'] ?? $resource->sunnah_pointers_en;
+        $resource->sunnah_pointers_en_roman = $validated['sunnah_pointers_en_roman'] ?? $resource->sunnah_pointers_en_roman;
+        $resource->sunnah_pointers_ur = $validated['sunnah_pointers_ur'] ?? $resource->sunnah_pointers_ur;
+        $resource->duas_text = $validated['duas_text'] ?? $resource->duas_text;
+        $resource->duas_text_en = $validated['duas_text_en'] ?? $resource->duas_text_en;
+        $resource->duas_text_en_roman = $validated['duas_text_en_roman'] ?? $resource->duas_text_en_roman;
+        $resource->duas_text_ur = $validated['duas_text_ur'] ?? $resource->duas_text_ur;
+        if (isset($validated['audio_path'])) {
+            $resource->audio_path = $validated['audio_path'];
+        }
+        if (isset($validated['pdf_path'])) {
+            $resource->pdf_path = $validated['pdf_path'];
+        }
         $resource->save();
 
         return redirect()->route('admin.lessons.edit', $lesson)

@@ -33,7 +33,7 @@
         <!-- Admin Section -->
         <template v-if="isAdmin">
           <div class="pt-6 mt-4 border-t border-neutral-200">
-            <div class="px-4 mb-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Admin Panel</div>
+            <div class="px-4 mb-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">{{ t('nav.admin_panel') }}</div>
             <Link v-for="item in adminNavigation" :key="item.name" :href="item.href"
               :class="[
                 page.url.startsWith(item.activePrefix)
@@ -56,7 +56,7 @@
       <div class="border-t border-neutral-200 p-6">
         <Link href="/logout" method="post" as="button" class="group flex w-full items-center px-4 py-3 text-sm font-medium text-neutral-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
           <LogOut class="mr-3 h-5 w-5 text-neutral-400 group-hover:text-red-500 transition-colors" />
-          Sign Out
+          {{ t('nav.sign_out') }}
         </Link>
       </div>
     </aside>
@@ -116,7 +116,7 @@
               <!-- Admin Section (Mobile) -->
               <template v-if="isAdmin">
                 <div class="pt-6 mt-4 border-t border-neutral-200">
-                  <div class="px-4 mb-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Admin Panel</div>
+                  <div class="px-4 mb-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">{{ t('nav.admin_panel') }}</div>
                   <Link
                     v-for="item in adminNavigation"
                     :key="item.name"
@@ -149,7 +149,7 @@
                 class="group flex w-full items-center px-4 py-3.5 text-base font-medium text-neutral-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
               >
                 <LogOut class="mr-4 h-6 w-6 text-neutral-400 group-hover:text-red-500 transition-colors" />
-                Sign Out
+                {{ t('nav.sign_out') }}
               </Link>
             </div>
           </aside>
@@ -207,7 +207,7 @@
                             <!-- Admin Section -->
                             <template v-if="isAdmin">
                                 <div class="border-t border-neutral-200 my-2"></div>
-                                <div class="px-4 py-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Admin Panel</div>
+                                <div class="px-4 py-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">{{ t('nav.admin_panel') }}</div>
                                 <Link
                                   v-for="item in adminNavigation"
                                   :key="item.name"
@@ -235,7 +235,7 @@
                               class="w-full flex items-center px-4 py-3 text-sm font-medium text-neutral-500 hover:text-red-600 hover:bg-red-50 transition-colors"
                             >
                                 <LogOut class="mr-3 h-5 w-5 text-neutral-400" />
-                                Sign Out
+                                {{ t('nav.sign_out') }}
                             </Link>
                         </div>
                     </Transition>
@@ -259,19 +259,53 @@
 
             <div class="hidden md:flex flex-1">
                 <!-- Breadcrumbs or Search could go here -->
-                <h2 class="font-serif text-xl text-primary-900 font-semibold" v-if="headerTitle && !isLessonPage">{{ headerTitle }}</h2>
+                <h2
+                  class="font-serif text-xl text-primary-900 font-semibold"
+                  v-if="headerTitle && !isLessonPage"
+                  :class="locale === 'ur' ? 'text-right w-full' : ''"
+                >
+                  {{ headerTitle }}
+                </h2>
             </div>
 
             <div class="flex flex-1 justify-end items-center gap-3 md:gap-6">
+                <!-- Language Switcher -->
+                <form
+                  method="post"
+                  action="/locale"
+                  class="hidden sm:inline-flex items-center gap-2"
+                >
+                  <input type="hidden" name="_token" :value="$page?.props?.csrf_token || document.querySelector('meta[name=csrf-token]')?.getAttribute('content')" />
+                  <div class="flex items-center gap-1">
+                    <select
+                      name="locale"
+                      class="text-xs md:text-sm border border-neutral-200 rounded-lg px-2 py-1 bg-white text-neutral-600 focus:border-primary-400 focus:ring-primary-400"
+                    >
+                      <option value="en" :selected="$page?.props?.locale === 'en'">UI: English</option>
+                      <option value="en_roman" :selected="$page?.props?.locale === 'en_roman'">UI: Roman</option>
+                      <option value="ur" :selected="$page?.props?.locale === 'ur'">UI: اردو</option>
+                    </select>
+                    <select
+                      name="content_locale"
+                      class="text-xs md:text-sm border border-neutral-200 rounded-lg px-2 py-1 bg-white text-neutral-600 focus:border-primary-400 focus:ring-primary-400"
+                      @change="$event.target.form.submit()"
+                    >
+                      <option value="en" :selected="$page?.props?.content_locale === 'en'">Content: English</option>
+                      <option value="en_roman" :selected="$page?.props?.content_locale === 'en_roman'">Content: Roman</option>
+                      <option value="ur" :selected="$page?.props?.content_locale === 'ur'">Content: اردو</option>
+                    </select>
+                  </div>
+                </form>
+
                 <!-- Notifications / Actions -->
                 <NotificationDropdown />
 
                 <div class="h-6 w-px bg-neutral-200 hidden sm:block"></div>
 
                 <div class="flex items-center space-x-2 md:space-x-3 cursor-pointer group">
-                   <div class="text-right hidden md:block">
-                     <div class="text-sm font-medium text-neutral-900 group-hover:text-primary-900 transition-colors">{{ $page.props.auth.user?.name || 'Guest' }}</div>
-                     <div class="text-xs text-neutral-500">{{ $page.props.auth.user?.is_admin ? 'Admin' : 'Student' }}</div>
+                  <div :class="['hidden md:block', locale === 'ur' ? 'text-right' : 'text-right']">
+                     <div class="text-sm font-medium text-neutral-900 group-hover:text-primary-900 transition-colors">{{ $page?.props?.auth?.user?.name || 'Guest' }}</div>
+                     <div class="text-xs text-neutral-500">{{ $page?.props?.auth?.user?.is_admin ? 'Admin' : 'Student' }}</div>
                    </div>
                    <!-- Avatar -->
                    <div class="h-9 w-9 md:h-10 md:w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-900 font-bold text-sm ring-2 ring-transparent group-hover:ring-primary-200 transition-all shadow-sm">
@@ -309,8 +343,10 @@ import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
 import NotificationDropdown from '@/Components/NotificationDropdown.vue';
 import Toast from '@/Components/Toast.vue';
 import { useToast } from '@/composables/useToast';
+import { useI18n } from '@/i18n';
 
 const page = usePage();
+const { t, locale } = useI18n();
 
 // Mobile menu state
 const isMobileMenuOpen = ref(false);
@@ -362,12 +398,12 @@ const isLessonPage = computed(() => {
 
 // Dynamic Header Title based on route or prop (simplified for now)
 const headerTitle = computed(() => {
-    // Basic mapping, could be more robust
     const url = page.url;
-    if (url.includes('courses')) return 'My Courses';
-    if (url.includes('habits')) return 'Habit Tracker';
-    if (url.includes('leaderboard')) return 'Community & Ranking';
-    return 'Dashboard';
+    if (url.includes('courses')) return t('nav.my_courses');
+    if (url.includes('habits')) return t('nav.habit_tracker');
+    if (url.includes('leaderboard')) return t('nav.community');
+    if (url.includes('certificates')) return t('nav.certificates');
+    return t('nav.dashboard');
 });
 
 // Compute user initials from authenticated user
@@ -382,22 +418,22 @@ const userInitials = computed(() => {
 });
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', route: 'dashboard', icon: Home },
-  { name: 'My Courses', href: '/courses', route: 'courses.index', icon: BookOpen, badge: '2' },
-  { name: 'Habit Tracker', href: '/habits', route: 'habits.index', icon: CheckSquare },
-  { name: 'Community', href: '/leaderboard', route: 'leaderboard.index', icon: MessageCircle },
-  { name: 'Certificates', href: '/certificates', route: 'certificates.index', icon: Award },
+  { name: t('nav.dashboard'), href: '/dashboard', route: 'dashboard', icon: Home },
+  { name: t('nav.my_courses'), href: '/courses', route: 'courses.index', icon: BookOpen, badge: '2' },
+  { name: t('nav.habit_tracker'), href: '/habits', route: 'habits.index', icon: CheckSquare },
+  { name: t('nav.community'), href: '/leaderboard', route: 'leaderboard.index', icon: MessageCircle },
+  { name: t('nav.certificates'), href: '/certificates', route: 'certificates.index', icon: Award },
 ];
 
 // Admin navigation
 const adminNavigation = [
-  { name: 'Admin Dashboard', href: '/admin', activePrefix: '/admin', icon: LayoutDashboard },
-  { name: 'Users', href: '/admin/users', activePrefix: '/admin/users', icon: Users },
-  { name: 'Courses', href: '/admin/courses', activePrefix: '/admin/courses', icon: BookOpen },
-  { name: 'Modules', href: '/admin/modules', activePrefix: '/admin/modules', icon: FolderOpen },
-  { name: 'Lessons', href: '/admin/lessons', activePrefix: '/admin/lessons', icon: Video },
-  { name: 'Habits', href: '/admin/habits', activePrefix: '/admin/habits', icon: Target },
-  { name: 'Moderation', href: '/admin/moderation', activePrefix: '/admin/moderation', icon: Shield },
+  { name: t('nav.admin_dashboard'), href: '/admin', activePrefix: '/admin', icon: LayoutDashboard },
+  { name: t('nav.admin_users'), href: '/admin/users', activePrefix: '/admin/users', icon: Users },
+  { name: t('nav.admin_courses'), href: '/admin/courses', activePrefix: '/admin/courses', icon: BookOpen },
+  { name: t('nav.admin_modules'), href: '/admin/modules', activePrefix: '/admin/modules', icon: FolderOpen },
+  { name: t('nav.admin_lessons'), href: '/admin/lessons', activePrefix: '/admin/lessons', icon: Video },
+  { name: t('nav.admin_habits'), href: '/admin/habits', activePrefix: '/admin/habits', icon: Target },
+  { name: t('nav.admin_moderation'), href: '/admin/moderation', activePrefix: '/admin/moderation', icon: Shield },
 ];
 
 // Check if user is admin

@@ -10,6 +10,10 @@ use Illuminate\Http\Request;
 
 class LessonReflectionController extends Controller
 {
+    public function __construct(
+        private ActivityLogger $activityLogger
+    ) {}
+
     /**
      * Store or update a lesson reflection (Spiritual Takeaway).
      * 

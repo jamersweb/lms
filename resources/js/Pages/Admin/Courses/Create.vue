@@ -15,7 +15,7 @@
 
       <!-- Form -->
       <form @submit.prevent="submit" class="bg-white rounded-xl border border-neutral-200 p-6 space-y-6">
-        <!-- Title -->
+        <!-- Titles & Descriptions (Multilingual) -->
         <div>
           <label class="block text-sm font-medium text-neutral-700 mb-2">Course Title *</label>
           <input 
@@ -25,19 +25,71 @@
             placeholder="e.g., Tazkiyah - Journey to Purity"
             required
           />
-          <p class="mt-1 text-xs text-neutral-500">URL slug will be automatically generated from the title</p>
+          <p class="mt-1 text-xs text-neutral-500">Used as default; you can override per language below.</p>
           <p v-if="form.errors.title" class="mt-1 text-sm text-red-600">{{ form.errors.title }}</p>
         </div>
 
-        <!-- Description -->
-        <div>
-          <label class="block text-sm font-medium text-neutral-700 mb-2">Description</label>
-          <textarea 
-            v-model="form.description"
-            rows="4"
-            class="w-full px-4 py-2.5 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
-            placeholder="Describe what students will learn in this course..."
-          ></textarea>
+        <div class="border border-neutral-100 rounded-xl p-4 bg-neutral-50 space-y-4">
+          <div class="flex flex-wrap gap-2 text-xs font-medium text-neutral-600 mb-2">
+            <span class="px-2 py-0.5 rounded-full bg-white border border-neutral-200">Content language versions</span>
+          </div>
+
+          <div class="grid gap-4 md:grid-cols-3">
+            <div>
+              <label class="block text-xs font-medium text-neutral-700 mb-1">Title (English)</label>
+              <input
+                v-model="form.title_en"
+                type="text"
+                class="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-neutral-700 mb-1">Title (Roman)</label>
+              <input
+                v-model="form.title_en_roman"
+                type="text"
+                class="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-neutral-700 mb-1">Title (Urdu)</label>
+              <input
+                v-model="form.title_ur"
+                type="text"
+                class="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
+              />
+            </div>
+          </div>
+
+          <div class="grid gap-4 md:grid-cols-3">
+            <div class="md:col-span-3">
+              <label class="block text-xs font-medium text-neutral-700 mb-1">Description (English)</label>
+              <textarea
+                v-model="form.description_en"
+                rows="3"
+                class="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
+                placeholder="Describe what students will learn in this course..."
+              ></textarea>
+            </div>
+            <div class="md:col-span-3">
+              <label class="block text-xs font-medium text-neutral-700 mb-1">Description (Roman)</label>
+              <textarea
+                v-model="form.description_en_roman"
+                rows="3"
+                class="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
+              ></textarea>
+            </div>
+            <div class="md:col-span-3">
+              <label class="block text-xs font-medium text-neutral-700 mb-1">Description (Urdu)</label>
+              <textarea
+                v-model="form.description_ur"
+                rows="3"
+                class="w-full px-3 py-2 border border-neutral-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-100 focus:border-primary-400"
+                dir="rtl"
+              ></textarea>
+            </div>
+          </div>
+
           <p v-if="form.errors.description" class="mt-1 text-sm text-red-600">{{ form.errors.description }}</p>
         </div>
 
@@ -114,6 +166,12 @@ const form = useForm({
   title: '',
   sort_order: 0,
   description: '',
+  title_en: '',
+  title_en_roman: '',
+  title_ur: '',
+  description_en: '',
+  description_en_roman: '',
+  description_ur: '',
   thumbnail: null,
 });
 

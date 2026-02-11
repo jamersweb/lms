@@ -1,0 +1,138 @@
+{
+  "auth": {
+    "login": {
+      "title": "Welcome Back",
+      "subtitle": "Sign in to continue your spiritual journey"
+    },
+    "register": {
+      "title": "Create Account",
+      "subtitle": "Start your journey of spiritual growth"
+    }
+  },
+  "dashboard": {
+    "welcome": "Welcome back, :name",
+    "quote": "\"The best of deeds is that which is done consistently, even if it is small.\" — Prophet Muhammad (ﷺ)",
+    "cards": {
+      "watched_label": "Watched",
+      "watched_sub": "of :total lessons",
+      "remaining_label": "Remaining",
+      "remaining_sub": "lessons to go",
+      "watch_time_label": "Watch Time",
+      "watch_time_sub": "total watched",
+      "streak_label": "Streak",
+      "streak_sub_singular": "day in a row",
+      "streak_sub_plural": "days in a row",
+      "quizzes_completed_label": "Quizzes Completed",
+      "quizzes_completed_sub": "of :total with quiz",
+      "quizzes_remaining_label": "Quizzes Remaining",
+      "quizzes_remaining_sub": "complete lesson then take quiz"
+    },
+    "sections": {
+      "continue_watching_title": "Continue Watching",
+      "continue_watching_view_all": "View All →",
+      "continue_learning_badge": "In Progress",
+      "continue_learning_resume": "Resume Lesson",
+      "continue_learning_cta": "Continue Learning",
+      "video_progress_label": "Video Progress",
+      "resume_from": "Resume from :time",
+      "quizzes_to_complete_title": "Quizzes to Complete",
+      "quizzes_to_complete_cta": "Take quiz →"
+    }
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "my_courses": "My Courses",
+    "habit_tracker": "Habit Tracker",
+    "community": "Community",
+    "certificates": "Certificates",
+    "admin_panel": "Admin Panel",
+    "admin_dashboard": "Admin Dashboard",
+    "admin_users": "Users",
+    "admin_courses": "Courses",
+    "admin_modules": "Modules",
+    "admin_lessons": "Lessons",
+    "admin_habits": "Habits",
+    "admin_moderation": "Moderation",
+    "sign_out": "Sign Out"
+  },
+  "courses": {
+    "index": {
+      "title": "Explore Courses",
+      "subtitle": "Discover knowledge to purify the heart and soul.",
+      "search_placeholder": "Search courses...",
+      "filter_all_levels": "All Levels",
+      "level_beginner": "Beginner",
+      "level_intermediate": "Intermediate",
+      "level_advanced": "Advanced",
+      "level_default": "All Levels",
+      "meta_lessons": "Lessons",
+      "meta_duration": "Duration",
+      "action_locked": "Locked",
+      "action_view": "View Course",
+      "empty_title": "No courses found",
+      "empty_subtitle": "Check back soon for new content."
+    },
+    "show": {
+      "level_badge": "Level",
+      "lessons_count": "Lessons",
+      "progress_label": "Completed",
+      "enroll_button": "Enroll Now",
+      "enrolling_button": "Enrolling...",
+      "curriculum_title": "Course Curriculum",
+      "module_locked_badge": "Locked",
+      "module_lessons_count": ":count Lessons",
+      "lesson_next_badge": "Next",
+      "lesson_locked_badge": "Locked",
+      "lesson_lock_prev": "Complete previous first",
+      "lesson_lock_reflection": "Reflection required",
+      "lesson_lock_task": "Task required",
+      "lesson_lock_not_released": "Not released yet",
+      "lesson_lock_not_next": "Complete in order",
+      "lesson_lock_generic": "Locked",
+      "lesson_task_progress": "Task progress: :done / :required days",
+      "lesson_release_in": ":time",
+      "lesson_meta_video": "Video • :duration",
+      "continue_prefix": "Continue:",
+      "already_enrolled": "You are already enrolled in this course."
+    }
+  },
+  "lessons": {
+    "tabs": {
+      "overview": "Overview",
+      "resources": "Dua & Resources",
+      "reflection": "Reflection",
+      "quiz": "Quiz",
+      "notes": "Notes"
+    },
+    "reflection": {
+      "complete_first": "Complete the lesson video first before submitting your reflection.",
+      "prompt_submit": "Submit your reflection for this lesson to unlock the next lesson.",
+      "submitted": "Your reflection has been submitted. You can update it below if needed.",
+      "label_takeaway": "Spiritual Takeaway",
+      "placeholder_takeaway": "What did you take from this lesson? How will you apply it in your life? (Minimum 30 characters)",
+      "min_chars": "Minimum 30 characters required",
+      "characters": "characters",
+      "status_label": "Status:",
+      "teacher_note_label": "Teacher note:",
+      "submit_button": "Submit reflection",
+      "update_button": "Update reflection"
+    },
+    "quiz": {
+      "complete_first": "Complete the lesson video first before taking the quiz.",
+      "result_title": "Your Result",
+      "passed": "Passed",
+      "not_passed": "Not passed (60% required). You can retake below.",
+      "retake_button": "Retake Quiz",
+      "select_all": "Select all that apply.",
+      "submit_button": "Submit Quiz",
+      "submit_error": "Failed to submit quiz. Try again."
+    },
+    "overview": {
+      "objectives_title": "In this lesson you should",
+      "objective_1": "Watch the full lesson with focus and presence of heart.",
+      "objective_2": "Capture key points and personal reflections in your notes.",
+      "objective_3": "Complete your reflection, quiz, and any practice tasks linked to this lesson."
+    }
+  }
+}
+

@@ -16,8 +16,20 @@ class CourseController extends Controller
      */
     public function index()
     {
+        $courses = Course::withCount('modules')->orderBy('sort_order')->get()->map(function ($course) {
+            return [
+                'id' => $course->id,
+                'title' => $course->title,
+                'slug' => $course->slug,
+                'description' => $course->description,
+                'sort_order' => $course->sort_order,
+                'thumbnail' => $course->thumbnail ? Storage::disk('public')->url($course->thumbnail) : null,
+                'modules_count' => $course->modules_count,
+            ];
+        });
+
         return Inertia::render('Admin/Courses/Index', [
-            'courses' => Course::withCount('modules')->orderBy('sort_order')->get()
+            'courses' => $courses
         ]);
     }
 
@@ -38,6 +50,12 @@ class CourseController extends Controller
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:courses',
             'description' => 'nullable|string',
+            'title_en' => 'nullable|string|max:255',
+            'title_en_roman' => 'nullable|string|max:255',
+            'title_ur' => 'nullable|string|max:255',
+            'description_en' => 'nullable|string',
+            'description_en_roman' => 'nullable|string',
+            'description_ur' => 'nullable|string',
             'sort_order' => 'integer',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // 5MB
         ]);
@@ -92,6 +110,12 @@ class CourseController extends Controller
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:courses,slug,' . $course->id,
             'description' => 'nullable|string',
+            'title_en' => 'nullable|string|max:255',
+            'title_en_roman' => 'nullable|string|max:255',
+            'title_ur' => 'nullable|string|max:255',
+            'description_en' => 'nullable|string',
+            'description_en_roman' => 'nullable|string',
+            'description_ur' => 'nullable|string',
             'sort_order' => 'integer',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // 5MB
         ]);
@@ -109,7 +133,7 @@ class CourseController extends Controller
 
         $course->update($validated);
 
-        return redirect()->route('admin.courses.index');
+        return redirect()->route('admin.courses.edit', $course)->with('success', 'Course updated successfully.');
     }
 
     /**

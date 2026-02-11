@@ -3,7 +3,7 @@
     <div v-if="course" class="max-w-5xl mx-auto">
         <!-- Course Header -->
         <div class="bg-white rounded-2xl border border-neutral-100 shadow-sm p-8 mb-8 flex flex-col md:flex-row gap-8">
-           <!-- Thumbnail -->
+             <!-- Thumbnail -->
            <div class="w-full md:w-1/3 aspect-video rounded-xl overflow-hidden shrink-0 border border-neutral-100 bg-gradient-to-br from-primary-800 to-primary-950">
               <img
                 v-if="course.thumbnail && !course.thumbnail.includes('ui-avatars')"
@@ -19,14 +19,16 @@
            </div>
 
            <!-- Info -->
-           <div class="flex-1 flex flex-col">
+           <div class="flex-1 flex flex-col" :class="$page.props.locale === 'ur' ? 'text-right' : ''">
               <div class="flex items-center gap-2 mb-2">
                  <span class="bg-primary-50 text-primary-900 px-2 py-0.5 rounded text-xs font-bold">{{ course.level }}</span>
                  <span class="text-sm text-neutral-500">• {{ course.duration }}</span>
-                 <span class="text-sm text-neutral-500">• {{ course.lessons_count }} Lessons</span>
+                 <span class="text-sm text-neutral-500">• {{ course.lessons_count }} {{ t('courses.show.lessons_count') }}</span>
               </div>
 
-              <h1 class="font-serif text-3xl font-bold text-neutral-900 mb-3">{{ course.title }}</h1>
+              <h1 class="font-serif text-3xl font-bold text-neutral-900 mb-3">
+                {{ course.title }}
+              </h1>
 
               <div v-if="course.is_locked && course.lock_message" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                 <div class="flex items-center gap-2 text-sm text-red-700">
@@ -52,7 +54,7 @@
 
                  <!-- Enroll / Continue CTA -->
                  <div v-if="course.is_enrolled">
-                    <div class="text-right text-xs text-neutral-500 mb-1">{{ course.progress }}% Completed</div>
+                    <div class="text-right text-xs text-neutral-500 mb-1">{{ course.progress }}% {{ t('courses.show.progress_label') }}</div>
                     <div class="w-32 bg-neutral-100 rounded-full h-2 mb-2">
                         <div class="bg-primary-900 h-2 rounded-full transition-all" :style="{ width: course.progress + '%' }"></div>
                     </div>
@@ -71,7 +73,7 @@
                       class="px-6 py-2.5 bg-primary-900 text-white rounded-lg font-semibold hover:bg-primary-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                       <Loader2 v-if="enrolling" class="w-4 h-4 animate-spin" />
-                      {{ enrolling ? 'Enrolling...' : 'Enroll Now' }}
+                      {{ enrolling ? t('courses.show.enrolling_button') : t('courses.show.enroll_button') }}
                     </button>
                  </div>
               </div>
@@ -80,7 +82,12 @@
 
         <!-- Curriculum Content -->
         <div class="space-y-6">
-           <h2 class="text-2xl font-serif font-bold text-neutral-900">Course Curriculum</h2>
+           <h2
+             class="text-2xl font-serif font-bold text-neutral-900"
+             :class="$page.props.locale === 'ur' ? 'text-right' : ''"
+           >
+             {{ t('courses.show.curriculum_title') }}
+           </h2>
 
            <div class="space-y-4">
               <!-- Module Item -->
@@ -91,10 +98,10 @@
                        <h3 class="font-medium text-neutral-900">{{ module.title }}</h3>
                        <span v-if="module.is_locked" class="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium">
                           <Lock class="w-3 h-3" />
-                          Locked
+                          {{ t('courses.show.module_locked_badge') }}
                        </span>
                     </div>
-                    <span class="text-xs text-neutral-500">{{ module.lessons.length }} Lessons</span>
+                    <span class="text-xs text-neutral-500">{{ module.lessons.length }} {{ t('courses.show.lessons_count') }}</span>
                  </div>
 
                  <!-- Module lock message -->
@@ -144,23 +151,23 @@
                              ]">
                                  {{ index + 1 }}. {{ lesson.title }}
                                  <span v-if="lesson.is_next && !lesson.is_locked" class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-primary-100 text-primary-700 rounded text-xs font-medium">
-                                    Next
+                                    {{ t('courses.show.lesson_next_badge') }}
                                  </span>
                                  <span v-else-if="lesson.is_locked" class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium">
                                     <Lock class="w-2.5 h-2.5" />
-                                    <span v-if="lesson.lock_reason_codes?.includes('previous_lesson_incomplete')">Complete previous first</span>
-                                    <span v-else-if="lesson.lock_reason_codes?.includes('reflection_required')">Reflection required</span>
-                                    <span v-else-if="lesson.lock_reason_codes?.includes('task_incomplete')">Task required</span>
-                                    <span v-else-if="lesson.lock_reason_codes?.includes('not_released_yet')">Not released yet</span>
-                                    <span v-else-if="lesson.lock_reason_codes?.includes('not_next_lesson')">Complete in order</span>
-                                    <span v-else>Locked</span>
+                                    <span v-if="lesson.lock_reason_codes?.includes('previous_lesson_incomplete')">{{ t('courses.show.lesson_lock_prev') }}</span>
+                                    <span v-else-if="lesson.lock_reason_codes?.includes('reflection_required')">{{ t('courses.show.lesson_lock_reflection') }}</span>
+                                    <span v-else-if="lesson.lock_reason_codes?.includes('task_incomplete')">{{ t('courses.show.lesson_lock_task') }}</span>
+                                    <span v-else-if="lesson.lock_reason_codes?.includes('not_released_yet')">{{ t('courses.show.lesson_lock_not_released') }}</span>
+                                    <span v-else-if="lesson.lock_reason_codes?.includes('not_next_lesson')">{{ t('courses.show.lesson_lock_not_next') }}</span>
+                                    <span v-else>{{ t('courses.show.lesson_lock_generic') }}</span>
                                  </span>
                              </div>
                              <p v-if="lesson.is_locked && lesson.lock_message" class="text-xs text-red-600 mt-1">
                                 {{ lesson.lock_message }}
                              </p>
                              <p v-if="lesson.is_locked && lesson.lock_reason_codes?.includes('task_incomplete') && lesson.task_required_days && lesson.task_days_done !== null" class="text-xs text-neutral-600 mt-1">
-                                Task progress: {{ lesson.task_days_done }} / {{ lesson.task_required_days }} days
+                                {{ t('courses.show.lesson_task_progress', { done: lesson.task_days_done, required: lesson.task_required_days }) }}
                              </p>
                              <p v-if="!lesson.is_released && lesson.release_human" class="text-xs text-primary-600 mt-1 font-medium">
                                 {{ lesson.release_human }}
@@ -169,7 +176,7 @@
                        </div>
 
                        <div class="flex items-center gap-4 text-xs text-neutral-400">
-                          <span>Video • {{ lesson.duration }}</span>
+                          <span>{{ t('courses.show.lesson_meta_video', { duration: lesson.duration }) }}</span>
                        </div>
                     </component>
                  </div>
@@ -185,10 +192,13 @@ import AppShell from '@/Layouts/AppShell.vue';
 import { Link, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import { Check, Play, Lock, Loader2 } from 'lucide-vue-next';
+import { useI18n } from '@/i18n';
 
 const props = defineProps({
     course: Object
 });
+
+const { t } = useI18n();
 
 const enrolling = ref(false);
 

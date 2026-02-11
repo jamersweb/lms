@@ -1,0 +1,138 @@
+{
+  "auth": {
+    "login": {
+      "title": "Dobara Ahlan o Sahlan",
+      "subtitle": "Apni roohani safar jari rakhne ke liye sign in karein"
+    },
+    "register": {
+      "title": "Account Banayein",
+      "subtitle": "Apni roohani tarbiyat ka safar shuru karein"
+    }
+  },
+  "dashboard": {
+    "welcome": "Dobara khush aamadid, :name",
+    "quote": "\"Afzal amaal woh hai jo lagataar ho, chahe kam ho.\" — Nabi Muhammad (ﷺ)",
+    "cards": {
+      "watched_label": "Dekhe hue",
+      "watched_sub": "mein se :total lessons",
+      "remaining_label": "Baaki",
+      "remaining_sub": "lessons reh gaye",
+      "watch_time_label": "Watch Time",
+      "watch_time_sub": "total dekha gaya",
+      "streak_label": "Streak",
+      "streak_sub_singular": "din lagataar",
+      "streak_sub_plural": "din lagataar",
+      "quizzes_completed_label": "Quizzes mukammal",
+      "quizzes_completed_sub": ":total lessons jahan quiz hai",
+      "quizzes_remaining_label": "Baaki quizzes",
+      "quizzes_remaining_sub": "pehle lesson mukammal karein phir quiz"
+    },
+    "sections": {
+      "continue_watching_title": "Continue Watching",
+      "continue_watching_view_all": "Sab dekhein →",
+      "continue_learning_badge": "Jari safar",
+      "continue_learning_resume": "Lesson resume karein",
+      "continue_learning_cta": "Safar jari rakhein",
+      "video_progress_label": "Video progress",
+      "resume_from": ":time se resume karein",
+      "quizzes_to_complete_title": "Poore karne wale quizzes",
+      "quizzes_to_complete_cta": "Quiz attempt karein →"
+    }
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "my_courses": "Mere Courses",
+    "habit_tracker": "Habit Tracker",
+    "community": "Community",
+    "certificates": "Certificates",
+    "admin_panel": "Admin Panel",
+    "admin_dashboard": "Admin Dashboard",
+    "admin_users": "Users",
+    "admin_courses": "Courses",
+    "admin_modules": "Modules",
+    "admin_lessons": "Lessons",
+    "admin_habits": "Habits",
+    "admin_moderation": "Moderation",
+    "sign_out": "Sign Out"
+  },
+  "courses": {
+    "index": {
+      "title": "Courses explore karein",
+      "subtitle": "Dil aur rooh ki tazkiyah ke liye courses.",
+      "search_placeholder": "Courses dhoondein...",
+      "filter_all_levels": "Tamam levels",
+      "level_beginner": "Beginner",
+      "level_intermediate": "Intermediate",
+      "level_advanced": "Advanced",
+      "level_default": "Tamam levels",
+      "meta_lessons": "Lessons",
+      "meta_duration": "Duration",
+      "action_locked": "Locked",
+      "action_view": "Course dekhein",
+      "empty_title": "Koi course nahi mila",
+      "empty_subtitle": "Jald hi naye courses add kiye jayenge in shaa Allah."
+    },
+    "show": {
+      "level_badge": "Level",
+      "lessons_count": "Lessons",
+      "progress_label": "Mukammal",
+      "enroll_button": "Enroll karein",
+      "enrolling_button": "Enroll ho raha hai...",
+      "curriculum_title": "Course Curriculum",
+      "module_locked_badge": "Locked",
+      "module_lessons_count": ":count lessons",
+      "lesson_next_badge": "Next",
+      "lesson_locked_badge": "Locked",
+      "lesson_lock_prev": "Pehle wala lesson mukammal karein",
+      "lesson_lock_reflection": "Reflection zaroori hai",
+      "lesson_lock_task": "Task mukammal karein",
+      "lesson_lock_not_released": "Abhi release nahi hua",
+      "lesson_lock_not_next": "Tarteeb ke sath lessons complete karein",
+      "lesson_lock_generic": "Locked",
+      "lesson_task_progress": "Task progress: :done / :required din",
+      "lesson_release_in": ":time baad available hoga",
+      "lesson_meta_video": "Video • :duration",
+      "continue_prefix": "Continue:",
+      "already_enrolled": "Aap pehle hi is course mein enrolled hain."
+    }
+  },
+  "lessons": {
+    "tabs": {
+      "overview": "Overview",
+      "resources": "Dua aur Resources",
+      "reflection": "Reflection",
+      "quiz": "Quiz",
+      "notes": "Notes"
+    },
+    "reflection": {
+      "complete_first": "Sab se pehle lesson ka video mukammal dekhein phir reflection likhein.",
+      "prompt_submit": "Agla lesson kholne ke liye is lesson ka reflection bhejein.",
+      "submitted": "Aap ka reflection save ho gaya hai. Zarurat ho to aap isay dobara update kar sakte hain.",
+      "label_takeaway": "Roohani Takeaway",
+      "placeholder_takeaway": "Is lesson se aap ne kya seekha? Apni zindagi mein isay kaise lagoo kareinge? (Kam az kam 30 alfaaz)",
+      "min_chars": "Kam az kam 30 alfaaz zaroori hain",
+      "characters": "alfaz",
+      "status_label": "Status:",
+      "teacher_note_label": "Ustaad ka note:",
+      "submit_button": "Reflection bhejein",
+      "update_button": "Reflection update karein"
+    },
+    "quiz": {
+      "complete_first": "Sab se pehle lesson ka video mukammal dekhein phir quiz attempt karein.",
+      "result_title": "Aap ka Result",
+      "passed": "Pass",
+      "not_passed": "Pass nahi hua (60% zaroori hai). Neeche se dobara attempt karein.",
+      "retake_button": "Quiz dobara attempt karein",
+      "select_all": "Jo jo options sahi hon un sab ko select karein.",
+      "submit_button": "Quiz submit karein",
+      "submit_error": "Quiz submit karne mein masla aya. Dobara koshish karein."
+    },
+    "overview": {
+      "objectives_title": "Is lesson mein aap ko",
+      "objective_1": "Pura lesson tawajjo aur dil ki haazri ke saath dekhna hai.",
+      "objective_2": "Ahm nuqaat aur apni zaati soch ko notes mein likhna hai.",
+      "objective_3": "Reflection, quiz aur jo bhi practice task diya gaya ho usay mukammal karna hai."
+    }
+  }
+}
+
