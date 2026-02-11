@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class NotificationController extends Controller
 {
@@ -47,6 +48,7 @@ class NotificationController extends Controller
 
         if ($notification) {
             $notification->markAsRead();
+            Cache::forget('inertia_unread_' . $user->id);
         }
 
         return response()->json(['success' => true]);
@@ -59,6 +61,7 @@ class NotificationController extends Controller
     {
         $user = Auth::user();
         $user->unreadNotifications->markAsRead();
+        Cache::forget('inertia_unread_' . $user->id);
 
         return response()->json(['success' => true]);
     }

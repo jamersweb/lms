@@ -56,7 +56,7 @@ class LessonController extends Controller
             'title_en_roman' => 'nullable|string|max:255',
             'title_ur' => 'nullable|string|max:255',
             'slug' => 'nullable|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // 5MB
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp',
             'video_provider' => 'required|in:youtube,mp4,external,vimeo',
             'sort_order' => 'integer',
             'is_free_preview' => 'boolean',
@@ -162,7 +162,7 @@ class LessonController extends Controller
             'title_en_roman' => 'nullable|string|max:255',
             'title_ur' => 'nullable|string|max:255',
             'slug' => 'nullable|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // 5MB
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp',
             'video_provider' => 'required|in:youtube,mp4,external,vimeo',
             'sort_order' => 'integer',
             'is_free_preview' => 'boolean',

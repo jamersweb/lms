@@ -129,13 +129,19 @@ function stopHeartbeat() {
   }
 }
 
+// YouTube video IDs are 10-11 chars, alphanumeric + - and _
+const isValidYoutubeVideoId = (id) => typeof id === 'string' && /^[a-zA-Z0-9_-]{10,11}$/.test(id.trim());
+
 function createPlayer() {
   if (!playerEl.value || !window.YT || !window.YT.Player) {
     return;
   }
+  if (!isValidYoutubeVideoId(props.videoId)) {
+    return;
+  }
 
   player = new window.YT.Player(playerEl.value, {
-    videoId: props.videoId,
+    videoId: (props.videoId || '').trim(),
     playerVars: {
       controls: 0,
       disablekb: 1,

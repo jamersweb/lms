@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\DashboardService;
 use App\Models\Discussion;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
@@ -20,8 +21,13 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
-        // Get comprehensive dashboard data from service
-        $dashboardData = $this->dashboardService->getDashboardData($user);
+        // Cache full dashboard 2 min per user; if cache fails (e.g. permissions on server), fall back to uncached
+        try {
+            $dashboardData = Cache::remember('dashboard_data_' . $user->id, 120, fn () => $this->dashboardService->getDashboardData($user));
+        } catch (\Throwable $e) {
+            \Log::warning('Dashboard cache failed, using uncached: ' . $e->getMessage());
+            $dashboardData = $this->dashboardService->getDashboardData($user);
+        }
 
         // Get recent activity (last 10 activities from various sources)
         $recentActivity = collect();

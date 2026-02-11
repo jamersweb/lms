@@ -41,9 +41,10 @@ export default defineConfig({
         },
         chunkSizeWarningLimit: 1000,
     },
-    esbuild: {
-        drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
-    },
+    // Keep console in production so we can see runtime errors (e.g. white screen debugging)
+    // esbuild: {
+    //     drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
+    // },
     optimizeDeps: {
         include: ['vue', '@inertiajs/vue3', 'ziggy-js'],
     },

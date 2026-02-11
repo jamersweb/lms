@@ -31,7 +31,7 @@ class LessonResourceController extends Controller
                 'mimes:mp3,wav,ogg,m4a',
                 'mimetypes:audio/mpeg,audio/mp3,audio/x-wav,audio/wav,audio/ogg,audio/x-m4a,audio/mp4',
             ],
-            'pdf_file' => 'nullable|file|mimes:pdf|max:5120', // 5MB
+            'pdf_file' => 'nullable|file|mimes:pdf',
         ]);
 
         $resource = $lesson->resource;

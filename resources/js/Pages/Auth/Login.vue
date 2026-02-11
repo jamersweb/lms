@@ -40,19 +40,30 @@ const submit = () => {
     <Head title="Sign In - Tazkiyah Tarbiyah" />
     
     <div class="min-h-screen flex">
-        <!-- Left Side - Brand (maroon, logo only) -->
-        <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#7a0a0a]">
-            <div class="relative z-10 flex flex-col justify-center items-center w-full p-12">
-                <img 
-                    src="/images/logo-tazkiyah.png" 
-                    alt="Tazkiyah Tarbiyah" 
-                    class="max-w-sm w-full h-auto object-contain"
+        <!-- Left Side - Brand (primary, Playfair hero + SVG pattern) -->
+        <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-primary-900">
+            <!-- Subtle diamond pattern from SVG -->
+            <div
+                class="absolute inset-0 opacity-[0.12] bg-repeat bg-left bg-[length:80px_80px] pointer-events-none"
+                :style="{ backgroundImage: `url('/images/download.svg')` }"
+                aria-hidden="true"
+            />
+            <div class="relative z-10 flex flex-col justify-between w-full p-12">
+                <img
+                    src="/images/logo-tazkiyah.png"
+                    alt="Tazkiyah Tarbiyah"
+                    class="max-w-[280px] w-full h-auto object-contain"
                 />
-                <p class="mt-8 text-white/70 text-center text-sm max-w-xs">
-                    Your path of inner purification and character development
-                </p>
-                <div class="mt-auto pt-12 text-xs text-white/40">
-                    © 2026 Tazkiyah Tarbiyah
+                <div class="flex-1 flex flex-col justify-center py-8">
+                    <h1 class="font-serif text-4xl md:text-5xl font-bold text-white leading-tight tracking-tight">
+                        Footsteps of the<br />Prophet Muhammad<br /><span class="text-xl md:text-2xl font-semibold opacity-95">(SAW)</span>
+                    </h1>
+                    <p class="mt-6 text-white/85 text-base md:text-lg max-w-sm leading-relaxed">
+                        To live like him is to live with purpose. Embark on your spiritual journey of inner purification and Islamic guidance.
+                    </p>
+                </div>
+                <div class="mt-auto pt-8 text-xs text-white/50">
+                    © 2026 Tazkiyah Tarbiyah. All Rights Reserved.
                 </div>
             </div>
         </div>
@@ -181,10 +192,13 @@ const submit = () => {
                     Create an Account
                 </Link>
                 
-                <!-- Footer Quote -->
+                <!-- Footer Quote (Playfair, primary color) -->
                 <div class="mt-10 text-center">
-                    <p class="text-sm text-neutral-500 italic font-serif">
-                        "When the Heart is Pure, Shari'ah Follows Naturally"
+                    <p class="text-primary-900 italic font-serif text-base">
+                        "When the Heart is Pure, Shari'ah Flows Naturally"
+                    </p>
+                    <p class="mt-2 text-sm text-neutral-500 max-w-sm mx-auto">
+                        Enhance your understanding of the Sunnah through concise, authentic lessons delivered by qualified scholars.
                     </p>
                 </div>
             </div>

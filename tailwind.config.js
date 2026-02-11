@@ -14,7 +14,7 @@ export default {
         extend: {
             fontFamily: {
                 sans: ['Inter', ...defaultTheme.fontFamily.sans],
-                serif: ['Cormorant Garamond', 'Playfair Display', ...defaultTheme.fontFamily.serif],
+                serif: ['Playfair Display', ...defaultTheme.fontFamily.serif],
             },
             colors: {
                 // Primary: Maroon/Burgundy (#5A0D23) - Tazkiyah Brand
@@ -28,7 +28,7 @@ export default {
                     600: '#C73A5A',
                     700: '#A52D48',
                     800: '#872540',
-                    900: '#5A0D23',  // Base brand color
+                    900: 'hsl(342.63 74.51% 20%)',  // Base brand color (primary)
                     950: '#3D0818',
                 },
                 // Secondary: Gold (Excellence, Ihsan)

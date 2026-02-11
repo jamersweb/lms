@@ -136,6 +136,11 @@ const emit = defineEmits(['ready', 'heartbeat', 'ended', 'stateChange']);
 // Dev mode check
 const isDevMode = computed(() => import.meta.env.DEV);
 
+// YouTube video IDs are 10-11 chars, alphanumeric + - and _
+const isValidYoutubeVideoId = (id) => {
+  return typeof id === 'string' && /^[a-zA-Z0-9_-]{10,11}$/.test(id.trim());
+};
+
 // Extract YouTube video ID from URL
 const extractVideoId = (url) => {
   if (!url || typeof url !== 'string') return '';
@@ -200,13 +205,8 @@ const shouldUseYouTubePlayer = computed(() => {
 });
 
 const effectiveYoutubeId = computed(() => {
-  if (extractedYoutubeId.value) {
-    return extractedYoutubeId.value;
-  }
-  if (props.youtubeId && props.youtubeId.length <= 11 && /^[a-zA-Z0-9_-]+$/.test(props.youtubeId)) {
-    return props.youtubeId;
-  }
-  return '';
+  const raw = extractedYoutubeId.value || (props.youtubeId && props.youtubeId.trim()) || '';
+  return isValidYoutubeVideoId(raw) ? raw.trim() : '';
 });
 
 // Session tracking

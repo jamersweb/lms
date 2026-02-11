@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -31,13 +32,14 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
 
-        // Optimize unread notifications count query to prevent timeouts
+        // Cache unread count 60s per user to avoid slow query on every request
         $unreadCount = 0;
         if ($user) {
             try {
-                $unreadCount = $user->unreadNotifications()->count();
+                $unreadCount = (int) Cache::remember('inertia_unread_' . $user->id, 60, function () use ($user) {
+                    return $user->unreadNotifications()->count();
+                });
             } catch (\Exception $e) {
-                // Silently fail if database query fails to prevent page timeout
                 \Log::warning('Failed to get unread notifications count: ' . $e->getMessage());
             }
         }
@@ -54,6 +56,7 @@ class HandleInertiaRequests extends Middleware
             'locale' => app()->getLocale(),
             'content_locale' => $contentLocale,
             'unread_notifications_count' => $unreadCount,
+            'csrf_token' => $request->session()->token(),
         ];
     }
 }

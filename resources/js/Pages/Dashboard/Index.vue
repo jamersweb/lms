@@ -1,7 +1,7 @@
 <template>
   <AppShell>
-    <!-- Welcome Hero -->
-    <div class="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900 p-8 text-white shadow-lg">
+    <!-- Welcome Hero (uses primary brand color) -->
+    <div class="mb-8 relative overflow-hidden rounded-2xl bg-primary-900 p-8 text-white shadow-lg">
       <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0YzAtMi4yMDktMS43OTEtNC00LTRzLTQgMS43OTEtNCA0IDEuNzkxIDQgNCA0IDQtMS43OTEgNC00eiIvPjwvZz48L2c+PC9zdmc+')] opacity-20"></div>
       <div class="relative z-10">
         <h1
@@ -21,8 +21,8 @@
 
     <!-- Top KPI Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      <!-- Watched Lessons -->
-      <Card class="relative overflow-hidden bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 border-2 border-primary-400 hover:border-primary-300 hover:shadow-xl hover:scale-105 transition-all duration-300 group">
+      <!-- Watched Lessons (solid – override Card default bg) -->
+      <Card class="relative overflow-hidden !bg-primary-600 border-2 border-primary-400 hover:border-primary-300 hover:shadow-xl hover:scale-105 transition-all duration-300 group">
         <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
         <div class="relative z-10 flex items-center justify-between">
           <div>
@@ -41,8 +41,8 @@
       </Card>
 
       <!-- Remaining Lessons -->
-      <Card class="relative overflow-hidden bg-gradient-to-br from-neutral-100 via-white to-primary-50 border-2 border-primary-200 hover:border-primary-400 hover:shadow-xl hover:scale-105 transition-all duration-300 group">
-        <div class="absolute top-0 right-0 w-32 h-32 bg-primary-100/50 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
+      <Card class="relative overflow-hidden bg-white border-2 border-primary-200 hover:border-primary-400 hover:shadow-xl hover:scale-105 transition-all duration-300 group">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-primary-100 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
         <div class="relative z-10 flex items-center justify-between">
           <div>
             <p class="text-xs font-medium text-primary-700 uppercase tracking-wide mb-1">
@@ -53,14 +53,14 @@
               {{ t('dashboard.cards.remaining_sub') }}
             </p>
           </div>
-          <div class="h-14 w-14 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center group-hover:from-primary-200 group-hover:to-primary-300 transition-all shadow-md">
+          <div class="h-14 w-14 rounded-full bg-primary-200 flex items-center justify-center group-hover:bg-primary-300 transition-all shadow-md">
             <BookOpen class="w-7 h-7 text-primary-700" />
           </div>
         </div>
       </Card>
 
-      <!-- Total Watch Time -->
-      <Card class="relative overflow-hidden bg-gradient-to-br from-secondary-400 via-secondary-500 to-secondary-600 border-2 border-secondary-300 hover:border-secondary-200 hover:shadow-xl hover:scale-105 transition-all duration-300 group">
+      <!-- Total Watch Time (solid gold – override Card’s default bg) -->
+      <Card class="relative overflow-hidden !bg-secondary-500 border-2 border-secondary-300 hover:border-secondary-200 hover:shadow-xl hover:scale-105 transition-all duration-300 group">
         <div class="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
         <div class="relative z-10 flex items-center justify-between">
           <div>
@@ -78,10 +78,9 @@
         </div>
       </Card>
 
-      <!-- Current Streak -->
-      <Card class="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-800 to-primary-900 text-white border-2 border-primary-500 hover:border-primary-400 hover:shadow-2xl hover:scale-105 transition-all duration-300 group">
-        <div class="absolute inset-0 bg-gradient-to-br from-secondary-500/20 to-transparent"></div>
-        <div class="absolute top-0 right-0 w-32 h-32 bg-secondary-400/30 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
+      <!-- Current Streak (solid – override Card default bg) -->
+      <Card class="relative overflow-hidden !bg-primary-800 text-white border-2 border-primary-500 hover:border-primary-400 hover:shadow-2xl hover:scale-105 transition-all duration-300 group">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-secondary-500/20 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500"></div>
         <div class="relative z-10 flex items-center justify-between">
           <div>
             <p class="text-xs font-medium text-white/90 uppercase tracking-wide mb-1">
@@ -92,7 +91,7 @@
               {{ stats.current_streak === 1 ? t('dashboard.cards.streak_sub_singular') : t('dashboard.cards.streak_sub_plural') }}
             </p>
           </div>
-          <div class="h-14 w-14 rounded-full bg-gradient-to-br from-secondary-400 to-secondary-600 flex items-center justify-center group-hover:from-secondary-300 group-hover:to-secondary-500 transition-all shadow-lg animate-pulse">
+          <div class="h-14 w-14 rounded-full bg-secondary-500 flex items-center justify-center group-hover:bg-secondary-400 transition-all shadow-lg animate-pulse">
             <Flame class="w-7 h-7 text-white" />
           </div>
         </div>
@@ -101,7 +100,7 @@
 
     <!-- Quiz Stats Row (if any quizzes exist) -->
     <div v-if="stats.total_quizzes_available > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-      <Card class="border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-white hover:shadow-lg transition-all">
+      <Card class="border-2 border-emerald-200 bg-emerald-50 hover:shadow-lg transition-all">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-xs font-medium text-emerald-700 uppercase tracking-wide mb-1">
@@ -117,7 +116,7 @@
           </div>
         </div>
       </Card>
-      <Card class="border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-white hover:shadow-lg transition-all">
+      <Card class="border-2 border-amber-200 bg-amber-50 hover:shadow-lg transition-all">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-xs font-medium text-amber-700 uppercase tracking-wide mb-1">
@@ -136,13 +135,19 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- Left Column: Main Content -->
-      <div class="lg:col-span-2 space-y-8">
+      <!-- Left Column: Main Content (SVG pattern on left) -->
+      <div class="lg:col-span-2 space-y-8 relative">
+        <div
+          class="absolute inset-y-0 left-0 w-full max-w-lg bg-repeat-y bg-left bg-[length:80px_80px] opacity-20 pointer-events-none hidden lg:block"
+          :style="{ backgroundImage: `url('/images/download.svg')` }"
+          aria-hidden="true"
+        />
+        <div class="relative z-10 space-y-8">
         <!-- Continue Learning Card -->
-        <Card v-if="continue_learning" hoverable class="border-l-4 border-l-primary-600 bg-gradient-to-r from-white via-primary-50/30 to-white shadow-lg hover:shadow-xl transition-all duration-300 group">
+        <Card v-if="continue_learning" hoverable class="border-l-4 border-l-primary-600 bg-primary-50 shadow-lg hover:shadow-xl transition-all duration-300 group">
           <div class="flex flex-col sm:flex-row gap-6">
             <!-- Course Image/Thumbnail -->
-            <div class="w-full sm:w-48 aspect-video bg-gradient-to-br from-primary-800 to-primary-950 rounded-lg overflow-hidden shrink-0 relative cursor-pointer group" @click="goToLesson">
+            <div class="w-full sm:w-48 aspect-video bg-primary-800 rounded-lg overflow-hidden shrink-0 relative cursor-pointer group" @click="goToLesson">
                <img :src="continue_learning.image" alt="Course Thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                <div class="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-colors"></div>
                <div class="absolute inset-0 flex items-center justify-center">
@@ -200,7 +205,7 @@
         </Card>
 
         <!-- Continue Watching Widget -->
-        <Card v-if="continue_watching && continue_watching.length > 0" class="shadow-lg border-t-4 border-t-primary-600 bg-gradient-to-br from-white to-primary-50/20">
+        <Card v-if="continue_watching && continue_watching.length > 0" class="shadow-lg border-t-4 border-t-primary-600 bg-primary-50">
           <template #header>
             <div class="flex items-center justify-between pb-2 border-b border-primary-100">
               <h2 class="text-lg font-bold text-primary-900 flex items-center gap-2">
@@ -217,7 +222,7 @@
             <div
               v-for="lesson in continue_watching"
               :key="lesson.lesson_id"
-              class="p-4 rounded-xl border-2 border-primary-100 hover:border-primary-400 hover:bg-gradient-to-r hover:from-primary-50 hover:to-white transition-all duration-200 cursor-pointer group shadow-sm hover:shadow-md"
+              class="p-4 rounded-xl border-2 border-primary-100 hover:border-primary-400 hover:bg-primary-50 transition-all duration-200 cursor-pointer group shadow-sm hover:shadow-md"
               @click="goToLessonFromContinue(lesson)"
             >
               <div class="flex items-start gap-4">
@@ -230,7 +235,7 @@
                   <!-- Progress Bar -->
                   <div class="w-full bg-neutral-200 rounded-full h-2 mb-2 overflow-hidden shadow-inner">
                     <div
-                      class="bg-gradient-to-r from-primary-500 via-primary-600 to-primary-700 h-2 rounded-full transition-all duration-500 shadow-sm"
+                      class="bg-primary-600 h-2 rounded-full transition-all duration-500 shadow-sm"
                       :style="{ width: Math.min(lesson.percent_complete, 100) + '%' }"
                     ></div>
                   </div>
@@ -249,7 +254,7 @@
         </Card>
 
         <!-- Remaining Quizzes (lesson completed, quiz not taken) -->
-        <Card v-if="remaining_quizzes_list && remaining_quizzes_list.length > 0" class="shadow-lg border-t-4 border-t-amber-500 bg-gradient-to-br from-white to-amber-50/20">
+        <Card v-if="remaining_quizzes_list && remaining_quizzes_list.length > 0" class="shadow-lg border-t-4 border-t-amber-500 bg-amber-50">
           <template #header>
             <div class="flex items-center justify-between pb-2 border-b border-amber-100">
               <h2 class="text-lg font-bold text-amber-900 flex items-center gap-2">
@@ -281,7 +286,7 @@
         </Card>
 
         <!-- Course Milestones -->
-        <Card v-if="course_milestones && course_milestones.length > 0" class="shadow-lg border-t-4 border-t-primary-500 bg-gradient-to-br from-white to-primary-50/20">
+        <Card v-if="course_milestones && course_milestones.length > 0" class="shadow-lg border-t-4 border-t-primary-500 bg-primary-50">
           <template #header>
             <div class="flex items-center justify-between pb-2 border-b border-primary-100">
               <h2 class="text-lg font-bold text-primary-900 flex items-center gap-2">
@@ -306,7 +311,7 @@
                     {{ course.label }} • {{ course.progress }}%
                   </p>
                 </div>
-                <div class="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 text-white flex items-center justify-center text-xs font-semibold">
+                <div class="h-10 w-10 rounded-full bg-primary-600 text-white flex items-center justify-center text-xs font-semibold">
                   {{ course.progress }}%
                 </div>
               </div>
@@ -315,7 +320,7 @@
         </Card>
 
         <!-- My Notes Widget -->
-        <Card class="shadow-lg border-t-4 border-t-secondary-500 bg-gradient-to-br from-white to-secondary-50/20">
+        <Card class="shadow-lg border-t-4 border-t-secondary-500 bg-secondary-50">
           <template #header>
             <div class="flex items-center justify-between pb-2 border-b border-secondary-100">
               <h2 class="text-lg font-bold text-secondary-900 flex items-center gap-2">
@@ -336,11 +341,11 @@
             <div
               v-for="note in recent_notes"
               :key="note.id"
-              class="p-4 rounded-xl border-2 border-secondary-100 hover:border-secondary-400 hover:bg-gradient-to-r hover:from-secondary-50 hover:to-white transition-all duration-200 cursor-pointer group shadow-sm hover:shadow-md"
+              class="p-4 rounded-xl border-2 border-secondary-100 hover:border-secondary-400 hover:bg-secondary-50 transition-all duration-200 cursor-pointer group shadow-sm hover:shadow-md"
               @click="goToNote(note)"
             >
               <div class="flex items-start gap-3">
-                <div class="h-12 w-12 rounded-full bg-gradient-to-br from-secondary-400 to-secondary-600 text-white flex items-center justify-center shrink-0 group-hover:from-secondary-300 group-hover:to-secondary-500 transition-all shadow-md">
+                <div class="h-12 w-12 rounded-full bg-secondary-500 text-white flex items-center justify-center shrink-0 group-hover:bg-secondary-400 transition-all shadow-md">
                   <FileText class="w-6 h-6" />
                 </div>
                 <div class="flex-1 min-w-0">
@@ -401,12 +406,13 @@
               </Card>
            </div>
         </div>
+        </div>
       </div>
 
       <!-- Right Column: Stats & Quick Actions -->
       <div class="space-y-6">
          <!-- Learning Habits / Streak Widget -->
-         <Card v-if="watch_time" class="shadow-lg bg-gradient-to-br from-primary-100 via-white to-secondary-50 border-2 border-primary-200">
+         <Card v-if="watch_time" class="shadow-lg bg-primary-50 border-2 border-primary-200">
             <template #header>
             <div class="flex items-center justify-between pb-2 border-b border-primary-200">
                 <h3 class="font-bold text-primary-900 flex items-center gap-2">
@@ -429,7 +435,7 @@
                 </div>
                 <div class="w-full bg-neutral-200 rounded-full h-4 overflow-hidden shadow-inner">
                   <div
-                    class="bg-gradient-to-r from-primary-500 via-primary-600 to-primary-700 h-4 rounded-full transition-all duration-700 shadow-sm"
+                    class="bg-primary-600 h-4 rounded-full transition-all duration-700 shadow-sm"
                     :style="{ width: Math.min(watch_time?.daily_goal_progress ?? 0, 100) + '%' }"
                   ></div>
                 </div>
@@ -444,8 +450,8 @@
                   <div :class="[
                     'h-12 w-12 rounded-full flex items-center justify-center',
                     streak.badge.color === 'secondary' 
-                      ? 'bg-gradient-to-br from-secondary-400 to-secondary-600' 
-                      : 'bg-gradient-to-br from-primary-600 to-primary-800'
+                      ? 'bg-secondary-500' 
+                      : 'bg-primary-700'
                   ]">
                     <Flame class="w-6 h-6 text-white" />
                   </div>
@@ -459,8 +465,7 @@
           </Card>
 
          <!-- Points Card -->
-         <Card class="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-800 to-primary-900 text-white border-2 border-primary-500 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 group" noPadding>
-            <div class="absolute inset-0 bg-gradient-to-br from-secondary-500/20 to-transparent"></div>
+         <Card class="relative overflow-hidden !bg-primary-800 text-white border-2 border-primary-500 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 group" noPadding>
             <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-700"></div>
             <div class="relative z-10 p-6 text-center">
                 <div class="text-5xl font-serif font-bold mb-2 drop-shadow-lg">{{ stats.total_points || 0 }}</div>
@@ -474,7 +479,7 @@
          </Card>
 
          <!-- Quick Habit Check (Mini) -->
-         <Card class="shadow-lg border-t-4 border-t-secondary-400 bg-gradient-to-br from-white to-secondary-50/30">
+         <Card class="shadow-lg border-t-4 border-t-secondary-400 bg-secondary-50">
             <template #header>
                 <div class="flex items-center justify-between pb-2 border-b border-secondary-100">
                     <h3 class="font-bold text-secondary-900 flex items-center gap-2">
@@ -486,11 +491,11 @@
             </template>
 
             <div class="space-y-3">
-                <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-gradient-to-r hover:from-secondary-50 hover:to-white cursor-pointer group transition-all border-2 border-transparent hover:border-secondary-200 shadow-sm hover:shadow-md">
+                <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary-50 cursor-pointer group transition-all border-2 border-transparent hover:border-secondary-200 shadow-sm hover:shadow-md">
                     <input type="checkbox" class="w-5 h-5 rounded border-secondary-300 text-secondary-600 focus:ring-secondary-400 focus:ring-2" />
                     <span class="text-sm text-neutral-700 group-hover:text-secondary-900 font-medium">Read Surah Kahf</span>
                 </label>
-                <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-gradient-to-r hover:from-secondary-50 hover:to-white cursor-pointer group transition-all border-2 border-transparent hover:border-secondary-200 shadow-sm hover:shadow-md">
+                <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary-50 cursor-pointer group transition-all border-2 border-transparent hover:border-secondary-200 shadow-sm hover:shadow-md">
                     <input type="checkbox" class="w-5 h-5 rounded border-secondary-300 text-secondary-600 focus:ring-secondary-400 focus:ring-2" />
                     <span class="text-sm text-neutral-700 group-hover:text-secondary-900 font-medium">Morning Adhkar</span>
                 </label>

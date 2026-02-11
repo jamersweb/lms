@@ -1,5 +1,7 @@
 <template>
-  <div class="relative w-full h-full custom-youtube-player" ref="wrapperEl" @mouseenter="showControlsTemporary" @mouseleave="hideControls" @mousemove="handleMouseMove" @click="handleVideoClick">
+  <div class="relative w-full h-full custom-youtube-player" ref="wrapperEl">
+    <template v-if="hasValidVideoId">
+    <div @mouseenter="showControlsTemporary" @mouseleave="hideControls" @mousemove="handleMouseMove" @click="handleVideoClick" class="w-full h-full">
     <!-- YouTube IFrame API Player (hidden, only for playback) -->
     <div ref="playerEl" class="youtube-api-container" style="pointer-events: none;"></div>
 
@@ -90,6 +92,11 @@
       <div v-if="isLoading" class="custom-loading">
         <div class="custom-spinner"></div>
       </div>
+    </div>
+    </div>
+    </template>
+    <div v-else class="w-full h-full flex items-center justify-center bg-neutral-900 text-white/70 text-sm">
+      Video not available (invalid or missing video ID).
     </div>
   </div>
 </template>
@@ -260,13 +267,21 @@ function stopHeartbeat() {
   }
 }
 
+// YouTube video IDs are 10-11 chars, alphanumeric + - and _
+const isValidYoutubeVideoId = (id) => typeof id === 'string' && /^[a-zA-Z0-9_-]{10,11}$/.test(id.trim());
+
+const hasValidVideoId = computed(() => isValidYoutubeVideoId(props.videoId));
+
 function createPlayer() {
   if (!playerEl.value || !window.YT || !window.YT.Player) {
     return;
   }
+  if (!isValidYoutubeVideoId(props.videoId)) {
+    return;
+  }
 
   player = new window.YT.Player(playerEl.value, {
-    videoId: props.videoId,
+    videoId: (props.videoId || '').trim(),
     width: '100%',
     height: '100%',
     playerVars: {

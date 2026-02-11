@@ -105,7 +105,7 @@
                 />
                 <div class="text-center">
                   <span class="text-sm font-medium text-neutral-700">Click to upload image</span>
-                  <p class="text-xs text-neutral-500 mt-1">JPG, PNG, or WebP (max 5MB)</p>
+                  <p class="text-xs text-neutral-500 mt-1">JPG, PNG, or WebP</p>
                 </div>
               </label>
               <p class="mt-1 text-xs text-neutral-500">Upload an image for the lesson</p>
@@ -425,7 +425,7 @@
               Current: {{ resource.pdf_path }}
             </p>
             <p class="mt-1 text-xs text-neutral-500">
-              Upload PDF file with lesson notes (max 5MB)
+              Upload PDF file with lesson notes
             </p>
             <p v-if="resourceForm.errors.pdf_file" class="mt-1 text-sm text-red-600">{{ resourceForm.errors.pdf_file }}</p>
           </div>

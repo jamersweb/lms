@@ -269,32 +269,22 @@
             </div>
 
             <div class="flex flex-1 justify-end items-center gap-3 md:gap-6">
-                <!-- Language Switcher -->
+                <!-- Language (single dropdown sets both UI and content language) -->
                 <form
                   method="post"
                   action="/locale"
                   class="hidden sm:inline-flex items-center gap-2"
                 >
-                  <input type="hidden" name="_token" :value="$page?.props?.csrf_token || document.querySelector('meta[name=csrf-token]')?.getAttribute('content')" />
-                  <div class="flex items-center gap-1">
-                    <select
-                      name="locale"
-                      class="text-xs md:text-sm border border-neutral-200 rounded-lg px-2 py-1 bg-white text-neutral-600 focus:border-primary-400 focus:ring-primary-400"
-                    >
-                      <option value="en" :selected="$page?.props?.locale === 'en'">UI: English</option>
-                      <option value="en_roman" :selected="$page?.props?.locale === 'en_roman'">UI: Roman</option>
-                      <option value="ur" :selected="$page?.props?.locale === 'ur'">UI: اردو</option>
-                    </select>
-                    <select
-                      name="content_locale"
-                      class="text-xs md:text-sm border border-neutral-200 rounded-lg px-2 py-1 bg-white text-neutral-600 focus:border-primary-400 focus:ring-primary-400"
-                      @change="$event.target.form.submit()"
-                    >
-                      <option value="en" :selected="$page?.props?.content_locale === 'en'">Content: English</option>
-                      <option value="en_roman" :selected="$page?.props?.content_locale === 'en_roman'">Content: Roman</option>
-                      <option value="ur" :selected="$page?.props?.content_locale === 'ur'">Content: اردو</option>
-                    </select>
-                  </div>
+                  <input type="hidden" name="_token" :value="csrfToken" />
+                  <select
+                    name="locale"
+                    class="text-xs md:text-sm border border-neutral-200 rounded-lg px-2 py-1 bg-white text-neutral-600 focus:border-primary-400 focus:ring-primary-400"
+                    @change="$event.target.form.submit()"
+                  >
+                    <option value="en" :selected="$page?.props?.locale === 'en'">English</option>
+                    <option value="en_roman" :selected="$page?.props?.locale === 'en_roman'">Roman</option>
+                    <option value="ur" :selected="$page?.props?.locale === 'ur'">اردو</option>
+                  </select>
                 </form>
 
                 <!-- Notifications / Actions -->
@@ -347,6 +337,16 @@ import { useI18n } from '@/i18n';
 
 const page = usePage();
 const { t, locale } = useI18n();
+
+// CSRF token: from Inertia props or meta tag (avoid document in template – can be undefined during SSR/hydration)
+const csrfToken = computed(() => {
+  const fromProps = page.props?.csrf_token;
+  if (fromProps) return fromProps;
+  if (typeof document !== 'undefined') {
+    return document.querySelector('meta[name=csrf-token]')?.getAttribute('content') ?? '';
+  }
+  return '';
+});
 
 // Mobile menu state
 const isMobileMenuOpen = ref(false);

@@ -24,7 +24,8 @@ class SecurityHeaders
         // Allow Vite dev server in development mode
         if (app()->environment('local')) {
             // Development: Allow unsafe-inline/unsafe-eval for Vite HMR
-            $response->headers->set('Content-Security-Policy', "default-src 'self' data: blob: http: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: http://localhost:5173 http://127.0.0.1:5173 http://[::1]:5173 https:; style-src 'self' 'unsafe-inline' http://localhost:5173 http://127.0.0.1:5173 http://[::1]:5173 https:; connect-src 'self' http://localhost:5173 http://127.0.0.1:5173 ws://localhost:5173 ws://127.0.0.1:5173 * ws: wss:; font-src 'self' data: https:; img-src 'self' data: blob: http: https:;");
+            // [::1] is invalid in CSP source lists in many browsers; localhost + 127.0.0.1 cover dev
+            $response->headers->set('Content-Security-Policy', "default-src 'self' data: blob: http: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: http://localhost:5173 http://127.0.0.1:5173 https:; style-src 'self' 'unsafe-inline' http://localhost:5173 http://127.0.0.1:5173 https:; connect-src 'self' http://localhost:5173 http://127.0.0.1:5173 ws://localhost:5173 ws://127.0.0.1:5173 * ws: wss:; font-src 'self' data: https:; img-src 'self' data: blob: http: https:;");
         } else {
             // Production: Strict CSP without unsafe-inline/unsafe-eval
             // Note: For production, you should use nonces or hashes for inline scripts

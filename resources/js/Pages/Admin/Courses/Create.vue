@@ -117,7 +117,7 @@
                 />
                 <div class="text-center">
                   <span class="text-sm font-medium text-neutral-700">Click to upload image</span>
-                  <p class="text-xs text-neutral-500 mt-1">JPG, PNG, or WebP (max 5MB)</p>
+                  <p class="text-xs text-neutral-500 mt-1">JPG, PNG, or WebP</p>
                 </div>
               </label>
               <p class="mt-1 text-xs text-neutral-500">Upload an image for the course thumbnail</p>

@@ -75,6 +75,10 @@ class LessonVideoProgressController extends Controller
             ]
         );
 
+        if ($isCompleted) {
+            \Illuminate\Support\Facades\Cache::forget('dashboard_data_' . $user->id);
+        }
+
         // Also update LessonProgress.watched_seconds for display purposes
         // This ensures the progress bar and percentage show correctly
         if ($validated['duration_seconds'] > 0) {

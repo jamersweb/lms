@@ -184,6 +184,8 @@ class LessonProgressController extends Controller
 
             $progress->save();
 
+            \Illuminate\Support\Facades\Cache::forget('dashboard_data_' . $user->id);
+
             // Log lesson completion
             $this->activityLogger->log(
                 \App\Models\ActivityEvent::TYPE_LESSON_WATCH_COMPLETED,

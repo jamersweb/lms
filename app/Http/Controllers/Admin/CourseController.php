@@ -57,7 +57,7 @@ class CourseController extends Controller
             'description_en_roman' => 'nullable|string',
             'description_ur' => 'nullable|string',
             'sort_order' => 'integer',
-            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // 5MB
+            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,webp',
         ]);
 
         if ($request->hasFile('thumbnail')) {
@@ -117,7 +117,7 @@ class CourseController extends Controller
             'description_en_roman' => 'nullable|string',
             'description_ur' => 'nullable|string',
             'sort_order' => 'integer',
-            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // 5MB
+            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,webp',
         ]);
 
         if ($request->hasFile('thumbnail')) {
