@@ -51,59 +51,63 @@ class ProgressionService
         $previousLesson = $this->getPreviousLesson($lesson);
 
         if ($previousLesson === null) {
-            // First lesson in module - always accessible if eligible
-            return EligibilityResult::allow();
-        }
-
-        // Check if previous lesson is completed
-        $previousProgress = LessonProgress::where('user_id', $user->id)
-            ->where('lesson_id', $previousLesson->id)
-            ->first();
-
-        $previousCompleted = $previousProgress && $previousProgress->completed_at !== null;
-
-        if (!$previousCompleted) {
-            // Previous lesson not completed - deny access
-            return EligibilityResult::deny(
-                reasons: ['previous_lesson_incomplete'],
-                requiredLevel: null,
-                requiredGender: null,
-                requiresBayah: false,
-            );
-        }
-
-        // Phase 3: Check if reflection is required and submitted
-        // If previous lesson is completed, reflection must be submitted to unlock next lesson
-        $previousReflection = LessonReflection::where('user_id', $user->id)
-            ->where('lesson_id', $previousLesson->id)
-            ->exists();
-
-        if (!$previousReflection) {
-            // Previous lesson completed but reflection not submitted - deny access
-            return EligibilityResult::deny(
-                reasons: ['reflection_required'],
-                requiredLevel: null,
-                requiredGender: null,
-                requiresBayah: false,
-            );
-        }
-
-        // Phase 3 Task 3: Check if task is required and completed
-        // If previous lesson has a task with unlock_next_lesson=true, it must be completed
-        $previousTask = $previousLesson->task;
-        if ($previousTask && $previousTask->unlock_next_lesson) {
-            $taskProgress = TaskProgress::where('task_id', $previousTask->id)
-                ->where('user_id', $user->id)
-                ->first();
-
-            if (!$taskProgress || $taskProgress->status !== TaskProgress::STATUS_COMPLETED) {
-                // Previous lesson has task that is not completed - deny access
+            // First lesson in module - check if previous module is fully completed
+            $previousModule = $this->getPreviousModule($lesson);
+            if ($previousModule !== null && !$this->isModuleFullyCompleted($user, $previousModule)) {
                 return EligibilityResult::deny(
-                    reasons: ['task_incomplete'],
+                    reasons: ['previous_module_incomplete'],
                     requiredLevel: null,
                     requiredGender: null,
                     requiresBayah: false,
                 );
+            }
+        } else {
+            // Check if previous lesson is completed
+            $previousProgress = LessonProgress::where('user_id', $user->id)
+                ->where('lesson_id', $previousLesson->id)
+                ->first();
+
+            $previousCompleted = $previousProgress && $previousProgress->completed_at !== null;
+
+            if (!$previousCompleted) {
+                // Previous lesson not completed - deny access
+                return EligibilityResult::deny(
+                    reasons: ['previous_lesson_incomplete'],
+                    requiredLevel: null,
+                    requiredGender: null,
+                    requiresBayah: false,
+                );
+            }
+
+            // Phase 3: Check if reflection is required and submitted
+            $previousReflection = LessonReflection::where('user_id', $user->id)
+                ->where('lesson_id', $previousLesson->id)
+                ->exists();
+
+            if (!$previousReflection) {
+                return EligibilityResult::deny(
+                    reasons: ['reflection_required'],
+                    requiredLevel: null,
+                    requiredGender: null,
+                    requiresBayah: false,
+                );
+            }
+
+            // Phase 3 Task 3: Check if task is required and completed
+            $previousTask = $previousLesson->task;
+            if ($previousTask && $previousTask->unlock_next_lesson) {
+                $taskProgress = TaskProgress::where('task_id', $previousTask->id)
+                    ->where('user_id', $user->id)
+                    ->first();
+
+                if (!$taskProgress || $taskProgress->status !== TaskProgress::STATUS_COMPLETED) {
+                    return EligibilityResult::deny(
+                        reasons: ['task_incomplete'],
+                        requiredLevel: null,
+                        requiredGender: null,
+                        requiresBayah: false,
+                    );
+                }
             }
         }
 
@@ -141,6 +145,70 @@ class ProgressionService
 
         // All checks passed
         return EligibilityResult::allow();
+    }
+
+    /**
+     * Get the previous module in the same course (by sort_order).
+     *
+     * Can be called with a Lesson (uses its module) or a Module directly.
+     */
+    public function getPreviousModule(Lesson|Module $lessonOrModule): ?Module
+    {
+        $module = $lessonOrModule instanceof Lesson
+            ? ($lessonOrModule->relationLoaded('module') ? $lessonOrModule->module : $lessonOrModule->load('module')->module)
+            : $lessonOrModule;
+        if (!$module) {
+            return null;
+        }
+
+        return Module::where('course_id', $module->course_id)
+            ->where('sort_order', '<', $module->sort_order)
+            ->orderBy('sort_order', 'desc')
+            ->orderBy('id', 'desc')
+            ->first();
+    }
+
+    /**
+     * Check if a module is fully completed by the user.
+     *
+     * All lessons must be: completed + reflection submitted + task completed (if task unlocks next).
+     */
+    public function isModuleFullyCompleted(User $user, Module $module): bool
+    {
+        $lessons = $module->lessons()
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        if ($lessons->isEmpty()) {
+            return true;
+        }
+
+        $progressByLesson = LessonProgress::where('user_id', $user->id)
+            ->whereIn('lesson_id', $lessons->pluck('id'))
+            ->get()
+            ->keyBy('lesson_id');
+
+        foreach ($lessons as $lesson) {
+            $progress = $progressByLesson->get($lesson->id);
+            if (!$progress || !$progress->completed_at) {
+                return false;
+            }
+
+            if (!LessonReflection::where('user_id', $user->id)->where('lesson_id', $lesson->id)->exists()) {
+                return false;
+            }
+
+            $task = $lesson->task;
+            if ($task && $task->unlock_next_lesson) {
+                $taskProgress = TaskProgress::where('task_id', $task->id)->where('user_id', $user->id)->first();
+                if (!$taskProgress || $taskProgress->status !== TaskProgress::STATUS_COMPLETED) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     /**

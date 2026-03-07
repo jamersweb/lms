@@ -25,6 +25,8 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
+            'avatar_remove' => ['sometimes', 'boolean'],
             'gender' => ['nullable', Rule::in(['male', 'female'])],
             'whatsapp_number' => ['nullable', 'string', 'max:30'],
             'whatsapp_opt_in' => ['sometimes', 'boolean'],

@@ -248,11 +248,37 @@ class LessonProgressController extends Controller
                 // Award course completion certificate
                 $certificateService = new CertificateService();
                 $certificateService->awardCertificate($user, 'course_completion', $course);
+
+                // WhatsApp triggers: certificate delivery + survey link
+                $triggerService = app(\App\Services\WhatsApp\TriggerService::class);
+                $triggerService->fireAsync('certificate_delivery', $user);
+                $triggerService->fireAsync('survey_link', $user);
             }
 
             // Recompute journey statuses after completion
             JourneyService::computeStatusesForCourse($user, $course);
         });
+
+        // WhatsApp triggers: video completion, reflection prompt, progress bar milestones
+        $triggerService = app(\App\Services\WhatsApp\TriggerService::class);
+        $triggerService->fireAsync('video_completion', $user);
+        $triggerService->fireAsync('reflection_prompt', $user);
+
+        $totalLessonsForProgress = $course->modules->flatMap->lessons->count();
+        $completedForProgress = $user->lessonProgress()
+            ->whereIn('lesson_id', $course->modules->flatMap->lessons->pluck('id'))
+            ->whereNotNull('completed_at')
+            ->count();
+        $progressPercent = $totalLessonsForProgress > 0 ? round(($completedForProgress / $totalLessonsForProgress) * 100) : 0;
+
+        if ($progressPercent === 60) {
+            $triggerService->fireAsync('progress_bar_update', $user, ['percent' => '60']);
+        } elseif ($progressPercent >= 92 && $progressPercent < 100) {
+            $triggerService->fireAsync('progress_bar_nudge', $user, ['percent' => (string) $progressPercent]);
+        } elseif ($progressPercent >= 90 && $progressPercent < 100 && $triggerService->shouldFireProgressReminder($user, $course->id)) {
+            $triggerService->fireAsync('progress_reminder', $user);
+            $triggerService->markProgressReminderSent($user, $course->id);
+        }
 
         // Check if course was completed (after transaction)
         $totalLessons = $course->modules->flatMap->lessons->count();

@@ -12,8 +12,8 @@ class LocaleController extends Controller
     public function update(Request $request)
     {
         $validated = $request->validate([
-            'locale' => ['required', 'string', 'in:en,en_roman,ur'],
-            'content_locale' => ['nullable', 'string', 'in:en,en_roman,ur'],
+            'locale' => ['required', 'string', 'in:en,ur'],
+            'content_locale' => ['nullable', 'string', 'in:en,ur'],
         ]);
 
         $locale = $validated['locale'];

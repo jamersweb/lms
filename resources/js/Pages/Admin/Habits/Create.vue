@@ -9,22 +9,24 @@
 
       <!-- Form -->
       <div class="bg-white rounded-xl border border-neutral-200 p-6">
-        <h1 class="font-serif text-2xl font-bold text-neutral-900 mb-6">Create Habit for User</h1>
+        <h1 class="font-serif text-2xl font-bold text-neutral-900 mb-6">Create Habit (Lesson-based)</h1>
+        <p class="text-sm text-neutral-600 mb-6">This habit will appear for users only after they complete the linked lesson video.</p>
 
         <form @submit.prevent="submit" class="space-y-6">
           <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Select User *</label>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Link to Lesson *</label>
             <select
-              v-model="form.user_id"
+              v-model="form.lesson_id"
               class="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-100 focus:border-primary-300"
               required
             >
-              <option value="">Choose a user...</option>
-              <option v-for="user in users" :key="user.id" :value="user.id">
-                {{ user.name }} ({{ user.email }})
+              <option value="">Choose a lesson...</option>
+              <option v-for="lesson in lessons" :key="lesson.id" :value="lesson.id">
+                {{ lesson.course_title }} → {{ lesson.module_title }} → {{ lesson.title }}
               </option>
             </select>
-            <p v-if="form.errors.user_id" class="mt-1 text-sm text-red-600">{{ form.errors.user_id }}</p>
+            <p class="mt-1 text-xs text-neutral-500">Users will see this habit only after completing this lesson</p>
+            <p v-if="form.errors.lesson_id" class="mt-1 text-sm text-red-600">{{ form.errors.lesson_id }}</p>
           </div>
 
           <div>
@@ -84,23 +86,6 @@
             <p v-if="form.errors.frequency_type" class="mt-1 text-sm text-red-600">{{ form.errors.frequency_type }}</p>
           </div>
 
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Link to Lesson (Optional)</label>
-            <select
-              v-model="form.lesson_id"
-              class="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-100 focus:border-primary-300"
-            >
-              <option value="">No lesson link</option>
-              <option v-for="lesson in lessons" :key="lesson.id" :value="lesson.id">
-                {{ lesson.course_title }} → {{ lesson.module_title }} → {{ lesson.title }}
-              </option>
-            </select>
-            <p class="mt-1 text-xs text-neutral-500">
-              If linked, this habit will be automatically activated when the student completes the lesson
-            </p>
-            <p v-if="form.errors.lesson_id" class="mt-1 text-sm text-red-600">{{ form.errors.lesson_id }}</p>
-          </div>
-
           <div class="flex items-center gap-3 pt-4 border-t border-neutral-100">
             <button
               type="submit"
@@ -125,18 +110,15 @@ import { Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft } from 'lucide-vue-next';
 
 const props = defineProps({
-  users: Array,
-  selectedUserId: [Number, String],
   lessons: Array,
 });
 
 const form = useForm({
-  user_id: props.selectedUserId || '',
+  lesson_id: '',
   title: '',
   description: '',
   frequency_type: 'daily',
   target_per_day: 1,
-  lesson_id: '',
 });
 
 const submit = () => {

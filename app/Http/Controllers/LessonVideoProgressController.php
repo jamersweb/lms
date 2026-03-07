@@ -79,6 +79,15 @@ class LessonVideoProgressController extends Controller
             \Illuminate\Support\Facades\Cache::forget('dashboard_data_' . $user->id);
         }
 
+        // WhatsApp trigger: video halfway (once per user per lesson)
+        if ($percentComplete >= 50 && $percentComplete < 100) {
+            $triggerService = app(\App\Services\WhatsApp\TriggerService::class);
+            if ($triggerService->shouldFireVideoHalfway($user, $lessonId)) {
+                $triggerService->fireAsync('video_halfway', $user);
+                $triggerService->markVideoHalfwaySent($user, $lessonId);
+            }
+        }
+
         // Also update LessonProgress.watched_seconds for display purposes
         // This ensures the progress bar and percentage show correctly
         if ($validated['duration_seconds'] > 0) {

@@ -53,6 +53,10 @@ class LockMessage
         }
 
         // Sequential progression reasons
+        if (in_array('previous_module_incomplete', $result->reasons)) {
+            $messages[] = 'Complete all lessons in the previous module first';
+        }
+
         if (in_array('previous_lesson_incomplete', $result->reasons)) {
             $messages[] = 'Complete previous lesson first';
         }

@@ -75,11 +75,19 @@ class LessonQuizController extends Controller
             ]
         );
 
+        $percentage = $total > 0 ? round(($correct / $total) * 100) : 0;
+        $triggerService = app(\App\Services\WhatsApp\TriggerService::class);
+        if ($passed) {
+            $triggerService->fireAsync('quiz_passed', $user, ['score' => (string) $percentage]);
+        } else {
+            $triggerService->fireAsync('quiz_failed', $user);
+        }
+
         return response()->json([
             'score' => $correct,
             'total_questions' => $total,
             'passed' => $passed,
-            'percentage' => $total > 0 ? round(($correct / $total) * 100) : 0,
+            'percentage' => $percentage,
         ]);
     }
 }

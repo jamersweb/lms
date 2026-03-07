@@ -4,6 +4,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 defineProps({
     mustVerifyEmail: {
@@ -15,15 +16,36 @@ defineProps({
 });
 
 const user = usePage().props.auth.user;
+const avatarPreview = ref(null);
 
 const form = useForm({
     name: user.name,
     email: user.email,
+    avatar: null,
+    avatar_remove: false,
     gender: user.gender || '',
     whatsapp_number: user.whatsapp_number || '',
     whatsapp_opt_in: user.whatsapp_opt_in ?? false,
     email_reminders_opt_in: user.email_reminders_opt_in ?? true,
 });
+
+const onAvatarChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+        form.avatar = file;
+        form.avatar_remove = false;
+        const reader = new FileReader();
+        reader.onload = (ev) => { avatarPreview.value = ev.target?.result; };
+        reader.readAsDataURL(file);
+    }
+};
+
+const removeAvatar = () => {
+    form.avatar = null;
+    form.avatar_remove = true;
+    form.clearErrors('avatar');
+    avatarPreview.value = null;
+};
 </script>
 
 <template>
@@ -34,7 +56,7 @@ const form = useForm({
             </h2>
 
             <p class="mt-1 text-sm text-gray-600">
-                Update your account's profile information and email address.
+                Update your account's profile information, photo, and contact details.
             </p>
         </header>
 
@@ -42,6 +64,53 @@ const form = useForm({
             @submit.prevent="form.patch(route('profile.update'))"
             class="mt-6 space-y-6"
         >
+            <div>
+                <InputLabel value="Profile Picture" />
+
+                <div class="mt-2 flex items-center gap-4">
+                    <div class="relative">
+                        <img
+                            :src="avatarPreview || (form.avatar_remove ? 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.name || 'U') + '&background=059669&color=fff&size=200' : user.avatar_url)"
+                            alt="Avatar"
+                            class="h-24 w-24 rounded-full object-cover border-2 border-gray-200"
+                        />
+                        <label
+                            class="absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-black/40 opacity-0 transition hover:opacity-100"
+                        >
+                            <span class="text-xs font-medium text-white">Change</span>
+                            <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                                class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                                @change="onAvatarChange"
+                            />
+                        </label>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="cursor-pointer rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
+                            Upload photo
+                            <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                                class="hidden"
+                                @change="onAvatarChange"
+                            />
+                        </label>
+                        <button
+                            v-if="form.avatar || user.avatar"
+                            type="button"
+                            class="text-sm text-red-600 hover:text-red-700"
+                            @click="removeAvatar"
+                        >
+                            Remove photo
+                        </button>
+                        <p class="text-xs text-gray-500">JPG, PNG, GIF or WebP. Max 2MB.</p>
+                    </div>
+                </div>
+
+                <InputError class="mt-2" :message="form.errors.avatar" />
+            </div>
+
             <div>
                 <InputLabel for="name" value="Name" />
 
@@ -111,19 +180,19 @@ const form = useForm({
             </div>
 
             <div>
-                <InputLabel for="whatsapp_number" value="WhatsApp Number" />
+                <InputLabel for="whatsapp_number" value="Phone / WhatsApp Number" />
 
                 <TextInput
                     id="whatsapp_number"
-                    type="text"
+                    type="tel"
                     class="mt-1 block w-full"
                     v-model="form.whatsapp_number"
-                    placeholder="+1234567890"
+                    placeholder="+92 300 1234567"
                     autocomplete="tel"
                 />
 
                 <p class="mt-1 text-xs text-gray-500">
-                    Optional. Include country code (e.g., +1234567890)
+                    Optional. Include country code (e.g., +92 300 1234567) for WhatsApp notifications.
                 </p>
 
                 <InputError class="mt-2" :message="form.errors.whatsapp_number" />

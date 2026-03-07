@@ -15,24 +15,29 @@ class HabitController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Habit::with('user');
+        $query = Habit::with(['user', 'lesson.module.course']);
 
         // Search
         if ($request->search) {
             $query->where(function($q) use ($request) {
                 $q->where('title', 'like', "%{$request->search}%")
-                  ->orWhereHas('user', function($uq) use ($request) {
-                      $uq->where('name', 'like', "%{$request->search}%");
-                  });
+                  ->orWhereHas('lesson', fn($lq) => $lq->where('title', 'like', "%{$request->search}%"))
+                  ->orWhereHas('user', fn($uq) => $uq->where('name', 'like', "%{$request->search}%"));
             });
         }
 
-        // Filter by user
+        // Filter by user (legacy habits only)
         if ($request->user_id) {
             $query->where('user_id', $request->user_id);
         }
 
-        $habits = $query->withCount('logs')
+        // Filter by lesson (lesson-based habits)
+        if ($request->lesson_id) {
+            $query->where('lesson_id', $request->lesson_id);
+        }
+
+        $habits = $query->with(['lesson.module.course', 'user'])
+            ->withCount('logs')
             ->latest()
             ->paginate(15)
             ->through(fn($habit) => [
@@ -41,10 +46,12 @@ class HabitController extends Controller
                 'frequency_type' => $habit->frequency_type,
                 'description' => $habit->description,
                 'logs_count' => $habit->logs_count,
-                'user' => [
-                    'id' => $habit->user->id,
-                    'name' => $habit->user->name,
-                ],
+                'lesson' => $habit->lesson ? [
+                    'id' => $habit->lesson->id,
+                    'title' => $habit->lesson->title,
+                    'course' => $habit->lesson->module->course->title ?? '',
+                ] : null,
+                'user' => $habit->user ? ['id' => $habit->user->id, 'name' => $habit->user->name] : null,
                 'created_at' => $habit->created_at->format('M d, Y'),
             ]);
 
@@ -61,12 +68,11 @@ class HabitController extends Controller
     }
 
     /**
-     * Show form for creating a habit for a user.
+     * Show form for creating a lesson-based habit.
+     * Habit appears for users who have completed the linked lesson.
      */
     public function create(Request $request)
     {
-        $users = User::orderBy('name')->get(['id', 'name', 'email']);
-        $selectedUserId = $request->user_id;
         $lessons = \App\Models\Lesson::with('module.course')
             ->orderBy('title')
             ->get()
@@ -80,30 +86,27 @@ class HabitController extends Controller
             });
 
         return Inertia::render('Admin/Habits/Create', [
-            'users' => $users,
-            'selectedUserId' => $selectedUserId,
             'lessons' => $lessons,
         ]);
     }
 
     /**
-     * Store a new habit for a user.
+     * Store a new lesson-based habit.
+     * Users see this habit only after completing the linked lesson video.
      */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'lesson_id' => 'nullable|exists:lessons,id',
+            'lesson_id' => 'required|exists:lessons,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'frequency_type' => 'required|in:daily,weekly,custom',
             'target_per_day' => 'nullable|integer|min:1|max:10',
         ]);
 
-        // Map validated data to match database schema
         $data = [
-            'user_id' => $validated['user_id'],
-            'lesson_id' => $validated['lesson_id'] ?? null,
+            'user_id' => null, // Lesson-based: shared for all users who completed the lesson
+            'lesson_id' => $validated['lesson_id'],
             'title' => trim($validated['title']),
             'description' => !empty($validated['description']) ? trim($validated['description']) : null,
             'frequency_type' => $validated['frequency_type'] ?? 'daily',
@@ -114,7 +117,7 @@ class HabitController extends Controller
         Habit::create($data);
 
         return redirect()->route('admin.habits.index')
-            ->with('success', 'Habit created successfully for user.');
+            ->with('success', 'Habit created. It will appear for users after they complete the lesson.');
     }
 
     /**
@@ -142,10 +145,14 @@ class HabitController extends Controller
                 'frequency_type' => $habit->frequency_type,
                 'target_per_day' => $habit->target_per_day,
                 'lesson_id' => $habit->lesson_id,
-                'user' => [
+                'lesson' => $habit->lesson ? [
+                    'id' => $habit->lesson->id,
+                    'title' => $habit->lesson->title,
+                ] : null,
+                'user' => $habit->user ? [
                     'id' => $habit->user->id,
                     'name' => $habit->user->name,
-                ],
+                ] : null,
             ],
             'lessons' => $lessons,
         ]);

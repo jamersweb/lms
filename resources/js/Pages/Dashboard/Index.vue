@@ -430,7 +430,7 @@
               <!-- Daily Goal Progress -->
               <div>
                 <div class="flex items-center justify-between mb-2">
-                  <span class="text-sm font-medium text-neutral-700">Watch {{ watch_time?.daily_goal_minutes ?? 0 }} min/day</span>
+                  <span class="text-sm font-medium text-neutral-700">Watch a video</span>
                   <span class="text-xs font-semibold text-primary-900">{{ Math.round(watch_time?.daily_goal_progress ?? 0) }}%</span>
                 </div>
                 <div class="w-full bg-neutral-200 rounded-full h-4 overflow-hidden shadow-inner">
@@ -478,33 +478,6 @@
             </div>
          </Card>
 
-         <!-- Quick Habit Check (Mini) -->
-         <Card class="shadow-lg border-t-4 border-t-secondary-400 bg-secondary-50">
-            <template #header>
-                <div class="flex items-center justify-between pb-2 border-b border-secondary-100">
-                    <h3 class="font-bold text-secondary-900 flex items-center gap-2">
-                      <div class="h-1 w-1 rounded-full bg-secondary-500 animate-pulse"></div>
-                      Today's Sunnah
-                    </h3>
-                    <span class="text-xs text-secondary-600 font-medium">{{ new Date().toLocaleDateString() }}</span>
-                </div>
-            </template>
-
-            <div class="space-y-3">
-                <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary-50 cursor-pointer group transition-all border-2 border-transparent hover:border-secondary-200 shadow-sm hover:shadow-md">
-                    <input type="checkbox" class="w-5 h-5 rounded border-secondary-300 text-secondary-600 focus:ring-secondary-400 focus:ring-2" />
-                    <span class="text-sm text-neutral-700 group-hover:text-secondary-900 font-medium">Read Surah Kahf</span>
-                </label>
-                <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary-50 cursor-pointer group transition-all border-2 border-transparent hover:border-secondary-200 shadow-sm hover:shadow-md">
-                    <input type="checkbox" class="w-5 h-5 rounded border-secondary-300 text-secondary-600 focus:ring-secondary-400 focus:ring-2" />
-                    <span class="text-sm text-neutral-700 group-hover:text-secondary-900 font-medium">Morning Adhkar</span>
-                </label>
-            </div>
-
-            <template #footer>
-                <Button variant="ghost" size="sm" fullWidth :href="route('habits.index')">View All Habits</Button>
-            </template>
-         </Card>
       </div>
     </div>
 

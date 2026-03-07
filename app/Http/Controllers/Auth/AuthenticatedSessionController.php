@@ -33,6 +33,14 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // WhatsApp trigger: first login (once per user)
+        $user = $request->user();
+        $triggerService = app(\App\Services\WhatsApp\TriggerService::class);
+        if ($triggerService->shouldFireFirstLogin($user)) {
+            $triggerService->fireAsync('first_login', $user);
+            $triggerService->markFirstLoginSent($user);
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

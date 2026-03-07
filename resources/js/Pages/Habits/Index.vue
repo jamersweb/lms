@@ -1,15 +1,9 @@
 <template>
   <AppShell>
     <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
-      <div>
-        <h1 class="font-serif text-3xl font-bold text-neutral-900">Sunnah Tracker</h1>
-        <p class="text-neutral-600 mt-1">Consistency is key. Track your daily habits.</p>
-      </div>
-      <Button @click="showCreateModal = true">
-         <Plus class="w-4 h-4 mr-2" />
-         New Habit
-      </Button>
+    <div class="mb-8">
+      <h1 class="font-serif text-3xl font-bold text-neutral-900">Sunnah Tracker</h1>
+      <p class="text-neutral-600 mt-1">Consistency is key. Track your daily habits. Habits appear after you complete lesson videos.</p>
     </div>
 
     <!-- Stats Grid -->
@@ -17,7 +11,7 @@
         <Card noPadding class="p-6 flex items-center justify-between bg-primary-50 border-primary-100">
             <div>
                 <div class="text-sm font-medium text-primary-600">Current Streak</div>
-                <div class="text-3xl font-bold text-primary-800 font-serif">5 Days</div>
+                <div class="text-3xl font-bold text-primary-800 font-serif">{{ current_streak }} {{ current_streak === 1 ? 'Day' : 'Days' }}</div>
             </div>
             <div class="h-12 w-12 bg-white rounded-full flex items-center justify-center text-primary-600 shadow-sm">
                 <Flame class="h-6 w-6" />
@@ -35,7 +29,8 @@
          <Card noPadding class="p-6 flex items-center justify-between">
             <div>
                 <div class="text-sm font-medium text-neutral-500">Completion Rate</div>
-                <div class="text-3xl font-bold text-neutral-800 font-serif">85%</div>
+                <div class="text-3xl font-bold text-neutral-800 font-serif">{{ completion_rate }}%</div>
+                <p class="text-xs text-neutral-400 mt-0.5">Last 30 days</p>
             </div>
             <div class="h-12 w-12 bg-neutral-50 rounded-full flex items-center justify-center text-neutral-400">
                 <BarChart3 class="h-6 w-6" />
@@ -49,8 +44,8 @@
              <div class="mx-auto h-16 w-16 bg-neutral-50 rounded-full flex items-center justify-center text-neutral-300 mb-4">
                 <CheckSquare class="h-8 w-8" />
              </div>
-             <h3 class="text-lg font-medium text-neutral-900">No active habits</h3>
-             <p class="text-neutral-500">Start building your Sunnah habits today!</p>
+             <h3 class="text-lg font-medium text-neutral-900">No habits yet</h3>
+             <p class="text-neutral-500">Complete lesson videos to unlock Sunnah habits. Admin adds habits for each lesson.</p>
         </div>
 
         <div v-else class="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
@@ -92,63 +87,21 @@
         </div>
     </div>
 
-    <!-- Create Modal (Simplified) -->
-    <div v-if="showCreateModal" class="fixed inset-0 bg-neutral-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-         <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div class="px-6 py-4 border-b border-neutral-100 bg-neutral-50 flex justify-between items-center">
-                <h2 class="font-serif text-xl font-bold text-neutral-900">New Habit</h2>
-                <button @click="showCreateModal = false" class="text-neutral-400 hover:text-neutral-600">✕</button>
-            </div>
-            
-            <form @submit.prevent="createHabit" class="p-6 space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-neutral-700 mb-1">Habit Title</label>
-                    <input v-model="form.title" type="text" placeholder="e.g. Read Quran" class="w-full rounded-lg border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500" required />
-                </div>
-                 <div>
-                    <label class="block text-sm font-medium text-neutral-700 mb-1">Description</label>
-                    <textarea v-model="form.description" rows="2" placeholder="Optional details..." class="w-full rounded-lg border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"></textarea>
-                </div>
-                 
-                 <div class="flex justify-end gap-3 mt-6">
-                    <Button variant="secondary" @click="showCreateModal = false">Cancel</Button>
-                    <Button type="submit">Create Habit</Button>
-                </div>
-            </form>
-         </div>
-    </div>
   </AppShell>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useForm, router } from '@inertiajs/vue3'
+import { router } from '@inertiajs/vue3'
 import AppShell from '@/Layouts/AppShell.vue';
 import Button from '@/Components/Common/Button.vue';
 import Card from '@/Components/Common/Card.vue';
-import { Flame, CheckSquare, BarChart3, Plus, Activity, Check } from 'lucide-vue-next';
+import { Flame, CheckSquare, BarChart3, Activity, Check } from 'lucide-vue-next';
 
 const props = defineProps({
   habits: Array,
+  completion_rate: { type: Number, default: 0 },
+  current_streak: { type: Number, default: 0 },
 })
-
-const showCreateModal = ref(false)
-
-const form = useForm({
-  title: '',
-  description: '',
-  frequency_type: 'daily',
-  target_per_day: 1,
-})
-
-function createHabit() {
-  form.post('/habits', {
-    onSuccess: () => {
-      showCreateModal.value = false
-      form.reset()
-    },
-  })
-}
 
 function logToday(habit, status) {
     // In a real app this would call the API

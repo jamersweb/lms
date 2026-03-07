@@ -27,7 +27,20 @@ class LessonResourceController extends Controller
         $lesson->load('resource');
         $resource = $lesson->resource;
 
-        if (!$resource || (!$resource->sunnah_pointers && !$resource->duas_text)) {
+        if (!$resource) {
+            abort(404, 'No resources available for this lesson.');
+        }
+
+        // Serve uploaded PDF if present (takes priority over generated PDF)
+        if ($resource->pdf_path && Storage::disk('public')->exists($resource->pdf_path)) {
+            $filePath = Storage::disk('public')->path($resource->pdf_path);
+            $filename = "lesson-resources-{$lesson->slug}.pdf";
+            return response()->download($filePath, $filename, [
+                'Content-Type' => 'application/pdf',
+            ]);
+        }
+
+        if (!$resource->sunnah_pointers && !$resource->duas_text) {
             abort(404, 'No resources available for this lesson.');
         }
 
@@ -45,7 +58,7 @@ class LessonResourceController extends Controller
             ]);
         }
 
-        // Generate PDF
+        // Generate PDF from Sunnah/Dua content
         $pdf = DomPDF::loadView('lesson-resources.pdf', [
             'lesson' => $lesson,
             'resource' => $resource,
@@ -137,7 +150,20 @@ class LessonResourceController extends Controller
         $lesson->load('resource');
         $resource = $lesson->resource;
 
-        if (!$resource || (!$resource->sunnah_pointers && !$resource->duas_text)) {
+        if (!$resource) {
+            abort(404, 'No resources available for this lesson.');
+        }
+
+        // Serve uploaded PDF if present (takes priority over generated PDF)
+        if ($resource->pdf_path && Storage::disk('public')->exists($resource->pdf_path)) {
+            $filePath = Storage::disk('public')->path($resource->pdf_path);
+            return response()->file($filePath, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="lesson-resources-' . $lesson->slug . '.pdf"',
+            ]);
+        }
+
+        if (!$resource->sunnah_pointers && !$resource->duas_text) {
             abort(404, 'No resources available for this lesson.');
         }
 
@@ -155,7 +181,7 @@ class LessonResourceController extends Controller
             ]);
         }
 
-        // Generate PDF
+        // Generate PDF from Sunnah/Dua content
         $pdf = DomPDF::loadView('lesson-resources.pdf', [
             'lesson' => $lesson,
             'resource' => $resource,

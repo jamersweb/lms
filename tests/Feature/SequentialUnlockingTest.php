@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
+use App\Models\LessonReflection;
 use App\Models\Module;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -169,10 +170,11 @@ class SequentialUnlockingTest extends TestCase
         $response->assertOk();
     }
 
-    public function test_cross_module_independence(): void
+    public function test_cross_module_sequential_unlocking(): void
     {
         [$user, $course, $moduleA] = $this->createEnrolledUserAndModule();
-        $moduleB = Module::factory()->create(['course_id' => $course->id]);
+        $moduleA->update(['sort_order' => 1]);
+        $moduleB = Module::factory()->create(['course_id' => $course->id, 'sort_order' => 2]);
 
         // Module A: lesson 1 and 2
         $moduleALesson1 = Lesson::factory()->create([
@@ -186,7 +188,7 @@ class SequentialUnlockingTest extends TestCase
             'duration_seconds' => 100,
         ]);
 
-        // Module B: lesson 1 (independent)
+        // Module B: lesson 1 (requires Module A to be fully completed first)
         $moduleBLesson1 = Lesson::factory()->create([
             'module_id' => $moduleB->id,
             'sort_order' => 1,
@@ -200,7 +202,35 @@ class SequentialUnlockingTest extends TestCase
         ]));
         $response->assertRedirect();
 
-        // Module B lesson 1 should be accessible (first lesson in its module)
+        // Module B lesson 1 should be blocked until Module A is fully completed
+        $response = $this->actingAs($user)->get(route('lessons.show', [
+            'course' => $course->id,
+            'lesson' => $moduleBLesson1->id,
+        ]));
+        $response->assertRedirect();
+        $this->assertStringContainsString('previous module', strtolower($response->getSession()->get('error', '')));
+
+        // Complete Module A fully (progress + reflection for both lessons)
+        foreach ([$moduleALesson1, $moduleALesson2] as $lesson) {
+            LessonProgress::create([
+                'user_id' => $user->id,
+                'lesson_id' => $lesson->id,
+                'watched_seconds' => 96,
+                'max_playback_rate' => 1.0,
+                'seek_attempts' => 0,
+                'violations' => [],
+                'completed_at' => now(),
+                'is_completed' => true,
+            ]);
+            LessonReflection::create([
+                'user_id' => $user->id,
+                'lesson_id' => $lesson->id,
+                'takeaway' => str_repeat('a', 30),
+                'review_status' => 'pending',
+            ]);
+        }
+
+        // Module B lesson 1 should now be accessible
         $response = $this->actingAs($user)->get(route('lessons.show', [
             'course' => $course->id,
             'lesson' => $moduleBLesson1->id,

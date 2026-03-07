@@ -11,6 +11,7 @@ use App\Models\HabitLog;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 use Illuminate\Validation\Rules;
 
 class UserController extends Controller
@@ -87,19 +88,35 @@ class UserController extends Controller
                 ];
             });
 
-        // Get habits with streaks
-        $habits = $user->habits()
-            ->withCount('logs')
-            ->get()
-            ->map(fn($habit) => [
+        // Habits available to this user: legacy (user_id) + lesson-based (user completed lesson)
+        $completedLessonIds = LessonProgress::where('user_id', $user->id)
+            ->whereNotNull('completed_at')
+            ->pluck('lesson_id');
+
+        $habitsQuery = Habit::where('is_active', true)
+            ->where(function($q) use ($user, $completedLessonIds) {
+                $q->where('user_id', $user->id);
+                if ($completedLessonIds->isNotEmpty()) {
+                    $q->orWhere(fn($sq) => $sq->whereIn('lesson_id', $completedLessonIds)->whereNull('user_id'));
+                }
+            })
+            ->with(['lesson']);
+
+        $habits = $habitsQuery->get()->map(function($habit) use ($user) {
+            $streaks = $this->habitStreaksForUser($habit, $user);
+            $logsCount = $habit->logs()->where('user_id', $user->id)->count();
+
+            return [
                 'id' => $habit->id,
-                'name' => $habit->name,
-                'frequency' => $habit->frequency,
-                'current_streak' => $habit->current_streak,
-                'best_streak' => $habit->best_streak,
-                'logs_count' => $habit->logs_count,
+                'title' => $habit->title,
+                'frequency_type' => $habit->frequency_type,
+                'current_streak' => $streaks['current'],
+                'best_streak' => $streaks['longest'],
+                'logs_count' => $logsCount,
+                'lesson_title' => $habit->lesson?->title,
                 'created_at' => $habit->created_at->format('M d, Y'),
-            ]);
+            ];
+        });
 
         // Calculate total stats
         $totalCoursesEnrolled = $enrollments->count();
@@ -107,7 +124,9 @@ class UserController extends Controller
             ->whereNotNull('completed_at')
             ->count();
         $totalHabitsCreated = $habits->count();
-        $totalHabitLogs = HabitLog::whereIn('habit_id', $user->habits->pluck('id'))->count();
+        $totalHabitLogs = HabitLog::where('user_id', $user->id)
+            ->whereIn('habit_id', $habits->pluck('id'))
+            ->count();
 
         return Inertia::render('Admin/Users/Show', [
             'user' => [
@@ -239,5 +258,51 @@ class UserController extends Controller
 
         $status = $user->is_admin ? 'granted' : 'revoked';
         return back()->with('success', "Admin privileges {$status} for {$user->name}.");
+    }
+
+    /**
+     * Calculate current and longest streak for a user's habit logs.
+     */
+    private function habitStreaksForUser(Habit $habit, User $user): array
+    {
+        $logs = $habit->logs()
+            ->where('user_id', $user->id)
+            ->where('status', 'done')
+            ->orderBy('log_date', 'desc')
+            ->get();
+
+        if ($logs->isEmpty()) {
+            return ['current' => 0, 'longest' => 0];
+        }
+
+        $currentStreak = 0;
+        $currentDate = Carbon::today()->startOfDay();
+
+        foreach ($logs->groupBy(fn($log) => $log->log_date->format('Y-m-d')) as $date => $dayLogs) {
+            if ($currentDate->format('Y-m-d') === $date || $currentDate->copy()->subDay()->format('Y-m-d') === $date) {
+                $currentStreak++;
+                $currentDate = Carbon::parse($date)->startOfDay();
+            } else {
+                break;
+            }
+        }
+
+        $longestStreak = 1;
+        $tempStreak = 1;
+        $prevDate = Carbon::parse($logs->first()->log_date)->startOfDay();
+
+        foreach ($logs->skip(1) as $log) {
+            $logDate = Carbon::parse($log->log_date)->startOfDay();
+            if ($prevDate->diffInDays($logDate) === 1) {
+                $tempStreak++;
+            } else {
+                $longestStreak = max($longestStreak, $tempStreak);
+                $tempStreak = 1;
+            }
+            $prevDate = $logDate;
+        }
+        $longestStreak = max($longestStreak, $tempStreak);
+
+        return ['current' => $currentStreak, 'longest' => $longestStreak];
     }
 }

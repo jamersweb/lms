@@ -65,7 +65,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'Asia/Karachi'),
 
     /*
     |--------------------------------------------------------------------------
@@ -122,5 +122,14 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Scheduler Token (no-cron HTTP trigger)
+    |--------------------------------------------------------------------------
+    | Secret token for /scheduler/run?token=xxx. Use cron-job.org etc. to hit
+    | this URL every hour. Set SCHEDULER_TOKEN in .env.
+    */
+    'scheduler_token' => env('SCHEDULER_TOKEN', ''),
 
 ];

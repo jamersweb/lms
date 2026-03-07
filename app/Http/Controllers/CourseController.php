@@ -186,6 +186,16 @@ class CourseController extends Controller
         $modules = $course->modules->map(function($module) use ($user, $course, $eligibilityService, $progressionService, $releaseScheduleService, $contentLocale) {
             $moduleResult = $eligibilityService->canAccessModule($user, $module);
 
+            // Sequential module unlocking: module is locked if previous module not fully completed
+            $previousModule = $progressionService->getPreviousModule($module);
+            $previousModuleComplete = !$previousModule || ($user && $progressionService->isModuleFullyCompleted($user, $previousModule));
+            $moduleLockedByProgression = !$previousModuleComplete;
+
+            $isModuleLocked = !$moduleResult->allowed || $moduleLockedByProgression;
+            $effectiveLockResult = $moduleLockedByProgression
+                ? \App\Support\EligibilityResult::deny(reasons: ['previous_module_incomplete'])
+                : $moduleResult;
+
             // Get first incomplete lesson in this module for "is_next" flag
             $firstIncomplete = $user && $user->isEnrolledIn($course->id)
                 ? $progressionService->getFirstIncompleteLessonInModule($user, $module)
@@ -194,9 +204,9 @@ class CourseController extends Controller
             return [
                 'id' => $module->id,
                 'title' => $module->title,
-                'is_locked' => !$moduleResult->allowed,
-                'lock_reasons' => $moduleResult->reasons,
-                'lock_message' => LockMessage::fromEligibility($moduleResult),
+                'is_locked' => $isModuleLocked,
+                'lock_reasons' => $effectiveLockResult->reasons,
+                'lock_message' => LockMessage::fromEligibility($effectiveLockResult),
                 'lessons' => $module->lessons->map(function($lesson) use ($user, $eligibilityService, $progressionService, $firstIncomplete, $releaseScheduleService, $contentLocale) {
                     // Use ProgressionService for combined eligibility + sequential check
                     $lessonResult = $progressionService->canAccessLesson($user, $lesson);
@@ -332,6 +342,10 @@ class CourseController extends Controller
             // Initialize journey progress for this course
             JourneyService::ensureProgressRecords($user, $course);
         });
+
+        // WhatsApp trigger: course enrolment
+        $triggerService = app(\App\Services\WhatsApp\TriggerService::class);
+        $triggerService->fireAsync('course_enrolment', $user, ['name' => $user->name]);
 
         return redirect()->route('courses.show', $course)
             ->with('success', 'Successfully enrolled in ' . $course->title);

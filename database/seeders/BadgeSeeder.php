@@ -37,6 +37,17 @@ class BadgeSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'name' => 'Elite Learner',
+                'slug' => 'elite-learner',
+                'description' => 'Earned 980 points.',
+                'icon' => 'star',
+                'criteria' => [
+                    'type' => 'points',
+                    'count' => 980,
+                ],
+                'is_active' => true,
+            ],
+            [
                 'name' => 'Helper',
                 'slug' => 'helper',
                 'description' => 'Replied to 10 discussions.',

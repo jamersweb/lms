@@ -220,7 +220,7 @@
                 </div>
                 <div>
                   <div class="font-medium text-neutral-900 group-hover:text-primary-900">Create Habit</div>
-                  <div class="text-xs text-neutral-500">For any user</div>
+                  <div class="text-xs text-neutral-500">Lesson-based (appears after lesson complete)</div>
                 </div>
               </div>
             </Link>

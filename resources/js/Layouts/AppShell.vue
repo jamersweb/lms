@@ -53,7 +53,11 @@
         </template>
       </nav>
 
-      <div class="border-t border-neutral-200 p-6">
+      <div class="border-t border-neutral-200 p-6 space-y-1">
+        <Link href="/profile" class="group flex w-full items-center px-4 py-3 text-sm font-medium text-neutral-600 hover:text-primary-900 hover:bg-primary-50 rounded-lg transition-colors">
+          <Settings class="mr-3 h-5 w-5 text-neutral-400 group-hover:text-primary-600 transition-colors" />
+          Profile
+        </Link>
         <Link href="/logout" method="post" as="button" class="group flex w-full items-center px-4 py-3 text-sm font-medium text-neutral-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
           <LogOut class="mr-3 h-5 w-5 text-neutral-400 group-hover:text-red-500 transition-colors" />
           {{ t('nav.sign_out') }}
@@ -141,7 +145,47 @@
             </nav>
 
             <!-- Mobile Footer -->
-            <div class="border-t border-neutral-200 p-6">
+            <div class="border-t border-neutral-200 p-6 space-y-4">
+              <Link href="/profile" @click="closeMobileMenu" class="group flex w-full items-center px-4 py-3.5 text-base font-medium text-neutral-600 hover:text-primary-900 hover:bg-primary-50 rounded-lg transition-colors">
+                <Settings class="mr-4 h-6 w-6 text-neutral-400 group-hover:text-primary-600 transition-colors" />
+                Profile
+              </Link>
+              <!-- Language switch -->
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-neutral-500">Language</span>
+                <div class="inline-flex items-center rounded-lg border border-primary-200 bg-primary-50 p-0.5">
+                  <form method="post" action="/locale" class="inline" @submit="closeMobileMenu">
+                    <input type="hidden" name="_token" :value="csrfToken" />
+                    <input type="hidden" name="locale" value="en" />
+                    <button
+                      type="submit"
+                      :class="[
+                        'px-3 py-1.5 text-xs font-medium rounded-md transition-all min-w-[3rem]',
+                        ($page?.props?.locale === 'en' || $page?.props?.locale === 'en_roman')
+                          ? 'bg-primary-600 text-white shadow-sm'
+                          : 'text-primary-600 hover:bg-primary-100 hover:text-primary-900'
+                      ]"
+                    >
+                      EN
+                    </button>
+                  </form>
+                  <form method="post" action="/locale" class="inline" @submit="closeMobileMenu">
+                    <input type="hidden" name="_token" :value="csrfToken" />
+                    <input type="hidden" name="locale" value="ur" />
+                    <button
+                      type="submit"
+                      :class="[
+                        'px-3 py-1.5 text-xs font-medium rounded-md transition-all min-w-[3rem]',
+                        $page?.props?.locale === 'ur'
+                          ? 'bg-primary-600 text-white shadow-sm'
+                          : 'text-primary-600 hover:bg-primary-100 hover:text-primary-900'
+                      ]"
+                    >
+                      اردو
+                    </button>
+                  </form>
+                </div>
+              </div>
               <Link
                 href="/logout"
                 method="post"
@@ -269,39 +313,58 @@
             </div>
 
             <div class="flex flex-1 justify-end items-center gap-3 md:gap-6">
-                <!-- Language (single dropdown sets both UI and content language) -->
-                <form
-                  method="post"
-                  action="/locale"
-                  class="hidden sm:inline-flex items-center gap-2"
-                >
-                  <input type="hidden" name="_token" :value="csrfToken" />
-                  <select
-                    name="locale"
-                    class="text-xs md:text-sm border border-neutral-200 rounded-lg px-2 py-1 bg-white text-neutral-600 focus:border-primary-400 focus:ring-primary-400"
-                    @change="$event.target.form.submit()"
-                  >
-                    <option value="en" :selected="$page?.props?.locale === 'en'">English</option>
-                    <option value="en_roman" :selected="$page?.props?.locale === 'en_roman'">Roman</option>
-                    <option value="ur" :selected="$page?.props?.locale === 'ur'">اردو</option>
-                  </select>
-                </form>
+                <!-- Language switch: English | اردو -->
+                <div class="inline-flex items-center rounded-lg border border-primary-200 bg-primary-50 p-0.5">
+                  <form method="post" action="/locale" class="inline">
+                    <input type="hidden" name="_token" :value="csrfToken" />
+                    <input type="hidden" name="locale" value="en" />
+                    <button
+                      type="submit"
+                      :class="[
+                        'px-3 py-1.5 text-xs font-medium rounded-md transition-all min-w-[3rem]',
+                        ($page?.props?.locale === 'en' || $page?.props?.locale === 'en_roman')
+                          ? 'bg-primary-600 text-white shadow-sm'
+                          : 'text-primary-600 hover:bg-primary-100 hover:text-primary-900'
+                      ]"
+                    >
+                      EN
+                    </button>
+                  </form>
+                  <form method="post" action="/locale" class="inline">
+                    <input type="hidden" name="_token" :value="csrfToken" />
+                    <input type="hidden" name="locale" value="ur" />
+                    <button
+                      type="submit"
+                      :class="[
+                        'px-3 py-1.5 text-xs font-medium rounded-md transition-all min-w-[3rem]',
+                        $page?.props?.locale === 'ur'
+                          ? 'bg-primary-600 text-white shadow-sm'
+                          : 'text-primary-600 hover:bg-primary-100 hover:text-primary-900'
+                      ]"
+                    >
+                      اردو
+                    </button>
+                  </form>
+                </div>
 
                 <!-- Notifications / Actions -->
                 <NotificationDropdown />
 
                 <div class="h-6 w-px bg-neutral-200 hidden sm:block"></div>
 
-                <div class="flex items-center space-x-2 md:space-x-3 cursor-pointer group">
+                <Link href="/profile" class="flex items-center space-x-2 md:space-x-3 cursor-pointer group">
                   <div :class="['hidden md:block', locale === 'ur' ? 'text-right' : 'text-right']">
                      <div class="text-sm font-medium text-neutral-900 group-hover:text-primary-900 transition-colors">{{ $page?.props?.auth?.user?.name || 'Guest' }}</div>
                      <div class="text-xs text-neutral-500">{{ $page?.props?.auth?.user?.is_admin ? 'Admin' : 'Student' }}</div>
                    </div>
                    <!-- Avatar -->
-                   <div class="h-9 w-9 md:h-10 md:w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-900 font-bold text-sm ring-2 ring-transparent group-hover:ring-primary-200 transition-all shadow-sm">
+                   <div v-if="$page?.props?.auth?.user?.avatar_url" class="h-9 w-9 md:h-10 md:w-10 rounded-full overflow-hidden ring-2 ring-transparent group-hover:ring-primary-200 transition-all shadow-sm">
+                     <img :src="$page.props.auth.user.avatar_url" :alt="$page.props.auth.user.name" class="h-full w-full object-cover" />
+                   </div>
+                   <div v-else class="h-9 w-9 md:h-10 md:w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-900 font-bold text-sm ring-2 ring-transparent group-hover:ring-primary-200 transition-all shadow-sm">
                      {{ userInitials }}
                    </div>
-                </div>
+                </Link>
             </div>
         </header>
 
@@ -399,6 +462,7 @@ const isLessonPage = computed(() => {
 // Dynamic Header Title based on route or prop (simplified for now)
 const headerTitle = computed(() => {
     const url = page.url;
+    if (url.includes('/profile')) return 'Profile';
     if (url.includes('courses')) return t('nav.my_courses');
     if (url.includes('habits')) return t('nav.habit_tracker');
     if (url.includes('leaderboard')) return t('nav.community');

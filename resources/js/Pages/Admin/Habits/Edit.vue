@@ -12,7 +12,9 @@
         <div class="flex items-center justify-between mb-6">
           <h1 class="font-serif text-2xl font-bold text-neutral-900">Edit Habit</h1>
           <div class="text-sm text-neutral-500">
-            For: <span class="text-primary-600 font-medium">{{ habit.user.name }}</span>
+            <span v-if="habit.user">For: <span class="text-primary-600 font-medium">{{ habit.user.name }}</span></span>
+            <span v-else-if="habit.lesson">Lesson-based: <span class="text-primary-600 font-medium">{{ habit.lesson.title }}</span></span>
+            <span v-else class="text-neutral-500">Lesson-based</span>
           </div>
         </div>
 

@@ -20,6 +20,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'avatar',
         'password',
         'gender',
         'has_bayah',
@@ -42,6 +43,8 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    protected $appends = ['avatar_url'];
 
     /**
      * Get the attributes that should be cast.
@@ -190,5 +193,16 @@ class User extends Authenticatable
     public function videoProgress()
     {
         return $this->hasMany(LessonVideoProgress::class);
+    }
+
+    /**
+     * Get the avatar URL (or fallback to ui-avatars).
+     */
+    public function getAvatarUrlAttribute(): string
+    {
+        if ($this->avatar) {
+            return \Illuminate\Support\Facades\Storage::url($this->avatar);
+        }
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name ?? 'U') . '&background=059669&color=fff&size=200';
     }
 }

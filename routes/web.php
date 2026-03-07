@@ -78,9 +78,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Search
     Route::get('/search', [\App\Http\Controllers\SearchController::class, 'index'])->name('search');
 
-    // Habits
+    // Habits (users cannot create - admin adds lesson-based habits)
     Route::get('/habits', [\App\Http\Controllers\HabitController::class, 'index'])->name('habits.index');
-    Route::post('/habits', [\App\Http\Controllers\HabitController::class, 'store'])->name('habits.store');
     Route::get('/habits/{habit}', [\App\Http\Controllers\HabitController::class, 'show'])->name('habits.show');
     Route::put('/habits/{habit}', [\App\Http\Controllers\HabitController::class, 'update'])->name('habits.update');
     Route::post('/habits/{habit}/log', [\App\Http\Controllers\HabitController::class, 'log'])->name('habits.log');
@@ -171,6 +170,7 @@ Route::middleware(['auth', \App\Http\Middleware\IsAdmin::class])->prefix('admin'
     Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/health', \App\Http\Controllers\AdminHealthController::class)->name('health');
+    Route::get('/database/export', \App\Http\Controllers\Admin\DatabaseExportController::class)->name('database.export');
     Route::get('/moderation', [\App\Http\Controllers\Admin\ModerationController::class, 'index'])->name('moderation.index');
     Route::post('/moderation/handle', [\App\Http\Controllers\Admin\ModerationController::class, 'handle'])->name('moderation.handle');
 
@@ -295,6 +295,11 @@ Route::middleware(['auth', \App\Http\Middleware\IsAdmin::class])->prefix('admin'
     Route::patch('/dua-wall/{id}/restore', [\App\Http\Controllers\Admin\DuaWallController::class, 'restore'])
         ->name('dua-wall.restore');
 });
+
+// Scheduler (no cron) – external service hits this URL every hour
+// GET /scheduler/run?token=your-secret
+Route::get('/scheduler/run', [\App\Http\Controllers\SchedulerController::class, 'run'])
+    ->name('scheduler.run');
 
 // Auth routes (provided by Breeze)
 require __DIR__.'/auth.php';

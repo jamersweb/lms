@@ -1,10 +1,10 @@
 <template>
   <AppShell>
     <div class="flex flex-col h-full bg-neutral-50">
-      <!-- Main Content Area: Left Sidebar (4/12) + Right Video (8/12) -->
-      <div class="flex flex-col md:flex-row flex-1 min-h-0 overflow-hidden">
-        <!-- Left Sidebar: Tabs (4/12) -->
-        <aside class="w-full md:w-4/12 flex flex-col bg-white border-r border-neutral-200 overflow-hidden">
+        <!-- Main Content Area: Left Sidebar (4/12) + Right Video (8/12). On mobile: video first so it's visible. -->
+        <div class="flex flex-col md:flex-row flex-1 min-h-0 overflow-hidden">
+          <!-- Left Sidebar: Tabs (4/12) - order-2 on mobile so video shows first -->
+          <aside class="w-full md:w-4/12 flex flex-col bg-white border-r border-neutral-200 overflow-hidden order-2 md:order-1">
           <!-- Tabs Header -->
           <div class="flex border-b border-neutral-200 shrink-0 bg-white">
             <button
@@ -22,8 +22,8 @@
             </button>
           </div>
 
-          <!-- Tab Content - Scrollable -->
-          <div class="flex-1 overflow-y-auto p-6">
+          <!-- Tab Content - Scrollable (extra pb on mobile so content isn't cut off by bottom bar/browser chrome) -->
+          <div class="flex-1 overflow-y-auto p-6 pb-[max(7rem,calc(env(safe-area-inset-bottom,0px)+5.5rem))] md:pb-6">
             <div
               v-if="$page.props.errors?.completion"
               class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-xs text-red-700"
@@ -434,10 +434,10 @@
             </div>
           </aside>
 
-          <!-- Right Column: Video Player (8/12) -->
-          <div class="w-full md:w-8/12 flex flex-col bg-neutral-50 overflow-hidden">
-            <!-- Video Player - Fixed Height, No Scroll -->
-            <div class="flex-1 flex items-start justify-center p-4 md:p-6 min-h-0 overflow-hidden">
+          <!-- Right Column: Video Player (8/12) - order-1 on mobile so video at top, not cut off -->
+          <div class="w-full md:w-8/12 flex flex-col bg-neutral-50 overflow-hidden order-1 md:order-2">
+            <!-- Video Player - Fixed Height, No Scroll; min-h on mobile so video isn't cut off -->
+            <div class="flex-1 flex items-start justify-center p-4 md:p-6 min-h-[min(40vh,280px)] md:min-h-0 overflow-hidden">
               <div v-if="lesson.is_locked" class="w-full max-w-5xl rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-6 text-center text-sm text-neutral-600">
                 This lesson is locked. Please complete the previous lessons to unlock it.
               </div>
@@ -461,13 +461,13 @@
           </div>
         </div>
 
-        <!-- Bottom: Course Videos Playlist - Fixed -->
-        <div class="shrink-0 border-t border-neutral-200 bg-white flex flex-col h-20 z-10">
+        <!-- Bottom: Course Videos Playlist (mobile: taller + safe-area so content isn't cut off) -->
+        <div class="shrink-0 border-t border-neutral-200 bg-white flex flex-col h-24 md:h-20 z-10 pb-[env(safe-area-inset-bottom,0px)]">
           <div class="p-1.5 border-b border-neutral-100 bg-neutral-50 shrink-0">
             <h3 class="font-bold text-neutral-900 text-[10px]">{{ course.title }}</h3>
             <p class="text-[9px] text-neutral-500">Course Content</p>
           </div>
-          <div class="flex-1 overflow-x-auto overflow-y-hidden">
+          <div class="flex-1 overflow-x-auto overflow-y-hidden min-h-0">
             <div class="flex gap-1.5 p-1.5 min-w-max h-full items-center">
               <Link
                 v-for="(item, index) in playlist"

@@ -32,7 +32,7 @@
             <Link :href="`/admin/users/${user.id}/edit`" class="px-4 py-2 bg-white border border-neutral-200 text-neutral-700 rounded-lg text-sm font-medium hover:bg-neutral-50 transition-colors">
               Edit User
             </Link>
-            <Link :href="`/admin/habits/create?user_id=${user.id}`" class="px-4 py-2 bg-primary-900 text-white rounded-lg text-sm font-medium hover:bg-primary-800 transition-colors">
+            <Link href="/admin/habits/create" class="px-4 py-2 bg-primary-900 text-white rounded-lg text-sm font-medium hover:bg-primary-800 transition-colors">
               Create Habit
             </Link>
           </div>
@@ -208,14 +208,14 @@
         <div class="bg-white rounded-xl border border-neutral-200 overflow-hidden">
           <div class="px-6 py-4 border-b border-neutral-100 flex items-center justify-between">
             <h2 class="font-semibold text-neutral-900">User Habits</h2>
-            <Link :href="`/admin/habits/create?user_id=${user.id}`" class="text-sm text-primary-600 hover:text-primary-700">
+            <Link href="/admin/habits/create" class="text-sm text-primary-600 hover:text-primary-700">
               + Add Habit
             </Link>
           </div>
           <div class="divide-y divide-neutral-100">
             <div v-for="habit in habits" :key="habit.id" class="px-6 py-4">
               <div class="flex items-center justify-between mb-2">
-                <div class="font-medium text-neutral-900">{{ habit.name }}</div>
+                <div class="font-medium text-neutral-900">{{ habit.title }}</div>
                 <Link :href="`/admin/habits/${habit.id}/edit`" class="text-neutral-400 hover:text-primary-600">
                   <Pencil class="w-4 h-4" />
                 </Link>
@@ -223,9 +223,9 @@
               <div class="flex items-center gap-4 text-sm">
                 <span :class="[
                   'px-2 py-0.5 rounded text-xs font-medium',
-                  habit.frequency === 'daily' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                  habit.frequency_type === 'daily' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
                 ]">
-                  {{ habit.frequency }}
+                  {{ habit.frequency_type }}
                 </span>
                 <span class="text-neutral-500">
                   <Flame class="w-4 h-4 inline text-orange-500" /> {{ habit.current_streak }} day streak

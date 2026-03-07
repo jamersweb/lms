@@ -28,6 +28,10 @@ class BadgeService
             if ($this->checkCriteria($user, $badge->criteria)) {
                 $user->badges()->attach($badge->id, ['earned_at' => now()]);
                 $awarded[] = $badge;
+
+                // WhatsApp trigger: new badge earned
+                $triggerService = app(\App\Services\WhatsApp\TriggerService::class);
+                $triggerService->fireAsync('new_badge_earned', $user);
             }
         }
 
