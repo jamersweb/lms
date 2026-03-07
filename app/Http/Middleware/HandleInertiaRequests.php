@@ -55,10 +55,16 @@ class HandleInertiaRequests extends Middleware
             ?? $request->session()->get('content_locale')
             ?? app()->getLocale();
 
+        // Ensure auth.user has non-null role/status (prevents Vue "toString of null" in production)
+        $authUser = $user ? array_merge($user->toArray(), [
+            'role' => $user->role ?? 'student',
+            'status' => $user->status ?? 'active',
+        ]) : null;
+
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $user,
+                'user' => $authUser,
                 'permissions' => $permissions,
                 'can_access_admin' => $canAccessAdmin,
             ],

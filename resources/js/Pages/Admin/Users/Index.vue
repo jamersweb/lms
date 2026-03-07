@@ -85,10 +85,10 @@
                 <td class="px-6 py-4 text-neutral-500 text-sm">{{ user.created_at }}</td>
                 <td class="px-6 py-4">
                   <div class="flex items-center justify-end gap-2">
-                    <Link :href="`/admin/users/${user.id}`" class="p-2 text-neutral-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
+                    <Link v-if="user.id" :href="`/admin/users/${user.id}`" class="p-2 text-neutral-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
                       <Eye class="w-4 h-4" />
                     </Link>
-                    <Link :href="`/admin/users/${user.id}/edit`" class="p-2 text-neutral-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
+                    <Link v-if="user.id" :href="`/admin/users/${user.id}/edit`" class="p-2 text-neutral-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
                       <Pencil class="w-4 h-4" />
                     </Link>
                     <button @click="toggleAdmin(user)" class="p-2 text-neutral-400 hover:text-secondary-600 hover:bg-secondary-50 rounded-lg transition-colors" :title="user.is_admin ? 'Remove Admin' : 'Make Admin'">
@@ -118,11 +118,11 @@
             <Link
               v-for="link in users.links"
               :key="link.label"
-              :href="link.url"
+              :href="link.url ?? '#'"
               :class="[
                 'px-3 py-1 rounded text-sm',
                 link.active ? 'bg-primary-600 text-white' : 'text-neutral-600 hover:bg-neutral-100',
-                !link.url ? 'opacity-50 cursor-not-allowed' : ''
+                !link.url ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
               ]"
               v-html="link.label"
             />
@@ -164,7 +164,7 @@ const applyFilters = () => {
 };
 
 const getInitials = (name) => {
-  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  return (name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'U';
 };
 
 const toggleAdmin = (user) => {
