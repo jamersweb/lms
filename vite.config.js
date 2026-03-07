@@ -1,8 +1,15 @@
 import { defineConfig } from 'vite';
+import path from 'path';
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
+    resolve: {
+        alias: {
+            // Route wrapper that sanitizes null params to prevent Ziggy toString errors
+            'ziggy-js': path.resolve(__dirname, 'resources/js/ziggy-safe.js'),
+        },
+    },
     server: {
         host: '0.0.0.0',
         port: 5173,

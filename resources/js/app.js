@@ -5,6 +5,7 @@ import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from 'ziggy-js';
+import { route as safeRoute } from '@/ziggy-safe';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Tazkiya Tarbya - Courses';
 
@@ -49,6 +50,11 @@ createInertiaApp({
 
         app.use(plugin);
         app.use(ZiggyVue);
+
+        // Override route() to sanitize null params (templates use globalProperties.route)
+        app.config.globalProperties.route = function (name, params, absolute) {
+          return safeRoute(name, params, absolute);
+        };
 
         app.config.errorHandler = (err, instance, info) => {
             showErrorOnPage(err, 'Vue Error (' + (info || '') + '):');
