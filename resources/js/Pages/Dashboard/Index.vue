@@ -639,6 +639,7 @@ function goToLesson() {
 }
 
 function goToLessonFromContinue(lesson) {
+    if (!lesson?.course_id || !lesson?.lesson_id) return;
     router.visit(route('lessons.show', {
         course: lesson.course_id,
         lesson: lesson.lesson_id
@@ -646,6 +647,7 @@ function goToLessonFromContinue(lesson) {
 }
 
 function goToLessonQuiz(item) {
+    if (!item?.course_id || !item?.lesson_id) return;
     router.visit(route('lessons.show', {
         course: item.course_id,
         lesson: item.lesson_id
@@ -661,6 +663,7 @@ function goToDiscussion(discussionId) {
 }
 
 function goToCourse(course) {
+    if (!course?.course_id) return;
     router.visit(route('courses.show', course.course_id));
 }
 

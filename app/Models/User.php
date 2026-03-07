@@ -198,6 +198,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Ensure role is never null (legacy users from pre-migration).
+     */
+    public function getRoleAttribute(?string $value): string
+    {
+        return $value ?? ($this->is_admin ? 'admin' : 'student');
+    }
+
+    /**
+     * Ensure status is never null (legacy users from pre-migration).
+     */
+    public function getStatusAttribute(?string $value): string
+    {
+        return $value ?? 'active';
+    }
+
+    /**
      * Get the avatar URL (or fallback to ui-avatars).
      */
     public function getAvatarUrlAttribute(): string

@@ -359,7 +359,7 @@
                    </div>
                    <!-- Avatar -->
                    <div v-if="$page?.props?.auth?.user?.avatar_url" class="h-9 w-9 md:h-10 md:w-10 rounded-full overflow-hidden ring-2 ring-transparent group-hover:ring-primary-200 transition-all shadow-sm">
-                     <img :src="$page.props.auth.user.avatar_url" :alt="$page.props.auth.user.name" class="h-full w-full object-cover" />
+                     <img :src="$page?.props?.auth?.user?.avatar_url" :alt="$page?.props?.auth?.user?.name ?? 'User'" class="h-full w-full object-cover" />
                    </div>
                    <div v-else class="h-9 w-9 md:h-10 md:w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-900 font-bold text-sm ring-2 ring-transparent group-hover:ring-primary-200 transition-all shadow-sm">
                      {{ userInitials }}
