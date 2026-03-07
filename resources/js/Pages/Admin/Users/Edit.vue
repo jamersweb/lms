@@ -48,10 +48,11 @@
             <div>
               <label class="block text-sm font-medium text-neutral-700 mb-2">Role</label>
               <select
-                v-model="form.role"
+                v-model="form.role_id"
                 class="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-100 focus:border-primary-300"
+                required
               >
-                <option v-for="r in roles" :key="r" :value="r">{{ r }}</option>
+                <option v-for="r in roles" :key="r.id" :value="r.id">{{ r.name }} ({{ r.slug }})</option>
               </select>
             </div>
             <div>
@@ -123,7 +124,7 @@ const form = useForm({
   name: props.user.name,
   email: props.user.email,
   is_admin: props.user.is_admin,
-  role: props.user.role || 'student',
+  role_id: props.user.role_id,
   status: props.user.status || 'active',
   password: '',
   password_confirmation: '',

@@ -290,6 +290,21 @@ Route::middleware(['auth', \App\Http\Middleware\IsAdmin::class])->prefix('admin'
         ->name('micro-nudges.campaigns.destroy');
 
     // Dua Wall Moderation
+    // RBAC: Roles and Permissions
+    Route::get('/roles', [\App\Http\Controllers\Admin\RolesController::class, 'index'])->name('roles.index');
+    Route::get('/roles/create', [\App\Http\Controllers\Admin\RolesController::class, 'create'])->name('roles.create');
+    Route::post('/roles', [\App\Http\Controllers\Admin\RolesController::class, 'store'])->name('roles.store');
+    Route::get('/roles/{role}/edit', [\App\Http\Controllers\Admin\RolesController::class, 'edit'])->name('roles.edit');
+    Route::put('/roles/{role}', [\App\Http\Controllers\Admin\RolesController::class, 'update'])->name('roles.update');
+    Route::delete('/roles/{role}', [\App\Http\Controllers\Admin\RolesController::class, 'destroy'])->name('roles.destroy');
+    Route::get('/permissions', [\App\Http\Controllers\Admin\PermissionsController::class, 'index'])->name('permissions.index');
+    Route::post('/permissions/modules', [\App\Http\Controllers\Admin\PermissionsController::class, 'storeModule'])->name('permissions.modules.store');
+    Route::put('/permissions/modules/{rbac_module}', [\App\Http\Controllers\Admin\PermissionsController::class, 'updateModule'])->name('permissions.modules.update');
+    Route::delete('/permissions/modules/{rbac_module}', [\App\Http\Controllers\Admin\PermissionsController::class, 'destroyModule'])->name('permissions.modules.destroy');
+    Route::post('/permissions/permissions', [\App\Http\Controllers\Admin\PermissionsController::class, 'storePermission'])->name('permissions.permissions.store');
+    Route::put('/permissions/permissions/{permission}', [\App\Http\Controllers\Admin\PermissionsController::class, 'updatePermission'])->name('permissions.permissions.update');
+    Route::delete('/permissions/permissions/{permission}', [\App\Http\Controllers\Admin\PermissionsController::class, 'destroyPermission'])->name('permissions.permissions.destroy');
+
     Route::get('/dua-wall', [\App\Http\Controllers\Admin\DuaWallController::class, 'index'])
         ->name('dua-wall.index');
     Route::patch('/dua-wall/{dua}/hide', [\App\Http\Controllers\Admin\DuaWallController::class, 'hide'])

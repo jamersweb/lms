@@ -32,6 +32,7 @@ class User extends Authenticatable
         'locale',
         'content_locale',
         'role',
+        'role_id',
         'status',
         // Note: 'is_admin' intentionally excluded for security - set via admin controllers only
     ];
@@ -142,6 +143,11 @@ class User extends Authenticatable
         return $this->hasMany(Certificate::class);
     }
 
+    public function roleRelation()
+    {
+        return $this->belongsTo(Role::class, 'role_id');
+    }
+
     public function assessmentResponses()
     {
         return $this->hasMany(AssessmentResponse::class);
@@ -199,9 +205,13 @@ class User extends Authenticatable
 
     /**
      * Ensure role is never null (legacy users from pre-migration).
+     * Prefer roleRelation->slug when role_id is set, else fall back to role column or is_admin.
      */
     public function getRoleAttribute(?string $value): string
     {
+        if ($this->roleRelation) {
+            return $this->roleRelation->slug;
+        }
         return $value ?? ($this->is_admin ? 'admin' : 'student');
     }
 

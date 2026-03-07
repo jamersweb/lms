@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\PermissionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
@@ -34,6 +35,9 @@ class HandleInertiaRequests extends Middleware
 
         // Cache unread count 60s per user to avoid slow query on every request
         $unreadCount = 0;
+        $permissions = [];
+        $canAccessAdmin = false;
+
         if ($user) {
             try {
                 $unreadCount = (int) Cache::remember('inertia_unread_' . $user->id, 60, function () use ($user) {
@@ -42,6 +46,9 @@ class HandleInertiaRequests extends Middleware
             } catch (\Exception $e) {
                 \Log::warning('Failed to get unread notifications count: ' . $e->getMessage());
             }
+
+            $permissions = app(PermissionService::class)->getUserPermissionSlugs($user);
+            $canAccessAdmin = $user->is_admin || collect($permissions)->contains(fn ($p) => str_starts_with($p, 'admin.'));
         }
 
         $contentLocale = $user?->content_locale
@@ -52,6 +59,8 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'auth' => [
                 'user' => $user,
+                'permissions' => $permissions,
+                'can_access_admin' => $canAccessAdmin,
             ],
             'locale' => app()->getLocale(),
             'content_locale' => $contentLocale,

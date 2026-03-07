@@ -16,6 +16,7 @@ use App\Policies\HabitLogPolicy;
 use App\Policies\HabitPolicy;
 use App\Policies\JournalEntryPolicy;
 use App\Policies\NotePolicy;
+use App\Services\PermissionService;
 use Illuminate\Notifications\Channels\DatabaseChannel;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Notification;
@@ -38,6 +39,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+
+        // Gate for permission slug checks: Gate::allows('permission', 'admin.users.index')
+        Gate::define('permission', function ($user, string $permissionSlug) {
+            return app(PermissionService::class)->hasPermission($user, $permissionSlug);
+        });
 
         // Register all policies
         Gate::policy(Habit::class, HabitPolicy::class);

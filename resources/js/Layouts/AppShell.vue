@@ -391,7 +391,7 @@
 
 <script setup>
 import { Link, usePage } from '@inertiajs/vue3';
-import { Home, BookOpen, CheckSquare, MessageCircle, Award, Settings, LogOut, Menu, Bell, X, LayoutDashboard, Users, FolderOpen, Video, Target, Shield } from 'lucide-vue-next';
+import { Home, BookOpen, CheckSquare, MessageCircle, Award, Settings, LogOut, Menu, Bell, X, LayoutDashboard, Users, FolderOpen, Video, Target, Shield, KeyRound } from 'lucide-vue-next';
 import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
 import NotificationDropdown from '@/Components/NotificationDropdown.vue';
 import Toast from '@/Components/Toast.vue';
@@ -489,29 +489,42 @@ const navigation = [
   { name: t('nav.certificates'), href: '/certificates', route: 'certificates.index', icon: Award },
 ];
 
-// Admin navigation
+// Admin navigation (permission slug for RBAC filtering)
 const adminNavigation = [
-  { name: t('nav.admin_dashboard'), href: '/admin', activePrefix: '/admin', icon: LayoutDashboard },
-  { name: 'WhatsApp Settings', href: '/admin/whatsapp-settings', activePrefix: '/admin/whatsapp-settings', icon: MessageCircle },
-  { name: t('nav.admin_users'), href: '/admin/users', activePrefix: '/admin/users', icon: Users },
-  { name: t('nav.admin_courses'), href: '/admin/courses', activePrefix: '/admin/courses', icon: BookOpen },
-  { name: t('nav.admin_modules'), href: '/admin/modules', activePrefix: '/admin/modules', icon: FolderOpen },
-  { name: t('nav.admin_lessons'), href: '/admin/lessons', activePrefix: '/admin/lessons', icon: Video },
-  { name: t('nav.admin_habits'), href: '/admin/habits', activePrefix: '/admin/habits', icon: Target },
-  { name: t('nav.admin_moderation'), href: '/admin/moderation', activePrefix: '/admin/moderation', icon: Shield },
+  { name: t('nav.admin_dashboard'), href: '/admin', activePrefix: '/admin', icon: LayoutDashboard, permission: 'admin.dashboard.index' },
+  { name: 'WhatsApp Settings', href: '/admin/whatsapp-settings', activePrefix: '/admin/whatsapp-settings', icon: MessageCircle, permission: 'admin.whatsapp-settings.index' },
+  { name: t('nav.admin_users'), href: '/admin/users', activePrefix: '/admin/users', icon: Users, permission: 'admin.users.index' },
+  { name: t('nav.admin_courses'), href: '/admin/courses', activePrefix: '/admin/courses', icon: BookOpen, permission: 'admin.courses.index' },
+  { name: t('nav.admin_modules'), href: '/admin/modules', activePrefix: '/admin/modules', icon: FolderOpen, permission: 'admin.modules.index' },
+  { name: t('nav.admin_lessons'), href: '/admin/lessons', activePrefix: '/admin/lessons', icon: Video, permission: 'admin.lessons.index' },
+  { name: t('nav.admin_habits'), href: '/admin/habits', activePrefix: '/admin/habits', icon: Target, permission: 'admin.habits.index' },
+  { name: t('nav.admin_moderation'), href: '/admin/moderation', activePrefix: '/admin/moderation', icon: Shield, permission: 'admin.moderation.index' },
+  { name: 'Roles', href: '/admin/roles', activePrefix: '/admin/roles', icon: Shield, permission: 'admin.roles.index' },
+  { name: 'Permissions', href: '/admin/permissions', activePrefix: '/admin/permissions', icon: KeyRound, permission: 'admin.permissions.index' },
 ];
 
-// Check if user is admin or mentor (for nav visibility)
-const isAdmin = computed(() => page.props.auth?.user?.is_admin);
-const isMentor = computed(() => page.props.auth?.user?.role === 'mentor');
-const canAccessAdmin = computed(() => isAdmin.value || isMentor.value);
+function hasPermission(permissions, slug) {
+  if (!permissions || !Array.isArray(permissions)) return false;
+  if (permissions.includes('*')) return true;
+  if (permissions.includes(slug)) return true;
+  const prefix = slug.split('.').slice(0, -1).join('.') + '.*';
+  return permissions.includes(prefix);
+}
 
-// Filter admin nav for mentors (only show allowed pages)
+// Check if user can access admin (from shared props or fallback to role)
+const canAccessAdmin = computed(() => {
+  const fromProps = page.props.auth?.can_access_admin;
+  if (typeof fromProps === 'boolean') return fromProps;
+  const user = page.props.auth?.user;
+  return user?.is_admin || user?.role === 'mentor' || user?.role === 'admin';
+});
+
+// Filter admin nav by user permissions
 const visibleAdminNavigation = computed(() => {
-  const nav = adminNavigation;
-  if (isAdmin.value) return nav;
-  if (isMentor.value) return nav.filter(n => n.href.includes('whatsapp-settings'));
-  return [];
+  const permissions = page.props.auth?.permissions || [];
+  const user = page.props.auth?.user;
+  if (user?.is_admin) return adminNavigation;
+  return adminNavigation.filter(n => hasPermission(permissions, n.permission));
 });
 
 // Toast functionality

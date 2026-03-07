@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Role;
 use App\Models\User;
+use App\Services\PermissionService;
 use App\Models\Enrollment;
 use App\Models\LessonProgress;
 use App\Models\Habit;
@@ -16,6 +18,10 @@ use Illuminate\Validation\Rules;
 
 class UserController extends Controller
 {
+    public function __construct(
+        protected PermissionService $permissionService
+    ) {}
+
     /**
      * Display a listing of users.
      */
@@ -31,11 +37,23 @@ class UserController extends Controller
             });
         }
 
-        // Filter by role
+        // Filter by role (admin = admins only, user = non-admins)
         if ($request->role === 'admin') {
-            $query->where('is_admin', true);
+            $adminRoleId = Role::where('slug', 'admin')->value('id');
+            $query->where(function ($q) use ($adminRoleId) {
+                $q->where('is_admin', true);
+                if ($adminRoleId) {
+                    $q->orWhere('role_id', $adminRoleId);
+                }
+            });
         } elseif ($request->role === 'user') {
+            $adminRoleId = Role::where('slug', 'admin')->value('id');
             $query->where('is_admin', false);
+            if ($adminRoleId) {
+                $query->where(function ($q) use ($adminRoleId) {
+                    $q->whereNull('role_id')->orWhere('role_id', '!=', $adminRoleId);
+                });
+            }
         }
 
         $users = $query->withCount(['enrollments', 'habits'])
@@ -161,8 +179,9 @@ class UserController extends Controller
      */
     public function create()
     {
+        $roles = Role::orderBy('name')->get(['id', 'name', 'slug']);
         return Inertia::render('Admin/Users/Create', [
-            'roles' => config('roles.roles', ['admin', 'mentor', 'student']),
+            'roles' => $roles,
             'statuses' => config('roles.statuses', ['active', 'inactive', 'suspended']),
         ]);
     }
@@ -177,7 +196,7 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'is_admin' => 'boolean',
-            'role' => 'required|in:admin,mentor,student',
+            'role_id' => 'required|exists:roles,id',
             'status' => 'required|in:active,inactive,suspended',
         ]);
 
@@ -186,7 +205,7 @@ class UserController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'is_admin' => $validated['is_admin'] ?? false,
-            'role' => $validated['role'] ?? 'student',
+            'role_id' => $validated['role_id'],
             'status' => $validated['status'] ?? 'active',
             'email_verified_at' => now(),
         ]);
@@ -200,6 +219,7 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
+        $roles = Role::orderBy('name')->get(['id', 'name', 'slug']);
         return Inertia::render('Admin/Users/Edit', [
             'user' => [
                 'id' => $user->id,
@@ -207,9 +227,10 @@ class UserController extends Controller
                 'email' => $user->email,
                 'is_admin' => $user->is_admin,
                 'role' => $user->role ?? 'student',
+                'role_id' => $user->role_id,
                 'status' => $user->status ?? 'active',
             ],
-            'roles' => config('roles.roles', ['admin', 'mentor', 'student']),
+            'roles' => $roles,
             'statuses' => config('roles.statuses', ['active', 'inactive', 'suspended']),
         ]);
     }
@@ -223,7 +244,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'is_admin' => 'boolean',
-            'role' => 'required|in:admin,mentor,student',
+            'role_id' => 'required|exists:roles,id',
             'status' => 'required|in:active,inactive,suspended',
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
         ]);
@@ -231,7 +252,7 @@ class UserController extends Controller
         $user->name = $validated['name'];
         $user->email = $validated['email'];
         $user->is_admin = $validated['is_admin'] ?? false;
-        $user->role = $validated['role'];
+        $user->role_id = $validated['role_id'];
         $user->status = $validated['status'];
 
         if (!empty($validated['password'])) {
@@ -239,6 +260,8 @@ class UserController extends Controller
         }
 
         $user->save();
+
+        $this->permissionService->clearUserCache($user);
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User updated successfully.');
