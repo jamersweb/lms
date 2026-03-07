@@ -69,6 +69,27 @@
             <label for="is_admin" class="text-sm text-neutral-700">Grant admin privileges</label>
           </div>
 
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-2">Role</label>
+              <select
+                v-model="form.role"
+                class="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-100 focus:border-primary-300"
+              >
+                <option v-for="r in roles" :key="r" :value="r">{{ r }}</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-neutral-700 mb-2">Status</label>
+              <select
+                v-model="form.status"
+                class="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-100 focus:border-primary-300"
+              >
+                <option v-for="s in statuses" :key="s" :value="s">{{ s }}</option>
+              </select>
+            </div>
+          </div>
+
           <div class="flex items-center gap-3 pt-4 border-t border-neutral-100">
             <button
               type="submit"
@@ -92,12 +113,19 @@ import AppShell from '@/Layouts/AppShell.vue';
 import { Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft } from 'lucide-vue-next';
 
+const props = defineProps({
+  roles: Array,
+  statuses: Array,
+});
+
 const form = useForm({
   name: '',
   email: '',
   password: '',
   password_confirmation: '',
   is_admin: false,
+  role: 'student',
+  status: 'active',
 });
 
 const submit = () => {

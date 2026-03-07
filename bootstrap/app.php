@@ -17,10 +17,12 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\HandleInertiaRequests::class,
             \App\Http\Middleware\SecurityHeaders::class,
             \App\Http\Middleware\UpdateLastActiveAt::class,
+            \App\Http\Middleware\EnsureUserActive::class,
         ]);
 
         $middleware->alias([
             'admin' => \App\Http\Middleware\IsAdmin::class,
+            'role' => \App\Http\Middleware\HasRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

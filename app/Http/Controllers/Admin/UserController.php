@@ -46,6 +46,8 @@ class UserController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'is_admin' => $user->is_admin,
+                'role' => $user->role ?? 'student',
+                'status' => $user->status ?? 'active',
                 'enrollments_count' => $user->enrollments_count,
                 'habits_count' => $user->habits_count,
                 'created_at' => $user->created_at->format('M d, Y'),
@@ -159,7 +161,10 @@ class UserController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Admin/Users/Create');
+        return Inertia::render('Admin/Users/Create', [
+            'roles' => config('roles.roles', ['admin', 'mentor', 'student']),
+            'statuses' => config('roles.statuses', ['active', 'inactive', 'suspended']),
+        ]);
     }
 
     /**
@@ -172,6 +177,8 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'is_admin' => 'boolean',
+            'role' => 'required|in:admin,mentor,student',
+            'status' => 'required|in:active,inactive,suspended',
         ]);
 
         User::create([
@@ -179,6 +186,8 @@ class UserController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'is_admin' => $validated['is_admin'] ?? false,
+            'role' => $validated['role'] ?? 'student',
+            'status' => $validated['status'] ?? 'active',
             'email_verified_at' => now(),
         ]);
 
@@ -197,7 +206,11 @@ class UserController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'is_admin' => $user->is_admin,
+                'role' => $user->role ?? 'student',
+                'status' => $user->status ?? 'active',
             ],
+            'roles' => config('roles.roles', ['admin', 'mentor', 'student']),
+            'statuses' => config('roles.statuses', ['active', 'inactive', 'suspended']),
         ]);
     }
 
@@ -210,12 +223,16 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'is_admin' => 'boolean',
+            'role' => 'required|in:admin,mentor,student',
+            'status' => 'required|in:active,inactive,suspended',
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $user->name = $validated['name'];
         $user->email = $validated['email'];
         $user->is_admin = $validated['is_admin'] ?? false;
+        $user->role = $validated['role'];
+        $user->status = $validated['status'];
 
         if (!empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);

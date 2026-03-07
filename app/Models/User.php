@@ -31,6 +31,8 @@ class User extends Authenticatable
         'last_active_at',
         'locale',
         'content_locale',
+        'role',
+        'status',
         // Note: 'is_admin' intentionally excluded for security - set via admin controllers only
     ];
 

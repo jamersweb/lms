@@ -65,12 +65,20 @@
                   </div>
                 </td>
                 <td class="px-6 py-4">
-                  <span :class="[
-                    'px-2.5 py-1 rounded-full text-xs font-semibold',
-                    user.is_admin ? 'bg-primary-100 text-primary-700' : 'bg-neutral-100 text-neutral-600'
-                  ]">
-                    {{ user.is_admin ? 'Admin' : 'User' }}
-                  </span>
+                  <div class="flex flex-col gap-1">
+                    <span :class="[
+                      'px-2.5 py-1 rounded-full text-xs font-semibold w-fit',
+                      user.role === 'admin' ? 'bg-primary-100 text-primary-700' : user.role === 'mentor' ? 'bg-amber-100 text-amber-700' : 'bg-neutral-100 text-neutral-600'
+                    ]">
+                      {{ user.role || (user.is_admin ? 'admin' : 'student') }}
+                    </span>
+                    <span v-if="user.status !== 'active'" :class="[
+                      'px-2.5 py-0.5 rounded text-xs w-fit',
+                      user.status === 'suspended' ? 'bg-red-100 text-red-700' : 'bg-neutral-100 text-neutral-500'
+                    ]">
+                      {{ user.status }}
+                    </span>
+                  </div>
                 </td>
                 <td class="px-6 py-4 text-neutral-600">{{ user.enrollments_count }}</td>
                 <td class="px-6 py-4 text-neutral-600">{{ user.habits_count }}</td>

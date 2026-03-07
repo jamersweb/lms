@@ -31,10 +31,10 @@
         </Link>
 
         <!-- Admin Section -->
-        <template v-if="isAdmin">
+        <template v-if="canAccessAdmin">
           <div class="pt-6 mt-4 border-t border-neutral-200">
             <div class="px-4 mb-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">{{ t('nav.admin_panel') }}</div>
-            <Link v-for="item in adminNavigation" :key="item.name" :href="item.href"
+            <Link v-for="item in visibleAdminNavigation" :key="item.name" :href="item.href"
               :class="[
                 page.url.startsWith(item.activePrefix)
                   ? 'bg-primary-50 text-primary-900 border-l-4 border-primary-900'
@@ -118,11 +118,11 @@
               </Link>
 
               <!-- Admin Section (Mobile) -->
-              <template v-if="isAdmin">
-                <div class="pt-6 mt-4 border-t border-neutral-200">
-                  <div class="px-4 mb-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">{{ t('nav.admin_panel') }}</div>
-                  <Link
-                    v-for="item in adminNavigation"
+              <template v-if="canAccessAdmin">
+          <div class="pt-6 mt-4 border-t border-neutral-200">
+            <div class="px-4 mb-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">{{ t('nav.admin_panel') }}</div>
+            <Link
+              v-for="item in visibleAdminNavigation"
                     :key="item.name"
                     :href="item.href"
                     @click="closeMobileMenu"
@@ -249,11 +249,11 @@
                             </Link>
                             
                             <!-- Admin Section -->
-                            <template v-if="isAdmin">
+                            <template v-if="canAccessAdmin">
                                 <div class="border-t border-neutral-200 my-2"></div>
                                 <div class="px-4 py-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">{{ t('nav.admin_panel') }}</div>
                                 <Link
-                                  v-for="item in adminNavigation"
+                                  v-for="item in visibleAdminNavigation"
                                   :key="item.name"
                                   :href="item.href"
                                   @click="showLessonMenu = false"
@@ -492,6 +492,7 @@ const navigation = [
 // Admin navigation
 const adminNavigation = [
   { name: t('nav.admin_dashboard'), href: '/admin', activePrefix: '/admin', icon: LayoutDashboard },
+  { name: 'WhatsApp Settings', href: '/admin/whatsapp-settings', activePrefix: '/admin/whatsapp-settings', icon: MessageCircle },
   { name: t('nav.admin_users'), href: '/admin/users', activePrefix: '/admin/users', icon: Users },
   { name: t('nav.admin_courses'), href: '/admin/courses', activePrefix: '/admin/courses', icon: BookOpen },
   { name: t('nav.admin_modules'), href: '/admin/modules', activePrefix: '/admin/modules', icon: FolderOpen },
@@ -500,8 +501,18 @@ const adminNavigation = [
   { name: t('nav.admin_moderation'), href: '/admin/moderation', activePrefix: '/admin/moderation', icon: Shield },
 ];
 
-// Check if user is admin
+// Check if user is admin or mentor (for nav visibility)
 const isAdmin = computed(() => page.props.auth?.user?.is_admin);
+const isMentor = computed(() => page.props.auth?.user?.role === 'mentor');
+const canAccessAdmin = computed(() => isAdmin.value || isMentor.value);
+
+// Filter admin nav for mentors (only show allowed pages)
+const visibleAdminNavigation = computed(() => {
+  const nav = adminNavigation;
+  if (isAdmin.value) return nav;
+  if (isMentor.value) return nav.filter(n => n.href.includes('whatsapp-settings'));
+  return [];
+});
 
 // Toast functionality
 const { toast, hideToast } = useToast();

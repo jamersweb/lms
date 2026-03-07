@@ -164,9 +164,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('locale.update');
 });
 
-// Admin routes
+// Admin routes (mentor can access WhatsApp settings)
+Route::middleware(['auth', 'role:admin,mentor'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/whatsapp-settings', [\App\Http\Controllers\Admin\WhatsAppSettingsController::class, 'index'])->name('whatsapp-settings.index');
+    Route::post('/whatsapp-settings/webhook', [\App\Http\Controllers\Admin\WhatsAppSettingsController::class, 'updateWebhook'])->name('whatsapp-settings.webhook');
+    Route::post('/whatsapp-settings/send-test', [\App\Http\Controllers\Admin\WhatsAppSettingsController::class, 'sendTest'])->name('whatsapp-settings.send-test');
+});
+
+// Admin routes (admin only)
 Route::middleware(['auth', \App\Http\Middleware\IsAdmin::class])->prefix('admin')->name('admin.')->group(function () {
-    // Admin Dashboard
     Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/health', \App\Http\Controllers\AdminHealthController::class)->name('health');

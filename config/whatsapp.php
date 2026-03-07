@@ -14,4 +14,6 @@ return [
     | Supports single and bulk recipients. No auth required.
     */
     'trigger_webhook_url' => env('WHATSAPP_TRIGGER_WEBHOOK_URL', ''),
+
+    // AppSetting (whatsapp_trigger_webhook_url) overrides when set in admin WhatsApp Settings
 ];

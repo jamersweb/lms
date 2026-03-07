@@ -14,7 +14,13 @@ class TriggerWebhookService
     public function __construct(
         private ?string $webhookUrl = null
     ) {
-        $this->webhookUrl = $webhookUrl ?? config('whatsapp.trigger_webhook_url');
+        $this->webhookUrl = $webhookUrl ?? $this->resolveWebhookUrl();
+    }
+
+    private function resolveWebhookUrl(): ?string
+    {
+        $fromSetting = \App\Models\AppSetting::where('key', 'whatsapp_trigger_webhook_url')->first()?->value;
+        return $fromSetting ?: config('whatsapp.trigger_webhook_url');
     }
 
     /**
