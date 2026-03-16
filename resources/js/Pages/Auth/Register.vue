@@ -1,11 +1,12 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { Eye, EyeOff, Mail, Lock, User, Loader2 } from 'lucide-vue-next';
+import { Eye, EyeOff, Mail, Lock, User, Loader2, Phone } from 'lucide-vue-next';
 import { ref, getCurrentInstance, inject } from 'vue';
 
 const form = useForm({
     name: '',
     email: '',
+    whatsapp_number: '',
     password: '',
     password_confirmation: '',
 });
@@ -123,6 +124,27 @@ const submit = () => {
                             />
                         </div>
                         <p v-if="form.errors.email" class="mt-2 text-sm text-red-600">{{ form.errors.email }}</p>
+                    </div>
+
+                    <!-- WhatsApp -->
+                    <div>
+                        <label for="whatsapp_number" class="block text-sm font-medium text-neutral-700 mb-2">WhatsApp Number</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <Phone class="h-5 w-5 text-neutral-400" />
+                            </div>
+                            <input
+                                id="whatsapp_number"
+                                type="tel"
+                                v-model="form.whatsapp_number"
+                                class="w-full pl-12 pr-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-100 focus:border-primary-400 transition-colors bg-white"
+                                placeholder="+92 300 1234567"
+                                required
+                                autocomplete="tel"
+                            />
+                        </div>
+                        <p class="mt-1 text-xs text-neutral-500">Include country code so WhatsApp reminders can reach you.</p>
+                        <p v-if="form.errors.whatsapp_number" class="mt-2 text-sm text-red-600">{{ form.errors.whatsapp_number }}</p>
                     </div>
                     
                     <!-- Password -->

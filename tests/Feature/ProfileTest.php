@@ -43,6 +43,22 @@ class ProfileTest extends TestCase
         $this->assertNull($user->email_verified_at);
     }
 
+    public function test_profile_page_stays_accessible_after_email_change(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->patch('/profile', [
+            'name' => 'Updated User',
+            'email' => 'updated@example.com',
+        ]);
+
+        $response = $this
+            ->actingAs($user->fresh())
+            ->get('/profile');
+
+        $response->assertOk();
+    }
+
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
     {
         $user = User::factory()->create();

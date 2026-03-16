@@ -49,6 +49,7 @@ class Phase3ReflectionGatingTest extends TestCase
             'module_id' => $module->id,
             'sort_order' => 1,
             'duration_seconds' => 100,
+            'requires_reflection' => true,
         ]);
         $lesson2 = Lesson::factory()->create([
             'module_id' => $module->id,
@@ -95,6 +96,7 @@ class Phase3ReflectionGatingTest extends TestCase
             'module_id' => $module->id,
             'sort_order' => 1,
             'duration_seconds' => 100,
+            'requires_reflection' => true,
         ]);
         $lesson2 = Lesson::factory()->create([
             'module_id' => $module->id,
@@ -145,6 +147,7 @@ class Phase3ReflectionGatingTest extends TestCase
             'module_id' => $module->id,
             'sort_order' => 1,
             'duration_seconds' => 100,
+            'requires_reflection' => true,
         ]);
 
         // Do NOT mark lesson as completed
@@ -181,6 +184,7 @@ class Phase3ReflectionGatingTest extends TestCase
             'module_id' => $module->id,
             'sort_order' => 1,
             'duration_seconds' => 100,
+            'requires_reflection' => true,
         ]);
 
         // Mark lesson as completed
@@ -334,6 +338,7 @@ class Phase3ReflectionGatingTest extends TestCase
             'module_id' => $module->id,
             'sort_order' => 1,
             'duration_seconds' => 100,
+            'requires_reflection' => true,
         ]);
         $lesson2 = Lesson::factory()->create([
             'module_id' => $module->id,
@@ -361,5 +366,37 @@ class Phase3ReflectionGatingTest extends TestCase
         // Should be denied with reflection_required reason
         $this->assertFalse($result->allowed);
         $this->assertContains('reflection_required', $result->reasons);
+    }
+
+    public function test_next_lesson_is_not_blocked_when_previous_lesson_does_not_require_reflection(): void
+    {
+        [$user, $course, $module] = $this->createEnrolledUserAndModule();
+
+        $lesson1 = Lesson::factory()->create([
+            'module_id' => $module->id,
+            'sort_order' => 1,
+            'duration_seconds' => 100,
+            'requires_reflection' => false,
+        ]);
+        $lesson2 = Lesson::factory()->create([
+            'module_id' => $module->id,
+            'sort_order' => 2,
+            'duration_seconds' => 100,
+        ]);
+
+        LessonProgress::create([
+            'user_id' => $user->id,
+            'lesson_id' => $lesson1->id,
+            'completed_at' => now(),
+            'watched_seconds' => 100,
+            'max_playback_rate' => 1.0,
+            'seek_attempts' => 0,
+            'violations' => [],
+        ]);
+
+        $response = $this->actingAs($user)
+            ->get(route('lessons.show', ['course' => $course->id, 'lesson' => $lesson2->id]));
+
+        $response->assertOk();
     }
 }

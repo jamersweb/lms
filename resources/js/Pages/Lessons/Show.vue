@@ -1,29 +1,31 @@
 <template>
   <AppShell>
-    <div class="flex flex-col h-full bg-neutral-50">
+    <div class="flex min-h-full flex-col bg-neutral-50">
         <!-- Main Content Area: Left Sidebar (4/12) + Right Video (8/12). On mobile: video first so it's visible. -->
-        <div class="flex flex-col md:flex-row flex-1 min-h-0 overflow-hidden">
+        <div class="flex flex-1 flex-col gap-4 overflow-y-auto px-3 py-3 md:flex-row md:gap-0 md:overflow-hidden md:px-0 md:py-0">
           <!-- Left Sidebar: Tabs (4/12) - order-2 on mobile so video shows first -->
-          <aside class="w-full md:w-4/12 flex flex-col bg-white border-r border-neutral-200 overflow-hidden order-2 md:order-1">
+          <aside class="order-2 flex w-full min-h-0 flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white md:order-1 md:w-4/12 md:rounded-none md:border-y-0 md:border-l-0 md:border-r">
           <!-- Tabs Header -->
-          <div class="flex border-b border-neutral-200 shrink-0 bg-white">
-            <button
-              v-for="tab in tabs"
-              :key="tab"
-              @click="activeTab = tab"
-              :class="[
-                'flex-1 px-4 py-4 text-sm font-medium border-b-2 transition-colors',
-                activeTab === tab
-                  ? 'border-primary-600 text-primary-700 bg-primary-50/30'
-                  : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50'
-              ]"
-            >
-              {{ tab }}
-            </button>
+          <div class="shrink-0 overflow-x-auto border-b border-neutral-200 bg-white">
+            <div class="flex min-w-max md:min-w-0">
+              <button
+                v-for="tab in tabs"
+                :key="tab"
+                @click="activeTab = tab"
+                :class="[
+                  'flex-none border-b-2 px-4 py-3 text-sm font-medium transition-colors md:flex-1',
+                  activeTab === tab
+                    ? 'border-primary-600 text-primary-700 bg-primary-50/30'
+                    : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50'
+                ]"
+              >
+                {{ tab }}
+              </button>
+            </div>
           </div>
 
           <!-- Tab Content - Scrollable (extra pb on mobile so content isn't cut off by bottom bar/browser chrome) -->
-          <div class="flex-1 overflow-y-auto p-6 pb-[max(7rem,calc(env(safe-area-inset-bottom,0px)+5.5rem))] md:pb-6">
+          <div class="flex-1 overflow-y-auto p-4 pb-[max(7rem,calc(env(safe-area-inset-bottom,0px)+5.5rem))] md:p-6 md:pb-6">
             <div
               v-if="$page.props.errors?.completion"
               class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-xs text-red-700"
@@ -115,6 +117,19 @@
                 </ul>
               </div>
 
+              <div v-if="needsReflectionBeforeNextLesson" class="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                <p class="text-sm font-medium text-amber-900">Reflection is required before the next lesson opens.</p>
+                <p class="mt-1 text-xs text-amber-700">Submit your takeaway first, then continue to the next lesson.</p>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  class="mt-3 w-full"
+                  @click="openReflectionTab"
+                >
+                  Write Reflection
+                </Button>
+              </div>
+
               <div class="mt-6 flex flex-col gap-2">
                 <Button 
                   v-if="lesson.prev_lesson_id" 
@@ -127,12 +142,12 @@
                 </Button>
                 <Button 
                   v-if="lesson.next_lesson_id" 
-                  variant="primary" 
+                  :variant="needsReflectionBeforeNextLesson ? 'secondary' : 'primary'" 
                   size="sm"
-                  @click="goToLesson(lesson.next_lesson_id)"
+                  @click="handleNextLesson"
                   class="w-full"
                 >
-                  Next Lesson
+                  {{ needsReflectionBeforeNextLesson ? 'Submit Reflection to Continue' : 'Next Lesson' }}
                 </Button>
               </div>
             </div>
@@ -252,7 +267,7 @@
                      </div>
                    </div>
 
-                   <div class="flex items-center justify-between">
+                   <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                      <div v-if="reflection">
                        <p class="text-xs text-neutral-500">
                          {{ t('lessons.reflection.status_label') }}
@@ -435,13 +450,13 @@
           </aside>
 
           <!-- Right Column: Video Player (8/12) - order-1 on mobile so video at top, not cut off -->
-          <div class="w-full md:w-8/12 flex flex-col bg-neutral-50 overflow-hidden order-1 md:order-2">
+          <div class="order-1 flex w-full flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white md:order-2 md:w-8/12 md:rounded-none md:border-0">
             <!-- Video Player - Fixed Height, No Scroll; min-h on mobile so video isn't cut off -->
-            <div class="flex-1 flex items-start justify-center p-4 md:p-6 min-h-[min(40vh,280px)] md:min-h-0 overflow-hidden">
+            <div class="flex items-start justify-center p-3 md:flex-1 md:p-6 min-h-[220px] overflow-hidden">
               <div v-if="lesson.is_locked" class="w-full max-w-5xl rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-6 text-center text-sm text-neutral-600">
                 This lesson is locked. Please complete the previous lessons to unlock it.
               </div>
-              <div v-else class="w-full max-w-5xl h-full">
+              <div v-else class="h-full w-full max-w-5xl">
                 <VideoGuardPlayer
                   :provider="lesson.video_provider"
                   :video-url="lesson.video_url"
@@ -462,7 +477,7 @@
         </div>
 
         <!-- Bottom: Course Videos Playlist (mobile: taller + safe-area so content isn't cut off) -->
-        <div class="shrink-0 border-t border-neutral-200 bg-white flex flex-col h-24 md:h-20 z-10 pb-[env(safe-area-inset-bottom,0px)]">
+        <div class="shrink-0 border-t border-neutral-200 bg-white flex flex-col h-28 md:h-20 z-10 pb-[env(safe-area-inset-bottom,0px)]">
           <div class="p-1.5 border-b border-neutral-100 bg-neutral-50 shrink-0">
             <h3 class="font-bold text-neutral-900 text-[10px]">{{ course.title }}</h3>
             <p class="text-[9px] text-neutral-500">Course Content</p>
@@ -569,7 +584,9 @@
       :show="showPostLessonSummary"
       :lesson-id="lesson.id"
       :lesson-title="lesson.title"
-      @close="showPostLessonSummary = false"
+      :show-reflection-action="needsReflectionBeforeNextLesson"
+      @close="handleSummaryClose"
+      @write-reflection="openReflectionTab"
     />
 
     <!-- Side Panel Notebook -->
@@ -822,6 +839,10 @@ const reflectionForm = useForm({
   takeaway: props.reflection?.takeaway || props.reflection?.content || '',
 });
 
+const needsReflectionBeforeNextLesson = computed(() => {
+  return Boolean(props.lesson.requires_reflection && props.lesson.is_completed && !props.reflection);
+});
+
 const completionForm = useForm({});
 const checkinForm = useForm({});
 
@@ -900,6 +921,27 @@ const submitReflection = () => {
   reflectionForm.post(route('lessons.reflection', { lesson: props.lesson.id }), {
     preserveScroll: true,
   });
+};
+
+const openReflectionTab = () => {
+  showPostLessonSummary.value = false;
+  activeTab.value = t('lessons.tabs.reflection');
+};
+
+const handleSummaryClose = () => {
+  showPostLessonSummary.value = false;
+  if (needsReflectionBeforeNextLesson.value) {
+    activeTab.value = t('lessons.tabs.reflection');
+  }
+};
+
+const handleNextLesson = () => {
+  if (needsReflectionBeforeNextLesson.value) {
+    openReflectionTab();
+    return;
+  }
+
+  goToLesson(props.lesson.next_lesson_id);
 };
 
 const reflectionStatusClass = computed(() => {

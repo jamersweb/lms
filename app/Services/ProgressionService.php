@@ -80,17 +80,19 @@ class ProgressionService
             }
 
             // Phase 3: Check if reflection is required and submitted
-            $previousReflection = LessonReflection::where('user_id', $user->id)
-                ->where('lesson_id', $previousLesson->id)
-                ->exists();
+            if ($previousLesson->requires_reflection) {
+                $previousReflection = LessonReflection::where('user_id', $user->id)
+                    ->where('lesson_id', $previousLesson->id)
+                    ->exists();
 
-            if (!$previousReflection) {
-                return EligibilityResult::deny(
-                    reasons: ['reflection_required'],
-                    requiredLevel: null,
-                    requiredGender: null,
-                    requiresBayah: false,
-                );
+                if (!$previousReflection) {
+                    return EligibilityResult::deny(
+                        reasons: ['reflection_required'],
+                        requiredLevel: null,
+                        requiredGender: null,
+                        requiresBayah: false,
+                    );
+                }
             }
 
             // Phase 3 Task 3: Check if task is required and completed
@@ -195,8 +197,10 @@ class ProgressionService
                 return false;
             }
 
-            if (!LessonReflection::where('user_id', $user->id)->where('lesson_id', $lesson->id)->exists()) {
-                return false;
+            if ($lesson->requires_reflection) {
+                if (!LessonReflection::where('user_id', $user->id)->where('lesson_id', $lesson->id)->exists()) {
+                    return false;
+                }
             }
 
             $task = $lesson->task;

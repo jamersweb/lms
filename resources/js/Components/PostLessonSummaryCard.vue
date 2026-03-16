@@ -83,12 +83,21 @@
 
       <!-- Footer Actions -->
       <div class="border-t border-gray-200 px-6 py-4 bg-gray-50 flex items-center justify-between">
-        <button
-          @click="close"
-          class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-        >
-          Close
-        </button>
+        <div class="flex items-center gap-2">
+          <button
+            v-if="showReflectionAction"
+            @click="openReflection"
+            class="px-4 py-2 rounded-lg border border-[#8B0000]/20 text-[#8B0000] hover:bg-red-50 transition-colors"
+          >
+            Write Reflection
+          </button>
+          <button
+            @click="close"
+            class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+          >
+            Close
+          </button>
+        </div>
         <button
           v-if="resources && resources.can_view && (resources.sunnah_pointers || resources.duas_text)"
           @click="downloadPdf"
@@ -125,9 +134,13 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  showReflectionAction: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close', 'write-reflection']);
 
 const resources = ref(null);
 const downloading = ref(false);
@@ -135,6 +148,10 @@ const loading = ref(false);
 
 const close = () => {
   emit('close');
+};
+
+const openReflection = () => {
+  emit('write-reflection');
 };
 
 const fetchResources = async () => {
