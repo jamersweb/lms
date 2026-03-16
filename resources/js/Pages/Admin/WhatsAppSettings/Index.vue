@@ -1,7 +1,7 @@
 <template>
   <AppShell>
     <div class="max-w-2xl mx-auto space-y-6">
-      <h1 class="font-serif text-2xl font-bold text-neutral-900">WhatsApp Settings</h1>
+      <h1 class="font-serif text-2xl font-bold text-neutral-900">Trigger Settings</h1>
 
       <div v-if="$page.props.flash?.success" class="p-4 bg-green-50 text-green-800 rounded-lg">
         {{ $page.props.flash.success }}
@@ -10,35 +10,15 @@
         {{ $page.props.flash.error }}
       </div>
 
-      <!-- Webhook URL -->
       <div class="bg-white rounded-xl border border-neutral-200 p-6">
-        <h2 class="text-lg font-semibold text-neutral-800 mb-4">Webhook URL</h2>
-        <form @submit.prevent="webhookForm.post(route('admin.whatsapp-settings.webhook'))" class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Webhook Endpoint</label>
-            <input
-              v-model="webhookForm.webhook_url"
-              type="url"
-              class="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-100 focus:border-primary-300"
-              placeholder="https://cript.aingu.com/webhook-test/..."
-              required
-            />
-            <p v-if="webhookForm.errors.webhook_url" class="mt-1 text-sm text-red-600">{{ webhookForm.errors.webhook_url }}</p>
-          </div>
-          <button
-            type="submit"
-            :disabled="webhookForm.processing"
-            class="px-4 py-2 bg-primary-900 text-white rounded-lg font-medium hover:bg-primary-800 disabled:opacity-50"
-          >
-            {{ webhookForm.processing ? 'Saving...' : 'Save Webhook' }}
-          </button>
-        </form>
+        <h2 class="text-lg font-semibold text-neutral-800 mb-2">How It Works</h2>
+        <p class="text-sm text-neutral-600">LMS only records trigger events. It does not send WhatsApp itself. OpenClaw reads new records from the API, sends the message, then marks the record as sent or failed.</p>
       </div>
 
       <!-- Test Send Form -->
       <div class="bg-white rounded-xl border border-neutral-200 p-6">
-        <h2 class="text-lg font-semibold text-neutral-800 mb-4">Test Trigger</h2>
-        <p class="text-sm text-neutral-600 mb-4">Send a test message to the webhook with a selected template and user.</p>
+        <h2 class="text-lg font-semibold text-neutral-800 mb-4">Queue Test Trigger</h2>
+        <p class="text-sm text-neutral-600 mb-4">This creates a new trigger record in the outbox. It will appear on the trigger queue page and can be picked up by OpenClaw.</p>
 
         <form @submit.prevent="sendForm.post(route('admin.whatsapp-settings.send-test'))" class="space-y-4">
           <div>
@@ -90,9 +70,22 @@
             :disabled="sendForm.processing || users.length === 0"
             class="px-6 py-2 bg-primary-900 text-white rounded-lg font-medium hover:bg-primary-800 disabled:opacity-50"
           >
-            {{ sendForm.processing ? 'Sending...' : 'Send Test' }}
+            {{ sendForm.processing ? 'Queueing...' : 'Queue Test Trigger' }}
           </button>
         </form>
+      </div>
+
+      <!-- OpenClaw API -->
+      <div class="bg-white rounded-xl border border-neutral-200 p-6">
+        <h2 class="text-lg font-semibold text-neutral-800 mb-2">OpenClaw API</h2>
+        <p class="text-sm text-neutral-600 mb-4">Use this API from your OpenClaw worker to claim new triggers and report results.</p>
+        <div class="space-y-2 text-sm text-neutral-700">
+          <p><span class="font-semibold">Claim:</span> <code class="bg-neutral-100 px-1.5 py-0.5 rounded">{{ openclawBaseUrl }}/triggers/claim</code></p>
+          <p><span class="font-semibold">Pending:</span> <code class="bg-neutral-100 px-1.5 py-0.5 rounded">{{ openclawBaseUrl }}/triggers/pending</code></p>
+          <p><span class="font-semibold">Ack:</span> <code class="bg-neutral-100 px-1.5 py-0.5 rounded">{{ openclawBaseUrl }}/triggers/{id}/ack</code></p>
+          <p><span class="font-semibold">Fail:</span> <code class="bg-neutral-100 px-1.5 py-0.5 rounded">{{ openclawBaseUrl }}/triggers/{id}/fail</code></p>
+          <p class="text-xs text-neutral-500 pt-2">Auth: <code class="bg-neutral-100 px-1.5 py-0.5 rounded">Authorization: Bearer OPENCLAW_TRIGGER_API_TOKEN</code></p>
+        </div>
       </div>
     </div>
   </AppShell>
@@ -102,14 +95,10 @@
 import AppShell from '@/Layouts/AppShell.vue';
 import { useForm } from '@inertiajs/vue3';
 
-const props = defineProps({
-  webhookUrl: String,
+defineProps({
   templates: Array,
   users: Array,
-});
-
-const webhookForm = useForm({
-  webhook_url: props.webhookUrl || '',
+  openclawBaseUrl: String,
 });
 
 const sendForm = useForm({

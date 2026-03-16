@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 class TriggerService
 {
     public function __construct(
-        private TriggerWebhookService $webhookService
+        private TriggerOutboxService $outboxService
     ) {}
 
     /**
@@ -36,12 +36,16 @@ class TriggerService
             'name' => $user->name,
         ], $context));
 
-        return $this->webhookService->send(
-            $config['template_name'],
-            $message,
-            $user->whatsapp_number,
-            $context['language'] ?? 'en'
+        $event = $this->outboxService->queue(
+            eventKey: $eventKey,
+            templateName: $config['template_name'],
+            user: $user,
+            message: $message,
+            context: $context,
+            idempotencyKey: $context['idempotency_key'] ?? null,
         );
+
+        return (bool) $event;
     }
 
     /**
@@ -56,21 +60,14 @@ class TriggerService
             return 0;
         }
 
-        $phoneNumbers = [];
-        foreach ($users as $user) {
-            if ($user instanceof User && $user->whatsapp_opt_in && !empty($user->whatsapp_number)) {
-                $phoneNumbers[] = $user->whatsapp_number;
-            }
-        }
-
-        if (empty($phoneNumbers)) {
-            return 0;
-        }
-
         $message = $this->resolveMessage($config['message'], $context);
-        $ok = $this->webhookService->send($config['template_name'], $message, $phoneNumbers, $context['language'] ?? 'en');
-
-        return $ok ? count($phoneNumbers) : 0;
+        return $this->outboxService->queueBulk(
+            eventKey: $eventKey,
+            templateName: $config['template_name'],
+            users: $users,
+            message: $message,
+            context: $context
+        );
     }
 
     /**
@@ -79,23 +76,7 @@ class TriggerService
      */
     public function fireAsync(string $eventKey, User $user, array $context = []): void
     {
-        if (!$user->whatsapp_opt_in || empty($user->whatsapp_number)) {
-            return;
-        }
-
-        $config = config("triggers.templates.{$eventKey}");
-        if (!$config) {
-            return;
-        }
-
-        $message = $this->resolveMessage($config['message'], array_merge(['name' => $user->name], $context));
-
-        \App\Jobs\SendTriggerJob::dispatch(
-            $config['template_name'],
-            $message,
-            [$user->whatsapp_number],
-            $context['language'] ?? 'en'
-        );
+        $this->fire($eventKey, $user, $context);
     }
 
     /**

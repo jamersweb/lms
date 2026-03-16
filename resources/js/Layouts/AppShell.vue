@@ -492,7 +492,8 @@ const navigation = [
 // Admin navigation (permission slug for RBAC filtering)
 const adminNavigation = [
   { name: t('nav.admin_dashboard'), href: '/admin', activePrefix: '/admin', icon: LayoutDashboard, permission: 'admin.dashboard.index' },
-  { name: 'WhatsApp Settings', href: '/admin/whatsapp-settings', activePrefix: '/admin/whatsapp-settings', icon: MessageCircle, permission: 'admin.whatsapp-settings.index' },
+  { name: 'WhatsApp Settings', href: '/admin/whatsapp-settings', activePrefix: '/admin/whatsapp-settings', icon: MessageCircle, permission: 'admin.whatsapp-settings.index', allowedRoles: ['admin', 'mentor'] },
+  { name: 'Trigger Queue', href: '/admin/triggers', activePrefix: '/admin/triggers', icon: Bell, permission: 'admin.triggers.index', allowedRoles: ['admin', 'mentor'] },
   { name: t('nav.admin_users'), href: '/admin/users', activePrefix: '/admin/users', icon: Users, permission: 'admin.users.index' },
   { name: t('nav.admin_courses'), href: '/admin/courses', activePrefix: '/admin/courses', icon: BookOpen, permission: 'admin.courses.index' },
   { name: t('nav.admin_modules'), href: '/admin/modules', activePrefix: '/admin/modules', icon: FolderOpen, permission: 'admin.modules.index' },
@@ -511,6 +512,11 @@ function hasPermission(permissions, slug) {
   return permissions.includes(prefix);
 }
 
+function hasRoleAccess(user, allowedRoles = []) {
+  if (!user || !Array.isArray(allowedRoles) || allowedRoles.length === 0) return false;
+  return Boolean(user.is_admin) || allowedRoles.includes(user.role);
+}
+
 // Check if user can access admin (from shared props or fallback to role)
 const canAccessAdmin = computed(() => {
   const fromProps = page.props.auth?.can_access_admin;
@@ -524,7 +530,9 @@ const visibleAdminNavigation = computed(() => {
   const permissions = page.props.auth?.permissions || [];
   const user = page.props.auth?.user;
   if (user?.is_admin) return adminNavigation;
-  return adminNavigation.filter(n => hasPermission(permissions, n.permission));
+  return adminNavigation.filter((item) =>
+    hasPermission(permissions, item.permission) || hasRoleAccess(user, item.allowedRoles)
+  );
 });
 
 // Toast functionality

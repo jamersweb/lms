@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\AppSetting;
 use App\Models\User;
-use App\Services\WhatsApp\TriggerWebhookService;
+use App\Services\WhatsApp\TriggerOutboxService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -13,9 +12,6 @@ class WhatsAppSettingsController extends Controller
 {
     public function index()
     {
-        $webhookUrl = AppSetting::where('key', 'whatsapp_trigger_webhook_url')->first()?->value
-            ?? config('whatsapp.trigger_webhook_url', '');
-
         $templates = collect(config('triggers.templates', []))
             ->map(fn ($t, $key) => [
                 'key' => $key,
@@ -37,27 +33,13 @@ class WhatsAppSettingsController extends Controller
             ->toArray();
 
         return Inertia::render('Admin/WhatsAppSettings/Index', [
-            'webhookUrl' => $webhookUrl,
             'templates' => $templates,
             'users' => $users,
+            'openclawBaseUrl' => rtrim(config('app.url'), '/') . '/api/openclaw',
         ]);
     }
 
-    public function updateWebhook(Request $request)
-    {
-        $validated = $request->validate([
-            'webhook_url' => ['required', 'string', 'url'],
-        ]);
-
-        AppSetting::updateOrCreate(
-            ['key' => 'whatsapp_trigger_webhook_url'],
-            ['value' => $validated['webhook_url']]
-        );
-
-        return back()->with('success', 'Webhook URL updated.');
-    }
-
-    public function sendTest(Request $request)
+    public function sendTest(Request $request, TriggerOutboxService $outboxService)
     {
         $validated = $request->validate([
             'template_key' => ['required', 'string'],
@@ -76,24 +58,18 @@ class WhatsAppSettingsController extends Controller
             return back()->with('error', 'Invalid template.');
         }
 
-        $webhookUrl = AppSetting::where('key', 'whatsapp_trigger_webhook_url')->first()?->value
-            ?? config('whatsapp.trigger_webhook_url');
-
-        if (empty($webhookUrl)) {
-            return back()->with('error', 'Webhook URL is not configured.');
-        }
-
-        $service = new TriggerWebhookService($webhookUrl);
-        $ok = $service->send(
-            $template['template_name'],
-            $validated['message'],
-            $user->whatsapp_number
+        $event = $outboxService->queue(
+            eventKey: $validated['template_key'],
+            templateName: $template['template_name'],
+            user: $user,
+            message: $validated['message'],
+            context: ['queued_from' => 'admin_test'],
         );
 
-        if ($ok) {
-            return back()->with('success', 'Message sent successfully to ' . $user->whatsapp_number);
+        if ($event) {
+            return back()->with('success', 'Test trigger queued for ' . $user->whatsapp_number . '. OpenClaw can pick it up now.');
         }
 
-        return back()->with('error', 'Failed to send. Check storage/logs/laravel.log for details.');
+        return back()->with('error', 'Trigger was not queued. Check that the user has WhatsApp opt-in and a phone number.');
     }
 }

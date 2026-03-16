@@ -16,6 +16,7 @@ return [
         'mentor' => [
             'admin.dashboard',
             'admin.whatsapp-settings',
+            'admin.triggers.*',
             'admin.ask.*',
             'admin.questions.*',
             'admin.users.index',

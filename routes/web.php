@@ -167,8 +167,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Admin routes (mentor can access WhatsApp settings)
 Route::middleware(['auth', 'role:admin,mentor'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/whatsapp-settings', [\App\Http\Controllers\Admin\WhatsAppSettingsController::class, 'index'])->name('whatsapp-settings.index');
-    Route::post('/whatsapp-settings/webhook', [\App\Http\Controllers\Admin\WhatsAppSettingsController::class, 'updateWebhook'])->name('whatsapp-settings.webhook');
     Route::post('/whatsapp-settings/send-test', [\App\Http\Controllers\Admin\WhatsAppSettingsController::class, 'sendTest'])->name('whatsapp-settings.send-test');
+    Route::get('/triggers', [\App\Http\Controllers\Admin\TriggerEventController::class, 'index'])->name('triggers.index');
+    Route::get('/triggers/next', [\App\Http\Controllers\Admin\TriggerEventController::class, 'next'])->name('triggers.next');
+    Route::post('/triggers/{trigger}/claim', [\App\Http\Controllers\Admin\TriggerEventController::class, 'claim'])->name('triggers.claim');
+    Route::post('/triggers/{trigger}/mark-sent', [\App\Http\Controllers\Admin\TriggerEventController::class, 'markSent'])->name('triggers.mark-sent');
+    Route::post('/triggers/{trigger}/mark-failed', [\App\Http\Controllers\Admin\TriggerEventController::class, 'markFailed'])->name('triggers.mark-failed');
 });
 
 // Admin routes (admin only)
@@ -324,4 +328,3 @@ Route::get('/scheduler/run', [\App\Http\Controllers\SchedulerController::class, 
 
 // Auth routes (provided by Breeze)
 require __DIR__.'/auth.php';
-
