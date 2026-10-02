@@ -172,15 +172,15 @@ class HabitController extends Controller
         $this->authorize('view', $habit);
 
         $habit->load(['logs' => function($query) {
-            $query->latest()->limit(30);
+            $query->where('user_id', auth()->id())->latest()->limit(30);
         }]);
 
         return Inertia::render('Habits/Show', [
             'habit' => $habit,
             'logs' => $habit->logs,
             'streaks' => [
-                'current' => $this->calculateStreak($habit),
-                'longest' => $this->calculateLongestStreak($habit),
+                'current' => $this->calculateStreakForUser($habit, auth()->user()),
+                'longest' => $this->calculateLongestStreakForUser($habit, auth()->user()),
             ]
         ]);
     }
@@ -255,7 +255,6 @@ class HabitController extends Controller
     {
         $logs = $habit->logs()
             ->where('user_id', $user->id)
-            ->whereDate('log_date', '>=', now()->subDays(30))
             ->orderBy('log_date', 'desc')
             ->get();
 
@@ -299,7 +298,7 @@ class HabitController extends Controller
         foreach ($logs->skip(1) as $log) {
             $logDate = Carbon::parse($log->log_date)->startOfDay();
 
-            if ($logDate->diffInDays($previousDate) === 1) {
+            if ((int) $previousDate->diffInDays($logDate) === 1) {
                 $currentStreak++;
             } else {
                 $longestStreak = max($longestStreak, $currentStreak);

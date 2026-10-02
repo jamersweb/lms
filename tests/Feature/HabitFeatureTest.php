@@ -13,18 +13,18 @@ class HabitFeatureTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_can_create_habit()
+    public function test_students_cannot_create_habits()
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->post(route('habits.store'), [
+        $response = $this->actingAs($user)->post('/habits', [
             'title' => 'Read Quran',
             'frequency_type' => 'daily',
             'target_per_day' => 1,
         ]);
 
-        $response->assertRedirect();
-        $this->assertDatabaseHas('habits', [
+        $response->assertStatus(405);
+        $this->assertDatabaseMissing('habits', [
             'user_id' => $user->id,
             'title' => 'Read Quran',
         ]);

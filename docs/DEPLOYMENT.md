@@ -1,5 +1,9 @@
 # LMS Deployment Guide (Hostinger)
 
+For release checks, worker configuration, private backups and restore procedures,
+follow [the production runbook](PRODUCTION_RUNBOOK.md). Do not deploy the removed
+database export helper, reuse local `.env` settings, or regenerate an existing APP_KEY.
+
 ## 1. Environment Configuration
 Ensure `.env` matches production requirements:
 ```ini

@@ -35,7 +35,8 @@ class LessonController extends Controller
             abort(403);
         }
 
-        if (! $lesson->video_duration_seconds) {
+        // Learner-reported metadata must never change shared completion requirements.
+        if ($user->is_admin && ! $lesson->video_duration_seconds) {
             $lesson->video_duration_seconds = $data['duration_seconds'];
             $lesson->save();
         }
@@ -79,6 +80,12 @@ class LessonController extends Controller
         ])->findOrFail($lessonId);
 
         $user = Auth::user();
+        abort_unless($lesson->module->course_id === $course->id, 404);
+        if ($user && !app(EligibilityService::class)->canAccessLesson($user, $lesson)->allowed) {
+            return Inertia::render('Errors/ForbiddenContent', [
+                'message' => 'You are not eligible to access this lesson.',
+            ])->toResponse(request())->setStatusCode(403);
+        }
         $contentLocale = $user?->content_locale ?? app()->getLocale();
 
         // Check progression (combines eligibility + sequential unlocking)
@@ -303,7 +310,7 @@ class LessonController extends Controller
                 'title' => $lesson->getLocalizedTitle($contentLocale),
                 'description' => 'Part of the course: '.$course->getLocalizedTitle($contentLocale),
                 'video_url' => match($lesson->video_provider) {
-                    'youtube' => $lesson->youtube_video_id ? 'https://www.youtube.com/embed/' . $lesson->youtube_video_id : null,
+                    'youtube' => $lesson->youtube_video_id ? 'https://www.youtube-nocookie.com/embed/' . $lesson->youtube_video_id : null,
                     'external' => $lesson->external_video_url,
                     'mp4' => $lesson->video_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($lesson->video_path) : null,
                     'vimeo' => $lesson->external_video_url,
@@ -376,7 +383,7 @@ class LessonController extends Controller
         switch ($lesson->video_provider) {
             case 'youtube':
                 if ($lesson->youtube_video_id) {
-                    return 'https://www.youtube.com/embed/' . $lesson->youtube_video_id;
+                    return 'https://www.youtube-nocookie.com/embed/' . $lesson->youtube_video_id;
                 }
                 return null;
 

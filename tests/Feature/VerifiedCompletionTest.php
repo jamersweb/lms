@@ -41,8 +41,8 @@ class VerifiedCompletionTest extends TestCase
         LessonProgress::create([
             'user_id' => $user->id,
             'lesson_id' => $lesson->id,
-            'time_watched_seconds' => 50,
-            'max_playback_rate_seen' => 1.0,
+            'watched_seconds' => 50,
+            'max_playback_rate' => 1.0,
             'seek_detected' => false,
         ]);
 
@@ -64,8 +64,8 @@ class VerifiedCompletionTest extends TestCase
         LessonProgress::create([
             'user_id' => $user->id,
             'lesson_id' => $lesson->id,
-            'time_watched_seconds' => 98,
-            'max_playback_rate_seen' => 1.0,
+            'watched_seconds' => 98,
+            'max_playback_rate' => 1.0,
             'seek_detected' => true,
         ]);
 
@@ -86,8 +86,8 @@ class VerifiedCompletionTest extends TestCase
         LessonProgress::create([
             'user_id' => $user->id,
             'lesson_id' => $lesson->id,
-            'time_watched_seconds' => 98,
-            'max_playback_rate_seen' => 2.0,
+            'watched_seconds' => 98,
+            'max_playback_rate' => 2.0,
             'seek_detected' => false,
         ]);
 
@@ -108,8 +108,8 @@ class VerifiedCompletionTest extends TestCase
         LessonProgress::create([
             'user_id' => $user->id,
             'lesson_id' => $lesson->id,
-            'time_watched_seconds' => 96, // >= duration - 5
-            'max_playback_rate_seen' => 1.5,
+            'watched_seconds' => 96, // >= duration - 5
+            'max_playback_rate' => 1.5,
             'seek_detected' => false,
         ]);
 

@@ -53,7 +53,7 @@ class QuestionsTest extends TestCase
         $question = Question::create([
             'user_id' => $studentA->id,
             'title' => 'Student A Question',
-            'body' => 'Test body',
+            'body' => 'Test question body',
             'status' => Question::STATUS_OPEN,
         ]);
 
@@ -70,7 +70,7 @@ class QuestionsTest extends TestCase
         $question = Question::create([
             'user_id' => $student->id,
             'title' => 'Student Question',
-            'body' => 'Test body',
+            'body' => 'Test question body',
             'status' => Question::STATUS_OPEN,
         ]);
 
@@ -106,11 +106,16 @@ class QuestionsTest extends TestCase
         $question = Question::create([
             'user_id' => $student->id,
             'title' => 'Student Question',
-            'body' => 'Test body',
+            'body' => 'Test question body',
             'status' => Question::STATUS_OPEN,
         ]);
 
         // Admin posts internal note
+        QuestionMessage::create([
+            'question_id' => $question->id, 'sender_id' => $student->id,
+            'sender_role' => QuestionMessage::SENDER_ROLE_STUDENT,
+            'message' => 'Test question body', 'is_internal' => false,
+        ]);
         QuestionMessage::create([
             'question_id' => $question->id,
             'sender_id' => $admin->id,
@@ -125,7 +130,7 @@ class QuestionsTest extends TestCase
         $response->assertInertia(fn ($page) => $page
             ->component('Questions/Show')
             ->has('messages', 1) // Only the initial student message, not the internal one
-            ->where('messages.0.message', 'Test body')
+            ->where('messages.0.message', 'Test question body')
         );
 
         // Admin should see internal message
@@ -145,7 +150,7 @@ class QuestionsTest extends TestCase
         $question = Question::create([
             'user_id' => $student->id,
             'title' => 'Student Question',
-            'body' => 'Test body',
+            'body' => 'Test question body',
             'status' => Question::STATUS_OPEN,
         ]);
 
@@ -177,7 +182,7 @@ class QuestionsTest extends TestCase
             Question::create([
                 'user_id' => $user->id,
                 'title' => "Question {$i}",
-                'body' => 'Test body',
+                'body' => 'Test question body',
                 'status' => Question::STATUS_OPEN,
                 'created_at' => Carbon::now()->subMinutes(10 * $i),
             ]);
@@ -186,7 +191,7 @@ class QuestionsTest extends TestCase
         // 6th question should be rejected
         $response = $this->actingAs($user)->post(route('questions.store'), [
             'title' => 'Question 6',
-            'body' => 'Test body',
+            'body' => 'Test question body',
         ]);
 
         $response->assertSessionHasErrors('title');
@@ -205,7 +210,7 @@ class QuestionsTest extends TestCase
         $question = Question::create([
             'user_id' => $student->id,
             'title' => 'Student Question',
-            'body' => 'Test body',
+            'body' => 'Test question body',
             'status' => Question::STATUS_OPEN,
         ]);
 
@@ -235,7 +240,7 @@ class QuestionsTest extends TestCase
         // Student creates question
         $this->actingAs($student)->post(route('questions.store'), [
             'title' => 'New Question',
-            'body' => 'Test body',
+            'body' => 'Test question body',
         ]);
 
         // All admins should be notified
@@ -259,7 +264,7 @@ class QuestionsTest extends TestCase
         $question = Question::create([
             'user_id' => $student->id,
             'title' => 'Student Question',
-            'body' => 'Test body',
+            'body' => 'Test question body',
             'status' => Question::STATUS_OPEN,
         ]);
 
@@ -290,7 +295,7 @@ class QuestionsTest extends TestCase
         $question = Question::create([
             'user_id' => $student->id,
             'title' => 'Student Question',
-            'body' => 'Test body',
+            'body' => 'Test question body',
             'status' => Question::STATUS_OPEN,
         ]);
 
@@ -319,7 +324,7 @@ class QuestionsTest extends TestCase
         $question = Question::create([
             'user_id' => $student->id,
             'title' => 'Student Question',
-            'body' => 'Test body',
+            'body' => 'Test question body',
             'status' => Question::STATUS_OPEN,
         ]);
 
@@ -340,7 +345,7 @@ class QuestionsTest extends TestCase
         $question = Question::create([
             'user_id' => $student->id,
             'title' => 'Student Question',
-            'body' => 'Test body',
+            'body' => 'Test question body',
             'status' => Question::STATUS_OPEN,
             'priority' => Question::PRIORITY_NORMAL,
         ]);
@@ -361,7 +366,7 @@ class QuestionsTest extends TestCase
         $question = Question::create([
             'user_id' => $student->id,
             'title' => 'Student Question',
-            'body' => 'Test body',
+            'body' => 'Test question body',
             'status' => Question::STATUS_ANSWERED,
         ]);
 

@@ -137,6 +137,11 @@
         </div>
 
         <!-- YouTube Video ID -->
+        <div>
+          <label for="verified-duration" class="block text-sm font-medium mb-2">Verified video duration (seconds)</label>
+          <input id="verified-duration" v-model.number="form.duration_seconds" type="number" min="1" max="86400" class="w-full rounded-lg border-neutral-300" />
+          <p v-if="form.errors.duration_seconds" role="alert" class="text-sm text-red-700">{{ form.errors.duration_seconds }}</p>
+        </div>
         <div v-if="form.video_provider === 'youtube'" class="bg-neutral-50 rounded-xl p-4 space-y-4">
           <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">YouTube Video ID</label>
@@ -665,6 +670,7 @@ const form = useForm({
   title_ur: props.lesson.title_ur || '',
   image: null,
   video_provider: props.lesson.video_provider || 'youtube',
+  duration_seconds: props.lesson.duration_seconds || null,
   youtube_video_id: props.lesson.youtube_video_id || '',
   external_video_url: props.lesson.external_video_url || '',
   video_file: null,

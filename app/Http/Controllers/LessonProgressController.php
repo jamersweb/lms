@@ -59,6 +59,9 @@ class LessonProgressController extends Controller
         }
 
         // Get configuration
+        abort_unless(app(\App\Services\ProgressionService::class)->canAccessLesson($user, $lesson)->allowed, 403);
+
+        // Get configuration
         $maxPlaybackRate = config('video_guard.max_playback_rate', 1.5);
         $minWatchRatio = config('video_guard.min_watch_ratio', 0.95);
         $minWatchSeconds = config('video_guard.min_watch_seconds', 30);
@@ -79,16 +82,8 @@ class LessonProgressController extends Controller
 
         // Check duration requirement
         if ($requireDuration && $duration <= 0) {
-            // Try fallback: use watched_seconds if user has watched something (at least 10 seconds)
-            $watchedSeconds = (int) ($progress->watched_seconds ?? 0);
-            if ($watchedSeconds >= 10) {
-                // Use watched seconds as a reasonable estimate if no duration is set
-                // Add a small buffer (10%) to account for potential tracking inaccuracies
-                $duration = (int) ceil($watchedSeconds * 1.1);
-            } else {
-                $errors[] = 'missing_duration';
-                $errorMessages[] = 'Duration not configured. Please contact support.';
-            }
+            $errors[] = 'missing_duration';
+            $errorMessages[] = 'Duration not configured. Please contact support.';
         }
 
         // Compute required watch time
@@ -96,7 +91,7 @@ class LessonProgressController extends Controller
         if ($duration > 0) {
             $requiredWatched = max(
                 (int) ceil($duration * $minWatchRatio),
-                $minWatchSeconds
+                min($minWatchSeconds, $duration)
             );
         }
 
@@ -135,7 +130,7 @@ class LessonProgressController extends Controller
         }
 
         // Also check seek_attempts count
-        if (($progress->seek_attempts ?? 0) > 0 || $hasSeekViolations) {
+        if (($progress->seek_attempts ?? 0) > 0 || $progress->seek_detected || $hasSeekViolations) {
             $errors[] = 'seek_detected';
             $errorMessages[] = 'Skipping ahead is not allowed. Please watch the lesson sequentially.';
         }
@@ -166,6 +161,9 @@ class LessonProgressController extends Controller
 
         // All validation passed - wrap in transaction for data integrity
         DB::transaction(function () use ($progress, $user, $lesson, $course, $watchedSeconds, $duration, $maxRate, $violations, $hasSeekViolations, $request) {
+            \App\Models\User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+            $progress = LessonProgress::whereKey($progress->id)->lockForUpdate()->firstOrFail();
+            if ($progress->completed_at) { return; }
             // Mark as completed
             $progress->is_completed = true;
             $progress->completed_at = now();
@@ -243,16 +241,7 @@ class LessonProgressController extends Controller
                 ->count();
 
             if ($totalLessons === $completedLessons) {
-                PointsService::award($user, 'course_completed', 50);
-
-                // Award course completion certificate
-                $certificateService = new CertificateService();
-                $certificateService->awardCertificate($user, 'course_completion', $course);
-
-                // WhatsApp triggers: certificate delivery + survey link
-                $triggerService = app(\App\Services\WhatsApp\TriggerService::class);
-                $triggerService->fireAsync('certificate_delivery', $user);
-                $triggerService->fireAsync('survey_link', $user);
+                app(CertificateService::class)->awardCompletedCourse($user, $course);
             }
 
             // Recompute journey statuses after completion
@@ -287,7 +276,7 @@ class LessonProgressController extends Controller
             ->whereNotNull('completed_at')
             ->count();
 
-        if ($totalLessons === $completedLessons) {
+        if ($totalLessons === $completedLessons && $course->certificates()->where('user_id', $user->id)->exists()) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'ok' => true,

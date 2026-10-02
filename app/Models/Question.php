@@ -59,7 +59,12 @@ class Question extends Model
 
     public function context()
     {
-        return $this->morphTo('context', 'context_type', 'context_id');
+        $model = match ($this->context_type) {
+            'module', Module::class => Module::class,
+            'lesson', Lesson::class => Lesson::class,
+            default => Course::class,
+        };
+        return $this->belongsTo($model, 'context_id');
     }
 
     public function scopeOpen($query)

@@ -23,7 +23,7 @@ class EligibilityServiceTest extends TestCase
         $this->service = new EligibilityService();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function no_rules_returns_allowed(): void
     {
         $user = User::factory()->create();
@@ -35,7 +35,7 @@ class EligibilityServiceTest extends TestCase
         $this->assertEmpty($result->reasons);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function course_gender_rule_male_only_allows_male_user(): void
     {
         $maleUser = User::factory()->create(['gender' => 'male']);
@@ -52,7 +52,7 @@ class EligibilityServiceTest extends TestCase
         $this->assertSame('male', $femaleResult->requiredGender);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function course_gender_rule_female_only_allows_female_user(): void
     {
         $maleUser = User::factory()->create(['gender' => 'male']);
@@ -68,7 +68,7 @@ class EligibilityServiceTest extends TestCase
         $this->assertContains('gender_mismatch', $maleResult->reasons);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function bayah_required_at_module_level_denies_user_without_bayah(): void
     {
         $userWithoutBayah = User::factory()->create(['has_bayah' => false]);
@@ -85,7 +85,7 @@ class EligibilityServiceTest extends TestCase
         $this->assertTrue($resultWithBayah->allowed);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function lesson_min_level_expert_denies_beginner_user(): void
     {
         $beginnerUser = User::factory()->create(['level' => 'beginner']);
@@ -108,7 +108,7 @@ class EligibilityServiceTest extends TestCase
         $this->assertTrue($expertResult->allowed);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function inheritance_additive_course_requires_bayah_lesson_has_no_rule_bayah_still_required(): void
     {
         $userWithoutBayah = User::factory()->create(['has_bayah' => false]);
@@ -129,7 +129,7 @@ class EligibilityServiceTest extends TestCase
         $this->assertTrue($resultWithBayah->allowed);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function conflicting_gender_rules_denies_access(): void
     {
         $user = User::factory()->create(['gender' => 'male']);
@@ -148,7 +148,7 @@ class EligibilityServiceTest extends TestCase
         $this->assertContains('conflicting_gender_rules', $result->reasons);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function multiple_reasons_includes_both_requires_bayah_and_level_too_low(): void
     {
         $user = User::factory()->create([
@@ -175,7 +175,7 @@ class EligibilityServiceTest extends TestCase
         $this->assertTrue($result->requiresBayah);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function level_inheritance_takes_highest_min_level(): void
     {
         $intermediateUser = User::factory()->create(['level' => 'intermediate']);
@@ -197,7 +197,7 @@ class EligibilityServiceTest extends TestCase
         $this->assertSame('expert', $result->requiredLevel);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function user_without_gender_denied_when_gender_rule_exists(): void
     {
         $userWithoutGender = User::factory()->create(['gender' => null]);
@@ -210,10 +210,10 @@ class EligibilityServiceTest extends TestCase
         $this->assertContains('gender_mismatch', $result->reasons);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function user_without_level_treated_as_beginner(): void
     {
-        $userWithoutLevel = User::factory()->create(['level' => null]);
+        $userWithoutLevel = User::factory()->make(['level' => null]);
         $course = Course::factory()->create();
         ContentRule::factory()->for($course, 'ruleable')->withMinLevel('beginner')->create();
 
@@ -223,10 +223,10 @@ class EligibilityServiceTest extends TestCase
         $this->assertTrue($result->allowed);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function user_without_level_denied_when_intermediate_required(): void
     {
-        $userWithoutLevel = User::factory()->create(['level' => null]);
+        $userWithoutLevel = User::factory()->make(['level' => null]);
         $course = Course::factory()->create();
         ContentRule::factory()->for($course, 'ruleable')->withMinLevel('intermediate')->create();
 
@@ -236,7 +236,7 @@ class EligibilityServiceTest extends TestCase
         $this->assertContains('level_too_low', $result->reasons);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function can_access_module_evaluates_course_and_module_rules(): void
     {
         $user = User::factory()->create([
@@ -256,7 +256,7 @@ class EligibilityServiceTest extends TestCase
         $this->assertTrue($result->allowed);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function can_access_course_only_evaluates_course_rules(): void
     {
         $user = User::factory()->create(['has_bayah' => false]);
@@ -269,7 +269,7 @@ class EligibilityServiceTest extends TestCase
         $this->assertContains('requires_bayah', $result->reasons);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function conflicting_gender_rules_course_male_module_female_lesson_none_denies(): void
     {
         $user = User::factory()->create(['gender' => 'male']);
@@ -289,7 +289,7 @@ class EligibilityServiceTest extends TestCase
         $this->assertContains('conflicting_gender_rules', $result->reasons);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function max_min_level_selection_course_intermediate_lesson_expert_requires_expert(): void
     {
         $intermediateUser = User::factory()->create(['level' => 'intermediate']);
@@ -312,7 +312,7 @@ class EligibilityServiceTest extends TestCase
         $this->assertTrue($expertResult->allowed);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function additive_bayah_module_true_overrides_course_false_still_requires(): void
     {
         $userWithoutBayah = User::factory()->create(['has_bayah' => false]);
@@ -335,7 +335,7 @@ class EligibilityServiceTest extends TestCase
         $this->assertTrue($resultWithBayah->allowed);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function eligibility_result_contains_all_required_fields(): void
     {
         $user = User::factory()->create([
@@ -363,7 +363,7 @@ class EligibilityServiceTest extends TestCase
         $this->assertTrue($result->requiresBayah);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function allowed_result_has_empty_reasons_and_null_requirements(): void
     {
         $user = User::factory()->create([

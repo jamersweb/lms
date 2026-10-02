@@ -49,8 +49,8 @@ class PointsIntegrationTest extends TestCase
         \App\Models\LessonProgress::create([
             'user_id' => $user->id,
             'lesson_id' => $lesson->id,
-            'time_watched_seconds' => 10,
-            'max_playback_rate_seen' => 1.0,
+            'watched_seconds' => 10,
+            'max_playback_rate' => 1.0,
             'seek_detected' => false,
         ]);
 

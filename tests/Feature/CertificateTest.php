@@ -38,12 +38,14 @@ class CertificateTest extends TestCase
             'lesson_id' => $lesson1->id,
             'is_completed' => true,
             'completed_at' => now(),
-            'time_watched_seconds' => 100,
-            'max_playback_rate_seen' => 1.0,
+            'watched_seconds' => 100,
+            'max_playback_rate' => 1.0,
             'seek_detected' => false,
         ]);
 
         // Complete second lesson (course completion)
+        $lesson2->update(['duration_seconds' => 100]);
+        LessonProgress::factory()->create(['user_id' => $user->id, 'lesson_id' => $lesson2->id, 'watched_seconds' => 100]);
         $this->actingAs($user)->post(route('lessons.complete', $lesson2));
 
         $this->assertDatabaseHas('certificates', [

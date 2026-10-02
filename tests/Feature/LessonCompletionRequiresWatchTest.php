@@ -41,8 +41,8 @@ class LessonCompletionRequiresWatchTest extends TestCase
         LessonProgress::create([
             'user_id' => $user->id,
             'lesson_id' => $lesson->id,
-            'time_watched_seconds' => 80, // below 90%
-            'max_playback_rate_seen' => 1.0,
+            'watched_seconds' => 80, // below 90%
+            'max_playback_rate' => 1.0,
             'seek_detected' => false,
         ]);
 
@@ -59,8 +59,8 @@ class LessonCompletionRequiresWatchTest extends TestCase
         LessonProgress::create([
             'user_id' => $user->id,
             'lesson_id' => $lesson->id,
-            'time_watched_seconds' => 95, // >= 90%
-            'max_playback_rate_seen' => 1.5,
+            'watched_seconds' => 95, // >= 90%
+            'max_playback_rate' => 1.5,
             'seek_detected' => false,
         ]);
 

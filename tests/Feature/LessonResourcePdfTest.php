@@ -45,7 +45,7 @@ class LessonResourcePdfTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertHeader('Content-Type', 'application/pdf');
-        $this->assertStringContainsString('PDF', $response->getContent());
+        $this->assertStringStartsWith('%PDF', $response->streamedContent());
     }
 
     public function test_authorized_user_can_view_pdf_inline()
@@ -77,9 +77,7 @@ class LessonResourcePdfTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertHeader('Content-Type', 'application/pdf');
-        $response->assertHeader('Content-Disposition', function ($value) {
-            return str_contains($value, 'inline');
-        });
+        $this->assertStringContainsString('inline', $response->headers->get('Content-Disposition'));
         $this->assertStringContainsString('PDF', $response->getContent());
     }
 

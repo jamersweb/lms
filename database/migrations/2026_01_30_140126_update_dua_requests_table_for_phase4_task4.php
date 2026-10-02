@@ -48,6 +48,10 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('dua_requests', function (Blueprint $table) {
+            $table->text('request_text')->nullable()->after('is_anonymous');
+        });
+        DB::statement('UPDATE dua_requests SET request_text = content');
+        Schema::table('dua_requests', function (Blueprint $table) {
             $table->dropIndex(['status', 'created_at']);
             $table->dropIndex(['user_id', 'created_at']);
             $table->dropSoftDeletes();
@@ -55,8 +59,6 @@ return new class extends Migration
             $table->dropColumn(['hidden_by', 'hidden_at', 'status']);
 
             // Restore request_text column
-            $table->text('request_text')->after('is_anonymous');
-            DB::statement('UPDATE dua_requests SET request_text = content');
             $table->dropColumn('content');
         });
     }

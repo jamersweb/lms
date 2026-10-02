@@ -78,26 +78,27 @@ class AnalyticsStagnationTest extends TestCase
         ]);
 
         $this->actingAs($admin)->post(route('admin.broadcasts.store'), [
-            'subject' => 'Beginner brothers with bayah',
+            'title' => 'Beginner brothers with bayah',
             'body' => 'This is a targeted message.',
-            'gender' => 'male',
-            'has_bayah' => true,
-            'level' => 'beginner',
-        ])->assertRedirect(route('admin.broadcasts.index'));
+            'channels' => ['in_app'],
+            'audience_filters' => ['gender' => 'male', 'requires_bayah' => true, 'min_level' => 'beginner'],
+        ])->assertSessionHasNoErrors();
+        $broadcast = \App\Models\Broadcast::latest('id')->firstOrFail();
+        $this->actingAs($admin)->post(route('admin.broadcasts.send', $broadcast))->assertSessionHasNoErrors();
 
         // Only the matching user should receive the notification
         Notification::assertSentTo(
             [$maleBeginner],
-            \App\Notifications\BroadcastNotification::class
+            \App\Notifications\BroadcastInAppNotification::class
         );
 
         Notification::assertNotSentTo(
             [$femaleBeginner, $maleExpertNoBayah],
-            \App\Notifications\BroadcastNotification::class
+            \App\Notifications\BroadcastInAppNotification::class
         );
 
         $this->assertDatabaseHas('broadcasts', [
-            'subject' => 'Beginner brothers with bayah',
+            'title' => 'Beginner brothers with bayah',
         ]);
     }
 }

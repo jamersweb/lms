@@ -66,6 +66,7 @@ class LessonController extends Controller
             'transcript_file' => 'nullable|file|mimes:vtt,srt|max:512', // 512KB
             'release_at' => 'nullable|date',
             'release_day_offset' => 'nullable|integer|min:0|max:365',
+            'duration_seconds' => 'nullable|integer|min:1|max:86400',
         ];
 
         $validated = $request->validate($rules);
@@ -113,6 +114,14 @@ class LessonController extends Controller
                 'youtube_video_id' => $lesson->youtube_video_id,
                 'external_video_url' => $lesson->external_video_url,
                 'video_path' => $lesson->video_path,
+                'duration_seconds' => $lesson->duration_seconds,
+                'release_at' => $lesson->release_at?->toIso8601String(),
+                'release_day_offset' => $lesson->release_day_offset,
+                'quiz_questions' => $lesson->quizQuestions->map(fn ($question) => [
+                    'id' => $question->id, 'question_text' => $question->question_text,
+                    'options' => $question->options, 'correct_index' => $question->correct_index,
+                    'correct_indices' => $question->getCorrectIndices(),
+                ])->values(),
                 'sort_order' => $lesson->sort_order,
                 'is_free_preview' => $lesson->is_free_preview,
                 'transcript_segments_count' => $lesson->transcriptSegments()->count(),
@@ -172,6 +181,7 @@ class LessonController extends Controller
             'transcript_file' => 'nullable|file|mimes:vtt,srt|max:512', // 512KB
             'release_at' => 'nullable|date',
             'release_day_offset' => 'nullable|integer|min:0|max:365',
+            'duration_seconds' => 'nullable|integer|min:1|max:86400',
         ];
 
         $validated = $request->validate($rules);

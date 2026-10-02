@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Storage;
 
 class AdminQuestionsController extends Controller
 {
+    public function __construct(private ActivityLogger $activityLogger) {}
+
     public function index(Request $request)
     {
         if (!Auth::user()->is_admin) {
@@ -150,6 +152,7 @@ class AdminQuestionsController extends Controller
                 ] : null,
             ],
             'messages' => $messages,
+            'admins' => User::where('is_admin', true)->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -230,7 +233,7 @@ class AdminQuestionsController extends Controller
         $validated = $request->validate([
             'status' => ['sometimes', 'string', 'in:open,answered,resolved'],
             'priority' => ['sometimes', 'string', 'in:low,normal,high'],
-            'assigned_to' => ['sometimes', 'nullable', 'integer', 'exists:users,id'],
+            'assigned_to' => ['sometimes', 'nullable', 'integer', \Illuminate\Validation\Rule::exists('users', 'id')->where('is_admin', true)],
         ]);
 
         $updates = [];
@@ -248,7 +251,7 @@ class AdminQuestionsController extends Controller
             $updates['priority'] = $validated['priority'];
         }
 
-        if (isset($validated['assigned_to'])) {
+        if (array_key_exists('assigned_to', $validated)) {
             $updates['assigned_to'] = $validated['assigned_to'];
         }
 

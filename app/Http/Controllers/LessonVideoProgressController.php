@@ -107,7 +107,8 @@ class LessonVideoProgressController extends Controller
             
             // Update watched_seconds based on last_position_seconds
             // This represents how much of the video the user has watched
-            $lessonProgress->watched_seconds = $lastPosition;
+            // Resume position is client-reported; only heartbeats may credit watch time.
+            $lessonProgress->last_position_seconds = $lastPosition;
             $lessonProgress->save();
         }
 

@@ -76,6 +76,9 @@ class LessonQuizController extends Controller
         );
 
         $percentage = $total > 0 ? round(($correct / $total) * 100) : 0;
+        if ($passed) {
+            app(\App\Services\CertificateService::class)->awardCompletedCourse($user, $lesson->module->course);
+        }
         $triggerService = app(\App\Services\WhatsApp\TriggerService::class);
         if ($passed) {
             $triggerService->fireAsync('quiz_passed', $user, ['score' => (string) $percentage]);

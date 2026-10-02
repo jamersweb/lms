@@ -53,15 +53,17 @@ class WatchSessionTest extends TestCase
         $start = $this->actingAs($user)->postJson("/lessons/{$lesson->id}/watch/start");
         $sessionId = $start->json('session_id');
 
+        $this->travel(10)->seconds();
+
         $this->actingAs($user)->postJson("/lessons/{$lesson->id}/watch/heartbeat", [
             'session_id' => $sessionId,
-            'current_time' => 10,
+            'position_seconds' => 10,
             'playback_rate' => 1.0,
         ])->assertOk();
 
         $this->assertDatabaseHas('lesson_watch_sessions', [
             'id' => $sessionId,
-            'watch_time_seconds' => 10,
+            'watched_seconds' => 10,
         ]);
 
         $this->assertDatabaseHas('lesson_progress', [
@@ -79,20 +81,20 @@ class WatchSessionTest extends TestCase
 
         $this->actingAs($user)->postJson("/lessons/{$lesson->id}/watch/heartbeat", [
             'session_id' => $sessionId,
-            'current_time' => 5,
+            'position_seconds' => 5,
             'playback_rate' => 1.0,
         ])->assertOk();
 
         // big jump forward (> heartbeat interval + 4s)
         $this->actingAs($user)->postJson("/lessons/{$lesson->id}/watch/heartbeat", [
             'session_id' => $sessionId,
-            'current_time' => 25,
+            'position_seconds' => 25,
             'playback_rate' => 1.0,
         ])->assertOk();
 
         $this->assertDatabaseHas('lesson_watch_sessions', [
             'id' => $sessionId,
-            'seek_events_count' => 1,
+            'seek_attempts' => 1,
         ]);
 
         $this->assertDatabaseHas('lesson_progress', [
@@ -111,13 +113,13 @@ class WatchSessionTest extends TestCase
 
         $this->actingAs($user)->postJson("/lessons/{$lesson->id}/watch/heartbeat", [
             'session_id' => $sessionId,
-            'current_time' => 10,
+            'position_seconds' => 10,
             'playback_rate' => 1.0,
         ])->assertOk();
 
         $this->actingAs($user)->postJson("/lessons/{$lesson->id}/watch/heartbeat", [
             'session_id' => $sessionId,
-            'current_time' => 20,
+            'position_seconds' => 20,
             'playback_rate' => 2.0,
         ])->assertOk();
 
@@ -129,7 +131,7 @@ class WatchSessionTest extends TestCase
         $this->assertDatabaseHas('lesson_progress', [
             'user_id' => $user->id,
             'lesson_id' => $lesson->id,
-            'max_playback_rate_seen' => 2.0,
+            'max_playback_rate' => 2.0,
         ]);
     }
 }

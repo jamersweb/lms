@@ -13,7 +13,9 @@ return new class extends Migration
     public function up(): void
     {
         // Add 'hide' and 'unhide' to the action enum
-        DB::statement("ALTER TABLE moderation_actions MODIFY COLUMN action ENUM('lock', 'unlock', 'delete', 'restore', 'warn', 'ban', 'hide', 'unhide')");
+        Schema::table('moderation_actions', function (Blueprint $table) {
+            $table->enum('action', ['lock', 'unlock', 'delete', 'restore', 'warn', 'ban', 'hide', 'unhide'])->change();
+        });
     }
 
     /**
@@ -22,6 +24,8 @@ return new class extends Migration
     public function down(): void
     {
         // Remove 'hide' and 'unhide' from the action enum
-        DB::statement("ALTER TABLE moderation_actions MODIFY COLUMN action ENUM('lock', 'unlock', 'delete', 'restore', 'warn', 'ban')");
+        Schema::table('moderation_actions', function (Blueprint $table) {
+            $table->enum('action', ['lock', 'unlock', 'delete', 'restore', 'warn', 'ban'])->change();
+        });
     }
 };

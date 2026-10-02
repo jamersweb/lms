@@ -30,7 +30,7 @@ class Phase4NotificationsTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function drip_reminder_job_sends_notification_when_next_lesson_released()
     {
         Notification::fake();
@@ -91,7 +91,7 @@ class Phase4NotificationsTest extends TestCase
         Notification::assertSentTo($user, NextLessonAvailableNotification::class);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function drip_reminder_respects_opt_out()
     {
         Notification::fake();
@@ -150,7 +150,7 @@ class Phase4NotificationsTest extends TestCase
         Notification::assertNothingSent();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function task_reminder_job_sends_notification_when_checkin_missing()
     {
         Notification::fake();
@@ -190,7 +190,7 @@ class Phase4NotificationsTest extends TestCase
         Notification::assertSentTo($user, TaskCheckInReminderNotification::class);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function stagnation_reminder_job_sends_notification_when_inactive()
     {
         Notification::fake();
@@ -223,7 +223,7 @@ class Phase4NotificationsTest extends TestCase
         Notification::assertSentTo($user, StagnationReminderNotification::class);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function notification_logs_prevent_duplicate_notifications()
     {
         Notification::fake();
@@ -309,7 +309,7 @@ class Phase4NotificationsTest extends TestCase
             ->count());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function whatsapp_channel_calls_provider_with_correct_data()
     {
         $user = User::factory()->create([
@@ -332,7 +332,7 @@ class Phase4NotificationsTest extends TestCase
         $user->notify($notification);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function app_settings_service_stores_and_retrieves_settings()
     {
         $settings = app(AppSettings::class);
@@ -344,7 +344,7 @@ class Phase4NotificationsTest extends TestCase
         $this->assertEquals(['a' => 1, 'b' => 2], $settings->get('test.array'));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_can_update_notification_settings()
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -380,7 +380,7 @@ class Phase4NotificationsTest extends TestCase
         $this->assertEquals(9, $settings['drip']['send_hour']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function non_admin_cannot_access_notification_settings()
     {
         $user = User::factory()->create(['is_admin' => false]);

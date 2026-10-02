@@ -10,7 +10,7 @@ class UserSegmentationTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function student_can_update_own_gender_and_whatsapp_fields(): void
     {
         $user = User::factory()->create([
@@ -37,7 +37,7 @@ class UserSegmentationTest extends TestCase
         $this->assertTrue($user->whatsapp_opt_in);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function student_cannot_update_has_bayah_field(): void
     {
         $user = User::factory()->create(['has_bayah' => false]);
@@ -57,7 +57,7 @@ class UserSegmentationTest extends TestCase
         $this->assertFalse($user->has_bayah);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function student_cannot_update_level_field(): void
     {
         $user = User::factory()->create(['level' => 'beginner']);
@@ -77,7 +77,7 @@ class UserSegmentationTest extends TestCase
         $this->assertSame('beginner', $user->level);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function whatsapp_opt_in_requires_whatsapp_number(): void
     {
         $user = User::factory()->create();
@@ -93,7 +93,7 @@ class UserSegmentationTest extends TestCase
         $response->assertSessionHasErrors('whatsapp_opt_in');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_can_update_bayah_and_level_for_user(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -116,7 +116,7 @@ class UserSegmentationTest extends TestCase
         $this->assertSame('intermediate', $user->level);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_can_update_gender_for_user(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -135,7 +135,7 @@ class UserSegmentationTest extends TestCase
         $this->assertSame('female', $user->gender);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function non_admin_cannot_access_admin_segmentation_route(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
@@ -150,7 +150,7 @@ class UserSegmentationTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function last_active_at_updates_on_authenticated_request(): void
     {
         $user = User::factory()->create(['last_active_at' => null]);
@@ -166,10 +166,11 @@ class UserSegmentationTest extends TestCase
         $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $user->last_active_at);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function last_active_at_updates_on_every_authenticated_request(): void
     {
         $user = User::factory()->create();
+        $user->forceFill(['last_active_at' => now()->subMinute()])->save();
         $initialActiveAt = $user->last_active_at;
 
         // Wait a moment to ensure timestamp difference
@@ -186,7 +187,7 @@ class UserSegmentationTest extends TestCase
         $this->assertTrue($user->last_active_at->gt($initialActiveAt));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_segmentation_requires_valid_level(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -201,7 +202,7 @@ class UserSegmentationTest extends TestCase
         $response->assertSessionHasErrors('level');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_segmentation_requires_has_bayah_field(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -216,7 +217,7 @@ class UserSegmentationTest extends TestCase
         $response->assertSessionHasErrors('has_bayah');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_segmentation_requires_level_field(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);

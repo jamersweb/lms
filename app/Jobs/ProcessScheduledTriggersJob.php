@@ -6,6 +6,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Runs all scheduled WhatsApp triggers based on current time.
@@ -26,42 +27,56 @@ class ProcessScheduledTriggersJob implements ShouldQueue
 
         // Habit entry reminder – daily 8 PM (20:00)
         if ($hour === 20) {
-            Artisan::call('lms:trigger-habit-entry-reminder');
+            $this->runOnce('lms:trigger-habit-entry-reminder');
             $results['habit_entry_reminder'] = trim(Artisan::output());
         }
 
         // Investment reminder – 1st of month, 9 AM
         if ($dayOfMonth === 1 && $hour === 9) {
-            Artisan::call('lms:trigger-investment-reminder');
+            $this->runOnce('lms:trigger-investment-reminder');
             $results['investment_reminder'] = trim(Artisan::output());
         }
 
         // Friday Jumuah – Fridays 8 AM
         if ($dayOfWeek === 5 && $hour === 8) {
-            Artisan::call('lms:trigger-friday-jummah');
+            $this->runOnce('lms:trigger-friday-jummah');
             $results['friday_jummah'] = trim(Artisan::output());
         }
 
         // Maintenance habit – Mondays 9 AM
         if ($dayOfWeek === 1 && $hour === 9) {
-            Artisan::call('lms:trigger-maintenance-habit');
+            $this->runOnce('lms:trigger-maintenance-habit');
             $results['maintenance_habit'] = trim(Artisan::output());
         }
 
         // Intent renewal – Mondays 10 AM
         if ($dayOfWeek === 1 && $hour === 10) {
-            Artisan::call('lms:trigger-intent-renewal');
+            $this->runOnce('lms:trigger-intent-renewal');
             $results['intent_renewal'] = trim(Artisan::output());
         }
 
         // We miss you – daily 9 AM
         if ($hour === 9) {
-            Artisan::call('lms:trigger-we-miss-you', ['--days' => 7]);
+            $this->runOnce('lms:trigger-we-miss-you', ['--days' => 7]);
             $results['we_miss_you'] = trim(Artisan::output());
         }
 
         if (! empty($results)) {
             Log::info('ProcessScheduledTriggersJob completed', array_keys($results));
+        }
+    }
+
+    private function runOnce(string $command, array $arguments = []): void
+    {
+        $key = 'scheduled-trigger:'.$command.':'.now()->format('Y-m-d-H');
+        if (!Cache::add($key, true, now()->addHours(25))) { return; }
+        try {
+            if (Artisan::call($command, $arguments) !== 0) {
+                throw new \RuntimeException('Scheduled command failed: '.$command);
+            }
+        } catch (\Throwable $e) {
+            Cache::forget($key);
+            throw $e;
         }
     }
 }

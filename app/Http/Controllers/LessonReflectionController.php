@@ -67,6 +67,8 @@ class LessonReflectionController extends Controller
             ]
         );
 
+        app(\App\Services\CertificateService::class)->awardCompletedCourse($user, $course);
+
         // Log reflection submission
         $this->activityLogger->log(
             \App\Models\ActivityEvent::TYPE_LESSON_REFLECTION_SUBMITTED,

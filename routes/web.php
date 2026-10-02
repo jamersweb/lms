@@ -323,9 +323,9 @@ Route::middleware(['auth', \App\Http\Middleware\IsAdmin::class])->prefix('admin'
         ->name('dua-wall.restore');
 });
 
-// Scheduler (no cron) – external service hits this URL every hour
-// GET /scheduler/run?token=your-secret
-Route::get('/scheduler/run', [\App\Http\Controllers\SchedulerController::class, 'run'])
+// External schedulers authenticate with a bearer token, never a URL parameter.
+Route::post('/scheduler/run', [\App\Http\Controllers\SchedulerController::class, 'run'])
+    ->middleware('throttle:6,1')
     ->name('scheduler.run');
 
 // Auth routes (provided by Breeze)

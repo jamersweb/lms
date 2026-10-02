@@ -8,7 +8,7 @@ use Tests\TestCase;
 
 class LockMessageTest extends TestCase
 {
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function conflicting_gender_rules_returns_misconfigured_message(): void
     {
         $result = EligibilityResult::deny(
@@ -20,7 +20,7 @@ class LockMessageTest extends TestCase
         $this->assertSame('Misconfigured access rule. Please contact support.', $message);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function multiple_reasons_ordered_correctly(): void
     {
         $result = EligibilityResult::deny(
@@ -46,7 +46,7 @@ class LockMessageTest extends TestCase
         $this->assertLessThan($genderPos, $levelPos);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function requires_bayah_only_returns_bayah_message(): void
     {
         $result = EligibilityResult::deny(
@@ -59,7 +59,7 @@ class LockMessageTest extends TestCase
         $this->assertSame("Bay'ah required", $message);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function level_too_low_returns_level_message(): void
     {
         $result = EligibilityResult::deny(
@@ -72,7 +72,7 @@ class LockMessageTest extends TestCase
         $this->assertSame('Requires Expert level', $message);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function gender_mismatch_male_returns_brothers_only(): void
     {
         $result = EligibilityResult::deny(
@@ -85,7 +85,7 @@ class LockMessageTest extends TestCase
         $this->assertSame('Available for brothers only', $message);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function gender_mismatch_female_returns_sisters_only(): void
     {
         $result = EligibilityResult::deny(
@@ -98,7 +98,7 @@ class LockMessageTest extends TestCase
         $this->assertSame('Available for sisters only', $message);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function allowed_result_returns_empty_string(): void
     {
         $result = EligibilityResult::allow();
@@ -108,7 +108,7 @@ class LockMessageTest extends TestCase
         $this->assertSame('', $message);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function empty_reasons_returns_fallback_message(): void
     {
         $result = new EligibilityResult(
@@ -121,7 +121,7 @@ class LockMessageTest extends TestCase
         $this->assertSame('Access restricted', $message);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function bayah_and_level_combined_message(): void
     {
         $result = EligibilityResult::deny(

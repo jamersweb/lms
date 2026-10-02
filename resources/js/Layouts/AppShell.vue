@@ -463,6 +463,8 @@ const isLessonPage = computed(() => {
 const headerTitle = computed(() => {
     const url = page.url;
     if (url.includes('/profile')) return 'Profile';
+    if (url.includes('/questions')) return 'Questions';
+    if (url.includes('/analytics')) return 'Analytics';
     if (url.includes('courses')) return t('nav.my_courses');
     if (url.includes('habits')) return t('nav.habit_tracker');
     if (url.includes('leaderboard')) return t('nav.community');
@@ -487,11 +489,14 @@ const navigation = [
   { name: t('nav.habit_tracker'), href: '/habits', route: 'habits.index', icon: CheckSquare },
   { name: t('nav.community'), href: '/leaderboard', route: 'leaderboard.index', icon: MessageCircle },
   { name: t('nav.certificates'), href: '/certificates', route: 'certificates.index', icon: Award },
+  { name: 'Questions', href: '/questions', route: 'questions.index', icon: MessageCircle },
 ];
 
 // Admin navigation (permission slug for RBAC filtering)
 const adminNavigation = [
   { name: t('nav.admin_dashboard'), href: '/admin', activePrefix: '/admin', icon: LayoutDashboard, permission: 'admin.dashboard.index' },
+  { name: 'Questions', href: '/admin/questions', activePrefix: '/admin/questions', icon: MessageCircle, permission: 'admin.questions.index' },
+  { name: 'Analytics', href: '/admin/analytics', activePrefix: '/admin/analytics', icon: LayoutDashboard, permission: 'admin.analytics.index' },
   { name: 'WhatsApp Settings', href: '/admin/whatsapp-settings', activePrefix: '/admin/whatsapp-settings', icon: MessageCircle, permission: 'admin.whatsapp-settings.index', allowedRoles: ['admin', 'mentor'] },
   { name: 'Trigger Queue', href: '/admin/triggers', activePrefix: '/admin/triggers', icon: Bell, permission: 'admin.triggers.index', allowedRoles: ['admin', 'mentor'] },
   { name: t('nav.admin_users'), href: '/admin/users', activePrefix: '/admin/users', icon: Users, permission: 'admin.users.index' },

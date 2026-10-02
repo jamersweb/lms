@@ -64,27 +64,28 @@ class VideoWatchSessionTest extends TestCase
         $sessionId = $start->json('session_id');
 
         // First heartbeat at 5s
+        $this->travel(5)->seconds();
         $this->actingAs($enrolled)->postJson(route('lessons.watch.heartbeat', $lesson), [
             'session_id' => $sessionId,
-            'current_time' => 5,
+            'position_seconds' => 5,
             'playback_rate' => 1.0,
         ])->assertOk();
 
         $this->assertDatabaseHas('lesson_watch_sessions', [
             'id' => $sessionId,
-            'watch_time_seconds' => 5,
+            'watched_seconds' => 5,
         ]);
 
         // Large forward jump to trigger seek detection
         $this->actingAs($enrolled)->postJson(route('lessons.watch.heartbeat', $lesson), [
             'session_id' => $sessionId,
-            'current_time' => 25,
+            'position_seconds' => 25,
             'playback_rate' => 1.0,
         ])->assertOk();
 
         $this->assertDatabaseHas('lesson_watch_sessions', [
             'id' => $sessionId,
-            'seek_events_count' => 1,
+            'seek_attempts' => 1,
         ]);
     }
 }

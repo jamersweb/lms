@@ -150,6 +150,8 @@ class LessonReflectionController extends Controller
 
         $reflection->save();
 
+        app(\App\Services\CertificateService::class)->awardCompletedCourse($reflection->user, $reflection->lesson->module->course);
+
         // Ensure takeaway was not modified (data integrity check)
         if ($reflection->takeaway !== $originalTakeaway) {
             // This should never happen, but log if it does

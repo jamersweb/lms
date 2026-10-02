@@ -38,6 +38,7 @@ class WatchTrackingService
             'user_id' => $user->id,
             'lesson_id' => $lesson->id,
             'started_at' => now(),
+            'last_position_seconds' => LessonProgress::where('user_id', $user->id)->where('lesson_id', $lesson->id)->value('last_position_seconds') ?? 0,
             'watched_seconds' => 0,
             'max_playback_rate' => 1.0,
             'seek_attempts' => 0,
@@ -59,6 +60,14 @@ class WatchTrackingService
      * Returns array with updated stats.
      */
     public function recordHeartbeat(User $user, Lesson $lesson, array $payload): array
+    {
+        return DB::transaction(function () use ($user, $lesson, $payload) {
+            User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+            return $this->recordLockedHeartbeat($user, $lesson, $payload);
+        });
+    }
+
+    private function recordLockedHeartbeat(User $user, Lesson $lesson, array $payload): array
     {
         $sessionId = $payload['session_id'];
         $positionSeconds = (float) $payload['position_seconds'];
@@ -90,7 +99,15 @@ class WatchTrackingService
         // Detect seek attempts using config threshold
         $maxForwardJump = config('video_guard.max_forward_jump_seconds', 5);
         $positionJump = $positionSeconds - $lastPosition;
-        $isSeekDetected = $isSeeking || ($positionJump > $maxForwardJump);
+        $aggregate = LessonProgress::where('user_id', $user->id)->where('lesson_id', $lesson->id)->first();
+        $lastSeen = $session->updated_at ?? $session->started_at;
+        if ($aggregate?->last_heartbeat_at && $aggregate->last_heartbeat_at->gt($lastSeen)) {
+            $lastSeen = $aggregate->last_heartbeat_at;
+        }
+        $elapsed = max(0, $lastSeen->diffInSeconds(now(), false));
+        $allowedAdvance = min($elapsed, self::HEARTBEAT_INTERVAL * 2) * $playbackRate;
+        $isSeekDetected = ($isSeeking && $positionJump > 0) || ($positionJump > $allowedAdvance + $maxForwardJump);
+        $delta = ($isSeekDetected || $visibility === 'hidden') ? 0 : min($delta, $allowedAdvance, max(0, $positionJump));
 
         if ($isSeekDetected) {
             $session->seek_attempts = ($session->seek_attempts ?? 0) + 1;
@@ -116,14 +133,6 @@ class WatchTrackingService
             ];
             $session->violations = $violations;
 
-            // Also record in progress violations
-            $progressViolations = $progress->violations ?? [];
-            $progressViolations[] = [
-                'type' => 'rate_exceeded',
-                'at' => now()->toIso8601String(),
-                'meta' => ['rate' => $playbackRate, 'max_allowed' => $maxPlaybackRate],
-            ];
-            $progress->violations = $progressViolations;
         }
 
         // Track visibility violations
@@ -157,13 +166,23 @@ class WatchTrackingService
             ]
         );
 
-        $progress->watched_seconds = (int) ($progress->watched_seconds ?? 0) + (int) round($delta);
+        $duration = (int) ($lesson->duration_seconds ?? $lesson->video_duration_seconds ?? 0);
+        $credited = (int) ($progress->watched_seconds ?? 0) + (int) floor($delta);
+        $progress->watched_seconds = $duration > 0 ? min($duration, $credited) : $credited;
         $progress->last_position_seconds = max($progress->last_position_seconds ?? 0, (int) floor($positionSeconds));
         $progress->last_heartbeat_at = now();
         $progress->max_playback_rate = max((float) ($progress->max_playback_rate ?? 1.0), $playbackRate);
 
+        if ($playbackRate > $maxPlaybackRate) {
+            $progress->violations = array_merge($progress->violations ?? [], [[
+                'type' => 'rate_exceeded', 'at' => now()->toIso8601String(),
+                'meta' => ['rate' => $playbackRate, 'max_allowed' => $maxPlaybackRate],
+            ]]);
+        }
+
         if ($isSeekDetected) {
             $progress->seek_attempts = ($progress->seek_attempts ?? 0) + 1;
+            $progress->seek_detected = true;
 
             // Merge violations (avoid duplicates)
             $progressViolations = $progress->violations ?? [];

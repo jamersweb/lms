@@ -25,7 +25,7 @@ class Phase4MicroNudgesTest extends TestCase
         parent::tearDown();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function hourly_campaign_triggers_only_at_correct_minute()
     {
         $campaign = MicroNudgeCampaign::create([
@@ -87,7 +87,7 @@ class Phase4MicroNudgesTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function daily_campaign_triggers_at_correct_time()
     {
         $campaign = MicroNudgeCampaign::create([
@@ -149,7 +149,7 @@ class Phase4MicroNudgesTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function segmentation_filters_users_by_level()
     {
         $campaign = MicroNudgeCampaign::create([
@@ -205,7 +205,7 @@ class Phase4MicroNudgesTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function segmentation_filters_users_by_bayah()
     {
         $campaign = MicroNudgeCampaign::create([
@@ -261,7 +261,7 @@ class Phase4MicroNudgesTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function segmentation_filters_users_by_gender()
     {
         $campaign = MicroNudgeCampaign::create([
@@ -317,7 +317,7 @@ class Phase4MicroNudgesTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function dedupe_key_prevents_duplicate_deliveries()
     {
         $campaign = MicroNudgeCampaign::create([
@@ -361,7 +361,7 @@ class Phase4MicroNudgesTest extends TestCase
             ->count());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function provider_calls_sendAudio_when_supportsAudio_is_true()
     {
         $campaign = MicroNudgeCampaign::create([
@@ -407,7 +407,7 @@ class Phase4MicroNudgesTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function provider_calls_sendMessage_when_supportsAudio_is_false()
     {
         $campaign = MicroNudgeCampaign::create([
@@ -454,7 +454,7 @@ class Phase4MicroNudgesTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function failed_delivery_is_logged_with_error()
     {
         $campaign = MicroNudgeCampaign::create([
@@ -498,7 +498,7 @@ class Phase4MicroNudgesTest extends TestCase
         $this->assertStringContainsString('Provider error', $delivery->error);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function sequence_rotation_updates_last_sent_clip_id()
     {
         $campaign = MicroNudgeCampaign::create([

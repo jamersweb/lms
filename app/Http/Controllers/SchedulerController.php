@@ -6,6 +6,7 @@ use App\Jobs\ProcessScheduledTriggersJob;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * HTTP endpoint for scheduled triggers. No server cron needed.
@@ -15,7 +16,7 @@ class SchedulerController extends Controller
 {
     /**
      * Run scheduled triggers. Protected by token.
-     * GET /scheduler/run?token=your-secret-token
+     * POST /scheduler/run with Authorization: Bearer <token>.
      */
     public function run(Request $request): Response
     {
@@ -25,8 +26,13 @@ class SchedulerController extends Controller
             return response('Scheduler not configured', 503);
         }
 
-        if ($request->query('token') !== $token) {
+        if (!hash_equals((string) $token, (string) $request->bearerToken())) {
             return response('Unauthorized', 401);
+        }
+
+        $lock = Cache::lock('scheduled-triggers', 3600);
+        if (!$lock->get()) {
+            return response('Already running', 409);
         }
 
         try {
@@ -35,7 +41,9 @@ class SchedulerController extends Controller
             return response('OK', 200);
         } catch (\Throwable $e) {
             Log::error('SchedulerController failed', ['error' => $e->getMessage()]);
-            return response('Error: ' . $e->getMessage(), 500);
+            return response('Scheduler failed', 500);
+        } finally {
+            $lock->release();
         }
     }
 }

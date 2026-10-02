@@ -15,7 +15,7 @@ class ContentGatingIntegrationTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function locked_lesson_direct_access_denied(): void
     {
         $user = User::factory()->create([
@@ -39,12 +39,11 @@ class ContentGatingIntegrationTest extends TestCase
         $response = $this->actingAs($user)
             ->get("/courses/{$course->id}/lessons/{$lesson->id}");
 
-        $response->assertRedirect(route('courses.show', $course));
-        $response->assertSessionHas('error');
-        $this->assertStringContainsString('locked', session('error'));
+        $response->assertForbidden();
+        $response->assertInertia(fn ($page) => $page->component('Errors/ForbiddenContent'));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function course_index_returns_lock_metadata(): void
     {
         $user = User::factory()->create([
@@ -70,7 +69,7 @@ class ContentGatingIntegrationTest extends TestCase
         $this->assertTrue($foundCourse['requires_bayah']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function course_show_marks_lesson_locked(): void
     {
         $user = User::factory()->create([
@@ -104,7 +103,7 @@ class ContentGatingIntegrationTest extends TestCase
         $this->assertSame('expert', $foundLesson['required_level']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function config_hide_locked_courses_works(): void
     {
         config(['lms.show_locked_courses' => false]);
@@ -131,7 +130,7 @@ class ContentGatingIntegrationTest extends TestCase
         $this->assertContains($allowedCourse->id, $courseIds);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function config_show_locked_courses_shows_all_with_lock_badges(): void
     {
         config(['lms.show_locked_courses' => true]);
@@ -166,7 +165,7 @@ class ContentGatingIntegrationTest extends TestCase
         $this->assertFalse($foundAllowedCourse['is_locked']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function course_show_displays_module_lock_status(): void
     {
         $user = User::factory()->create([
@@ -193,7 +192,7 @@ class ContentGatingIntegrationTest extends TestCase
         $this->assertNotEmpty($foundModule['lock_message']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function lesson_with_gender_restriction_shows_correct_lock_message(): void
     {
         $maleUser = User::factory()->create(['gender' => 'male']);
@@ -223,7 +222,7 @@ class ContentGatingIntegrationTest extends TestCase
         $this->assertStringContainsString('brothers only', $foundLesson['lock_message']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function lesson_with_multiple_lock_reasons_shows_all_reasons(): void
     {
         $user = User::factory()->create([
@@ -255,7 +254,7 @@ class ContentGatingIntegrationTest extends TestCase
         $this->assertStringContainsString('Expert', $foundLesson['lock_message']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function course_show_accessible_even_if_locked(): void
     {
         $user = User::factory()->create(['has_bayah' => false]);
@@ -279,7 +278,7 @@ class ContentGatingIntegrationTest extends TestCase
         $this->assertTrue($foundLesson['is_locked']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function lesson_watch_route_blocks_before_returning_lesson_data(): void
     {
         $user = User::factory()->create([
@@ -304,9 +303,7 @@ class ContentGatingIntegrationTest extends TestCase
         $response = $this->actingAs($user)
             ->get("/courses/{$course->id}/lessons/{$lesson->id}");
 
-        // Should redirect, not return lesson data
-        $response->assertRedirect();
-        $response->assertSessionHas('error');
+        $response->assertForbidden();
 
         // Ensure no lesson data was rendered
         $this->assertStringNotContainsString($lesson->title, $response->getContent());

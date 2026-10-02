@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 
 class TaskProgressController extends Controller
 {
+    public function __construct(private ActivityLogger $activityLogger) {}
+
     /**
      * Get task details with user's progress.
      */
@@ -137,6 +139,8 @@ class TaskProgressController extends Controller
 
         // Refresh progress
         $progress->refresh();
+        $course = $task->taskable instanceof \App\Models\Lesson ? $task->taskable->module->course : $task->taskable->course;
+        app(\App\Services\CertificateService::class)->awardCompletedCourse($user, $course);
 
         // Log task check-in
         $this->activityLogger->log(

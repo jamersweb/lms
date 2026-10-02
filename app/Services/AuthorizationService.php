@@ -23,6 +23,8 @@ class AuthorizationService
     {
         $course = $lesson->module->course;
 
+        abort_unless(app(ProgressionService::class)->canAccessLesson($user, $lesson)->allowed, 403);
+
         if ($allowFreePreview && $lesson->is_free_preview) {
             return; // Free preview lessons are accessible
         }
@@ -82,6 +84,7 @@ class AuthorizationService
      */
     public function ensureLessonResourceAccess(User $user, Lesson $lesson, bool $requireCompletion = true): void
     {
+        abort_unless(app(EligibilityService::class)->canAccessLesson($user, $lesson)->allowed, 403);
         $course = $lesson->module->course;
 
         // Check enrollment

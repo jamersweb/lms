@@ -326,6 +326,7 @@ class Phase3TaskGatingTest extends TestCase
         ]);
 
         // User B tries to check in - should create their own progress, not modify A's
+        $userB->enrollments()->create(['course_id' => $courseA->id, 'enrolled_at' => now()]);
         $response = $this->actingAs($userB)
             ->postJson(route('tasks.checkin', ['task' => $task->id]));
 

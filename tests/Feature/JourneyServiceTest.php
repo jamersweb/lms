@@ -62,6 +62,8 @@ class JourneyServiceTest extends TestCase
         $this->actingAs($user)->post("/courses/{$course->id}/enroll");
 
         // Complete first lesson
+        $lessons[0]->update(['duration_seconds' => 100]);
+        $user->lessonProgress()->where('lesson_id', $lessons[0]->id)->update(['watched_seconds' => 100]);
         $this->actingAs($user)->post("/lessons/{$lessons[0]->id}/complete");
 
         $this->assertDatabaseHas('lesson_progress', [

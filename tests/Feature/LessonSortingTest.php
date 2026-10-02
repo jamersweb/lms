@@ -14,6 +14,13 @@ class LessonSortingTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // These tests exercise ordering; progression has its own integration suite.
+        config(['progression.sequential_lessons' => false]);
+    }
+
     public function test_course_modules_are_ordered_by_sort_order()
     {
         $course = Course::factory()->create();

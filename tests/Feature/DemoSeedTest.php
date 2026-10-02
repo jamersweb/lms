@@ -13,14 +13,14 @@ class DemoSeedTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_runs_db_seed_without_errors(): void
     {
         $this->artisan('db:seed')
             ->assertExitCode(0);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function demo_users_are_seeded(): void
     {
         $this->artisan('db:seed');
@@ -30,7 +30,7 @@ class DemoSeedTest extends TestCase
         $this->assertDatabaseHas('users', ['email' => 'fatima@example.com']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function demo_course_modules_and_lessons_exist(): void
     {
         $this->artisan('db:seed');
@@ -45,7 +45,7 @@ class DemoSeedTest extends TestCase
         $this->assertCount(3, $lessons);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function transcript_segments_exist_for_first_demo_lesson(): void
     {
         $this->artisan('db:seed');

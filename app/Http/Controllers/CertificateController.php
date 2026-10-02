@@ -27,7 +27,7 @@ class CertificateController extends Controller
                     'certificate_number' => $cert->certificate_number,
                     'issued_at' => $cert->issued_at->format('F j, Y'),
                     'course_title' => $cert->course?->title ?? 'N/A',
-                    'can_download' => !empty($cert->pdf_path),
+                    'can_download' => true,
                 ];
             });
 
@@ -42,7 +42,7 @@ class CertificateController extends Controller
 
         abort_unless($certificate->user_id === $user->id || $user->is_admin, 403);
 
-        if (!$certificate->pdf_path) {
+        if (!$certificate->pdf_path || !Storage::disk('local')->exists($certificate->pdf_path)) {
             // Generate PDF if not exists
             $service = new CertificateService();
             $certificate = $service->generatePdf($certificate);

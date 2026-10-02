@@ -152,9 +152,7 @@ class SequentialUnlockingTest extends TestCase
         $response->assertSessionHas('error');
 
         // Complete lesson 2
-        LessonProgress::create([
-            'user_id' => $user->id,
-            'lesson_id' => $lesson2->id,
+        LessonProgress::updateOrCreate(['user_id' => $user->id, 'lesson_id' => $lesson2->id], [
             'watched_seconds' => 96,
             'max_playback_rate' => 1.0,
             'seek_attempts' => 0,
@@ -297,14 +295,12 @@ class SequentialUnlockingTest extends TestCase
         $response = $this->actingAs($user)->get(route('courses.show', $course));
 
         $response->assertOk();
-        $data = $response->json('props.course');
+        $data = $response->viewData('page')['props']['course'];
         $this->assertNotNull($data['next_lesson']);
         $this->assertEquals($lesson1->id, $data['next_lesson']['id']);
 
         // Complete lesson 1
-        LessonProgress::create([
-            'user_id' => $user->id,
-            'lesson_id' => $lesson1->id,
+        LessonProgress::updateOrCreate(['user_id' => $user->id, 'lesson_id' => $lesson1->id], [
             'watched_seconds' => 96,
             'max_playback_rate' => 1.0,
             'seek_attempts' => 0,
@@ -313,7 +309,7 @@ class SequentialUnlockingTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->get(route('courses.show', $course));
-        $data = $response->json('props.course');
+        $data = $response->viewData('page')['props']['course'];
         $this->assertEquals($lesson2->id, $data['next_lesson']['id']);
     }
 

@@ -27,8 +27,8 @@ class LessonProgressUiTest extends TestCase
         \App\Models\LessonProgress::updateOrCreate(
             ['user_id' => $user->id, 'lesson_id' => $lesson->id],
             [
-                'time_watched_seconds' => 600,
-                'max_playback_rate_seen' => 1.0,
+                'watched_seconds' => 600,
+                'max_playback_rate' => 1.0,
                 'seek_detected' => false,
             ]
         );

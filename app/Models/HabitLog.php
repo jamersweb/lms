@@ -9,6 +9,8 @@ class HabitLog extends Model
 {
     use HasFactory;
 
+    protected $casts = ['log_date' => 'date', 'completed_count' => 'integer'];
+
     protected $fillable = [
         'habit_id', 'user_id', 'log_date', 
         'completed_count', 'status', 'notes'

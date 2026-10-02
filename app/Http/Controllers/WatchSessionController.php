@@ -87,7 +87,7 @@ class WatchSessionController extends Controller
         }
 
         // Check eligibility
-        $eligibility = $this->eligibilityService->canAccessLesson($user, $lesson);
+        $eligibility = $this->progressionService->canAccessLesson($user, $lesson);
         if (!$eligibility->allowed) {
             abort(403, 'You are not allowed to access this lesson.');
         }

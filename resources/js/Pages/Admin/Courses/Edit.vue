@@ -14,6 +14,16 @@
       </div>
 
       <!-- Form -->
+      <section v-if="readiness" class="mb-6 border-y border-neutral-200 py-4 space-y-3">
+        <h2 class="text-base font-semibold">Content Checklist</h2>
+        <p class="text-sm text-neutral-600">{{ readiness.lessons_count }} lessons &middot; {{ readiness.ready ? 'Content checks passed' : `${readiness.issues.length} items need attention` }}</p>
+        <nav class="flex flex-wrap gap-4 text-sm text-primary-700" aria-label="Course setup">
+          <Link :href="`/admin/modules?course_id=${course.id}`">Modules</Link>
+          <Link href="/admin/lessons">Lessons and assessments</Link>
+          <Link :href="`/courses/${course.id}`">Course overview</Link>
+        </nav>
+        <ul class="space-y-2 text-sm"><li v-for="issue in readiness.issues" :key="issue.title"><Link :href="issue.url" class="break-words text-red-700 underline">{{ issue.title }}</Link></li></ul>
+      </section>
       <form @submit.prevent="submit" class="bg-white rounded-xl border border-neutral-200 p-6 space-y-6">
         <!-- Titles & Descriptions (Multilingual) -->
         <div>
@@ -189,6 +199,7 @@ import { ref } from 'vue';
 const props = defineProps({
   course: Object,
   contentRule: Object,
+  readiness: Object,
 });
 
 const form = useForm({

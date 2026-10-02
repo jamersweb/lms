@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ActivityLogger;
+
 use App\Models\Question;
 use App\Models\QuestionMessage;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
@@ -103,9 +106,9 @@ class StudentQuestionsController extends Controller
             $user,
             [
                 'subject' => $question,
-                'course_id' => $validated['context_type'] === 'course' ? $validated['context_id'] : null,
-                'module_id' => $validated['context_type'] === 'module' ? $validated['context_id'] : null,
-                'lesson_id' => $validated['context_type'] === 'lesson' ? $validated['context_id'] : null,
+                'course_id' => ($validated['context_type'] ?? null) === 'course' ? ($validated['context_id'] ?? null) : null,
+                'module_id' => ($validated['context_type'] ?? null) === 'module' ? ($validated['context_id'] ?? null) : null,
+                'lesson_id' => ($validated['context_type'] ?? null) === 'lesson' ? ($validated['context_id'] ?? null) : null,
             ]
         );
 

@@ -23,7 +23,7 @@ class LessonFactory extends Factory
             'video_provider' => 'youtube',
             'youtube_video_id' => 'dQw4w9WgXcQ',
             'sort_order' => $this->faker->numberBetween(1, 100),
-            'is_free_preview' => $this->faker->boolean(),
+            'is_free_preview' => false,
         ];
     }
 }

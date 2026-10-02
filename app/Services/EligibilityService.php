@@ -57,6 +57,12 @@ class EligibilityService
     public function canAccessLesson(User $user, Lesson $lesson): EligibilityResult
     {
         $rules = $this->collectLessonRules($lesson);
+        // Older lessons store restrictions directly; preserve those restrictions too.
+        $rules[] = new ContentRule([
+            'gender' => in_array($lesson->allowed_gender, ['male', 'female']) ? $lesson->allowed_gender : null,
+            'requires_bayah' => (bool) $lesson->requires_bayah,
+            'min_level' => $lesson->min_level,
+        ]);
         return $this->evaluate($user, $rules);
     }
 

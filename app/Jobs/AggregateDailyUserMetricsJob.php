@@ -45,11 +45,10 @@ class AggregateDailyUserMetricsJob implements ShouldQueue
         $additionalUserIds = collect()
             ->merge(DB::table('lesson_watch_sessions')->whereDate('started_at', $date)->distinct()->pluck('user_id'))
             ->merge(DB::table('lesson_progress')->whereDate('completed_at', $date)->distinct()->pluck('user_id'))
-            ->merge(DB::table('lesson_reflections')->whereDate('created_at', $date)->distinct()->pluck('user_id'))
-            ->merge(DB::table('task_checkins')->whereDate('checkin_on', $date)->distinct()->pluck('task_progress_id'))
-            ->map(function ($taskProgressId) {
-                return $taskProgressId ? DB::table('task_progress')->where('id', $taskProgressId)->value('user_id') : null;
-            })
+            ->merge(DB::table('lesson_reflections')->whereDate('submitted_at', $date)->distinct()->pluck('user_id'))
+            ->merge(DB::table('task_checkins')
+                ->join('task_progress', 'task_progress.id', '=', 'task_checkins.task_progress_id')
+                ->whereDate('checkin_on', $date)->distinct()->pluck('task_progress.user_id'))
             ->filter()
             ->unique()
             ->toArray();
@@ -78,7 +77,7 @@ class AggregateDailyUserMetricsJob implements ShouldQueue
                 ->count();
 
             $reflectionsSubmitted = LessonReflection::where('user_id', $userId)
-                ->whereDate('created_at', $date)
+                ->whereDate('submitted_at', $date)
                 ->count();
 
             // Task checkins: count checkins for this user's task progress

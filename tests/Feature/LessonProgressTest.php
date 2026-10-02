@@ -32,8 +32,8 @@ class LessonProgressTest extends TestCase
         \App\Models\LessonProgress::create([
             'user_id' => $user->id,
             'lesson_id' => $lesson->id,
-            'time_watched_seconds' => 10,
-            'max_playback_rate_seen' => 1.0,
+            'watched_seconds' => 10,
+            'max_playback_rate' => 1.0,
             'seek_detected' => false,
         ]);
 
@@ -63,8 +63,8 @@ class LessonProgressTest extends TestCase
         \App\Models\LessonProgress::create([
             'user_id' => $user->id,
             'lesson_id' => $lesson->id,
-            'time_watched_seconds' => 10,
-            'max_playback_rate_seen' => 1.0,
+            'watched_seconds' => 10,
+            'max_playback_rate' => 1.0,
             'seek_detected' => false,
         ]);
 
@@ -94,13 +94,14 @@ class LessonProgressTest extends TestCase
             \App\Models\LessonProgress::create([
                 'user_id' => $user->id,
                 'lesson_id' => $lesson->id,
-                'time_watched_seconds' => 10,
-                'max_playback_rate_seen' => 1.0,
+                'watched_seconds' => 10,
+                'max_playback_rate' => 1.0,
                 'seek_detected' => false,
             ]);
         }
 
         // Complete first 2 lessons
+        $lessons = $lessons->sortBy('sort_order')->values();
         foreach ($lessons->take(2) as $lesson) {
             $this->actingAs($user)->post("/lessons/{$lesson->id}/complete");
         }
@@ -143,8 +144,10 @@ class LessonProgressTest extends TestCase
             'enrolled_at' => now()
         ]);
 
-        $this->actingAs($user)->post("/lessons/{$lesson->id}/complete");
-        $this->actingAs($user)->post("/lessons/{$lesson->id}/complete");
+        $lesson->update(['duration_seconds' => 100]);
+        \App\Models\LessonProgress::factory()->create(['user_id' => $user->id, 'lesson_id' => $lesson->id, 'watched_seconds' => 100]);
+        $this->actingAs($user)->post("/lessons/{$lesson->id}/complete")->assertSessionHasNoErrors();
+        $this->actingAs($user)->post("/lessons/{$lesson->id}/complete")->assertSessionHasNoErrors();
 
         $this->assertEquals(1, $user->lessonProgress()
             ->where('lesson_id', $lesson->id)

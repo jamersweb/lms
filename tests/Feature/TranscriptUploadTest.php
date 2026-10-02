@@ -56,7 +56,7 @@ VTT;
                 'transcript_file' => $file,
             ]);
 
-        $response->assertRedirect('/admin/lessons');
+        $response->assertRedirect(route('admin.lessons.edit', \App\Models\Lesson::latest('id')->firstOrFail()));
 
         $lesson = Lesson::where('slug', 'with-transcript')->firstOrFail();
 

@@ -30,7 +30,7 @@ class LessonTest extends TestCase
             'is_free_preview' => false,
         ]);
 
-        $response->assertRedirect(route('admin.lessons.index'));
+        $response->assertRedirect(route('admin.lessons.edit', \App\Models\Lesson::where('slug', 'yt-lesson')->firstOrFail()));
         $this->assertDatabaseHas('lessons', [
             'title' => 'YT Lesson',
             'video_provider' => 'youtube',
@@ -57,7 +57,7 @@ class LessonTest extends TestCase
             'is_free_preview' => true,
         ]);
 
-        $response->assertRedirect(route('admin.lessons.index'));
+        $response->assertRedirect(route('admin.lessons.edit', \App\Models\Lesson::where('slug', 'mp4-lesson')->firstOrFail()));
         $this->assertDatabaseHas('lessons', [
             'title' => 'MP4 Lesson',
             'video_provider' => 'mp4',

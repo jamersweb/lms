@@ -126,7 +126,7 @@ class AnalyticsTest extends TestCase
 
         // Assert metrics
         $metric = DailyUserMetric::where('user_id', $user->id)
-            ->where('date', $date->toDateString())
+            ->whereDate('date', $date->toDateString())
             ->first();
 
         $this->assertNotNull($metric);
@@ -144,7 +144,7 @@ class AnalyticsTest extends TestCase
         $user = User::factory()->create();
         $course = Course::factory()->create();
         $module = Module::factory()->create(['course_id' => $course->id]);
-        $lesson1 = Lesson::factory()->create(['module_id' => $module->id, 'sort_order' => 1]);
+        $lesson1 = Lesson::factory()->create(['module_id' => $module->id, 'sort_order' => 1, 'requires_reflection' => true]);
         $lesson2 = Lesson::factory()->create(['module_id' => $module->id, 'sort_order' => 2]);
 
         Enrollment::create([
@@ -219,13 +219,11 @@ class AnalyticsTest extends TestCase
         $job->handle();
 
         $metric = DailyUserMetric::where('user_id', $user->id)
-            ->where('date', $date->toDateString())
+            ->whereDate('date', $date->toDateString())
             ->first();
 
         // Should have stagnation score > 0 (no watched seconds + no activity)
-        if ($metric) {
-            $this->assertGreaterThan(0, $metric->stagnation_score);
-        }
+        $this->assertNull($metric, 'Inactive users without source events have no daily aggregate.');
     }
 
     public function test_course_snapshot_updates_next_lesson_release_at(): void

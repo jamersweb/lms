@@ -42,6 +42,10 @@ class ProgressionService
             return $eligibilityResult; // Return early if basic eligibility fails
         }
 
+        if (!$this->releaseScheduleService->isReleased($user, $lesson)) {
+            return EligibilityResult::deny(reasons: ['not_released_yet'], requiredLevel: null, requiredGender: null, requiresBayah: false);
+        }
+
         // Check sequential unlocking if enabled
         if (!config('progression.sequential_lessons', true)) {
             return EligibilityResult::allow(); // Sequential disabled, allow if eligible
@@ -83,6 +87,7 @@ class ProgressionService
             if ($previousLesson->requires_reflection) {
                 $previousReflection = LessonReflection::where('user_id', $user->id)
                     ->where('lesson_id', $previousLesson->id)
+                    ->when($previousLesson->reflection_requires_approval, fn ($query) => $query->whereIn('review_status', ['approved', 'reviewed']))
                     ->exists();
 
                 if (!$previousReflection) {
@@ -114,7 +119,9 @@ class ProgressionService
         }
 
         // If one-at-a-time mode, check if this is the next lesson
-        if (config('progression.one_at_a_time', true)) {
+        $alreadyCompleted = LessonProgress::where('user_id', $user->id)
+            ->where('lesson_id', $lesson->id)->whereNotNull('completed_at')->exists();
+        if (!$alreadyCompleted && config('progression.one_at_a_time', true)) {
             // Ensure module is loaded
             if (!$lesson->relationLoaded('module')) {
                 $lesson->load('module');
@@ -164,7 +171,8 @@ class ProgressionService
         }
 
         return Module::where('course_id', $module->course_id)
-            ->where('sort_order', '<', $module->sort_order)
+            ->where(fn ($query) => $query->where('sort_order', '<', $module->sort_order)
+                ->orWhere(fn ($same) => $same->where('sort_order', $module->sort_order)->where('id', '<', $module->id)))
             ->orderBy('sort_order', 'desc')
             ->orderBy('id', 'desc')
             ->first();
@@ -198,7 +206,8 @@ class ProgressionService
             }
 
             if ($lesson->requires_reflection) {
-                if (!LessonReflection::where('user_id', $user->id)->where('lesson_id', $lesson->id)->exists()) {
+                if (!LessonReflection::where('user_id', $user->id)->where('lesson_id', $lesson->id)
+                    ->when($lesson->reflection_requires_approval, fn ($query) => $query->whereIn('review_status', ['approved', 'reviewed']))->exists()) {
                     return false;
                 }
             }
@@ -229,7 +238,8 @@ class ProgressionService
         }
 
         return Lesson::where('module_id', $moduleId)
-            ->where('sort_order', '<', $lesson->sort_order)
+            ->where(fn ($query) => $query->where('sort_order', '<', $lesson->sort_order)
+                ->orWhere(fn ($same) => $same->where('sort_order', $lesson->sort_order)->where('id', '<', $lesson->id)))
             ->orderBy('sort_order', 'desc')
             ->orderBy('id', 'desc')
             ->first();

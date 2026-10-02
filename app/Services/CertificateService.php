@@ -10,6 +10,36 @@ use Barryvdh\DomPDF\Facade\Pdf as DomPDF;
 
 class CertificateService
 {
+    public function awardCompletedCourse(User $user, Course $course): ?Certificate
+    {
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($user, $course) {
+            User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+            $existing = Certificate::where('user_id', $user->id)->where('course_id', $course->id)
+                ->where('type', 'course_completion')->first();
+            if ($existing) { return $existing; }
+            $course->load('modules.lessons.quizQuestions', 'modules.task');
+            $lessons = $course->modules->flatMap->lessons;
+            if ($lessons->isEmpty()) { return null; }
+            $progression = app(ProgressionService::class);
+            foreach ($course->modules as $module) {
+                if (!$progression->isModuleFullyCompleted($user, $module)) { return null; }
+                if ($module->task && $module->task->unlock_next_lesson &&
+                    !$module->task->progress()->where('user_id', $user->id)->where('status', 'completed')->exists()) {
+                    return null;
+                }
+            }
+            foreach ($lessons as $lesson) {
+                if ($lesson->quizQuestions->isNotEmpty() && !\App\Models\LessonQuizAttempt::where('user_id', $user->id)
+                    ->where('lesson_id', $lesson->id)->where('passed', true)->exists()) { return null; }
+            }
+            $certificate = $this->awardCertificate($user, 'course_completion', $course);
+            PointsService::award($user, 'course_completed', 50);
+            app(\App\Services\WhatsApp\TriggerService::class)->fireAsync('certificate_delivery', $user);
+            app(\App\Services\WhatsApp\TriggerService::class)->fireAsync('survey_link', $user);
+            return $certificate;
+        });
+    }
+
     public function awardCertificate(User $user, string $type, ?Course $course = null, ?string $level = null): Certificate
     {
         $certificate = Certificate::create([

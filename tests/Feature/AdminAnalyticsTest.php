@@ -67,8 +67,8 @@ class AdminAnalyticsTest extends TestCase
             'user_id' => $umar->id,
             'lesson_id' => $lesson->id,
             'last_heartbeat_at' => now()->subMinutes(2),
-            'time_watched_seconds' => 100,
-            'max_playback_rate_seen' => 1.0,
+            'watched_seconds' => 100,
+            'max_playback_rate' => 1.0,
             'seek_detected' => true,
             'verified_completion' => true,
         ]);
@@ -78,9 +78,9 @@ class AdminAnalyticsTest extends TestCase
             'lesson_id' => $lesson->id,
             'started_at' => now()->subMinutes(5),
             'ended_at' => now()->subMinutes(1),
-            'watch_time_seconds' => 100,
-            'last_time_seconds' => 100,
-            'seek_events_count' => 3,
+            'watched_seconds' => 100,
+            'last_position_seconds' => 100,
+            'seek_attempts' => 3,
             'max_playback_rate' => 1.0,
             'is_valid' => true,
         ]);
@@ -90,7 +90,7 @@ class AdminAnalyticsTest extends TestCase
             'user_id' => $fatima->id,
             'lesson_id' => $lesson->id,
             'last_heartbeat_at' => now()->subDays(5),
-            'time_watched_seconds' => 50,
+            'watched_seconds' => 50,
         ]);
 
         $response = $this->actingAs($admin)

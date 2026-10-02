@@ -85,6 +85,7 @@ class Phase2WatchTrackingTest extends TestCase
         $sessionId = $start->json('session_id');
 
         // First heartbeat: position 10s, delta 10s
+        $this->travel(10)->seconds();
         $response = $this->actingAs($user)->postJson(route('lessons.watch.heartbeat', $lesson), [
             'session_id' => $sessionId,
             'position_seconds' => 10,
@@ -100,6 +101,7 @@ class Phase2WatchTrackingTest extends TestCase
         ]);
 
         // Second heartbeat: position 25s, delta 15s
+        $this->travel(15)->seconds();
         $response = $this->actingAs($user)->postJson(route('lessons.watch.heartbeat', $lesson), [
             'session_id' => $sessionId,
             'position_seconds' => 25,
@@ -321,6 +323,6 @@ class Phase2WatchTrackingTest extends TestCase
 
         $session = LessonWatchSession::find($sessionId);
         // Should be clamped to 0.5
-        $this->assertEquals(0.5, $session->max_playback_rate);
+        $this->assertEquals(1.0, $session->max_playback_rate); // Maximum never drops below the initial 1x.
     }
 }

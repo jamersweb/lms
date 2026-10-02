@@ -37,19 +37,22 @@ class ActivityLogger
                 $subjectId = $subject->id;
 
                 // Try to extract course/module/lesson IDs from subject
-                if (!$courseId && method_exists($subject, 'course_id')) {
+                if (!$courseId && $subject->getAttribute('course_id')) {
                     $courseId = $subject->course_id;
                 }
                 if (!$courseId && method_exists($subject, 'course')) {
                     $courseId = $subject->course?->id;
                 }
-                if (!$moduleId && method_exists($subject, 'module_id')) {
+                if (!$moduleId && $subject->getAttribute('module_id')) {
                     $moduleId = $subject->module_id;
                 }
                 if (!$moduleId && method_exists($subject, 'module')) {
                     $moduleId = $subject->module?->id;
                 }
-                if (!$lessonId && method_exists($subject, 'lesson_id')) {
+                if (!$courseId && method_exists($subject, 'module')) {
+                    $courseId = $subject->module?->course_id;
+                }
+                if (!$lessonId && $subject->getAttribute('lesson_id')) {
                     $lessonId = $subject->lesson_id;
                 }
                 if (!$lessonId && $subject instanceof \App\Models\Lesson) {

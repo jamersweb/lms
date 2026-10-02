@@ -12,7 +12,7 @@ class HabitTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_users_can_create_habits(): void
+    public function test_students_cannot_create_habits(): void
     {
         $user = User::factory()->create();
 
@@ -23,12 +23,12 @@ class HabitTest extends TestCase
             'target_per_day' => 1
         ]);
 
-        $this->assertDatabaseHas('habits', [
+        $this->assertDatabaseMissing('habits', [
             'user_id' => $user->id,
             'title' => 'Morning Adhkar',
         ]);
 
-        $response->assertRedirect('/habits');
+        $response->assertStatus(405);
     }
 
     public function test_users_can_log_habit_completion(): void

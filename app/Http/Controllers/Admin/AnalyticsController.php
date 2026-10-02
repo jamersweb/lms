@@ -18,6 +18,32 @@ class AnalyticsController extends Controller
 {
     public function index(Request $request)
     {
+        $days = max(1, min(365, (int) $request->input('days', 3)));
+        $activeSince = now()->subMinutes(10);
+        $activeUsers = User::where('is_admin', false)
+            ->whereHas('lessonProgress', fn ($query) => $query->where('last_heartbeat_at', '>=', $activeSince))
+            ->withCount(['lessonProgress as active_lessons_count' => fn ($query) => $query->where('last_heartbeat_at', '>=', $activeSince)])
+            ->get(['id', 'name', 'email']);
+        $stalledUsers = User::where('is_admin', false)
+            ->whereHas('lessonProgress', fn ($query) => $query->whereNotNull('last_heartbeat_at'))
+            ->whereDoesntHave('lessonProgress', fn ($query) => $query->where('last_heartbeat_at', '>=', now()->subDays($days)))
+            ->withMax('lessonProgress', 'last_heartbeat_at')
+            ->get(['id', 'name', 'email'])->map(fn ($user) => [
+                'id' => $user->id, 'name' => $user->name, 'email' => $user->email,
+                'last_activity' => $user->lesson_progress_max_last_heartbeat_at,
+            ]);
+        $speeding = LessonProgress::with('user', 'lesson.module.course')
+            ->where(fn ($query) => $query->where('seek_detected', true)->orWhere('seek_attempts', '>', 0)->orWhere('max_playback_rate', '>', 1.5))
+            ->latest('updated_at')->limit(200)->get()->filter(fn ($progress) => $progress->user && $progress->lesson)
+            ->map(fn ($progress) => [
+                'user' => $progress->user->only('id', 'name', 'email'),
+                'lesson' => ['id' => $progress->lesson_id, 'title' => $progress->lesson->title, 'course_title' => $progress->lesson->module->course->title],
+                'flags' => ['seek_detected' => (bool) ($progress->seek_detected || $progress->seek_attempts),
+                    'max_playback_rate_seen' => (float) $progress->max_playback_rate,
+                    'time_watched_seconds' => $progress->watched_seconds,
+                    'video_duration_seconds' => $progress->lesson->duration_seconds ?? $progress->lesson->video_duration_seconds,
+                    'verified_completion' => (bool) $progress->verified_completion],
+            ])->values();
         $today = now()->toDateString();
 
         // Active users today (distinct users with activity_events today)
@@ -64,6 +90,11 @@ class AnalyticsController extends Controller
             ->count();
 
         return Inertia::render('Admin/Analytics/Index', [
+            'activeUsers' => $activeUsers,
+            'stalledUsers' => $stalledUsers,
+            'stalledDays' => $days,
+            'speeding' => $speeding,
+            'taskMastery' => $this->getTaskMasteryData(),
             'metrics' => [
                 'active_users_today' => $activeUsersToday,
                 'stagnant_users' => $stagnantUsers,

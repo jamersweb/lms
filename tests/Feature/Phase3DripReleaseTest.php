@@ -24,7 +24,7 @@ class Phase3DripReleaseTest extends TestCase
         parent::setUp();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function absolute_release_blocks_access_before_time()
     {
         $user = User::factory()->create();
@@ -77,7 +77,7 @@ class Phase3DripReleaseTest extends TestCase
         $this->assertContains('not_released_yet', $result->reasons);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function absolute_release_allows_access_after_time()
     {
         $user = User::factory()->create();
@@ -128,7 +128,7 @@ class Phase3DripReleaseTest extends TestCase
         $this->assertTrue($result->allowed);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function relative_release_blocks_until_enrollment_offset()
     {
         $user = User::factory()->create();
@@ -189,7 +189,7 @@ class Phase3DripReleaseTest extends TestCase
         $this->assertTrue($result->allowed);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function release_at_overrides_offset()
     {
         $user = User::factory()->create();
@@ -243,7 +243,7 @@ class Phase3DripReleaseTest extends TestCase
         $this->assertTrue($result->allowed);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function course_show_includes_release_props()
     {
         $user = User::factory()->create();
@@ -275,7 +275,7 @@ class Phase3DripReleaseTest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function lesson_watch_route_blocks_if_not_released()
     {
         $user = User::factory()->create();
@@ -328,7 +328,7 @@ class Phase3DripReleaseTest extends TestCase
         $response->assertSessionHas('error');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function release_schedule_service_calculates_relative_release_correctly()
     {
         $user = User::factory()->create();
@@ -355,7 +355,7 @@ class Phase3DripReleaseTest extends TestCase
         $this->assertEquals($startedAt->copy()->addDays(3)->format('Y-m-d H:i'), $releaseAt->format('Y-m-d H:i'));
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function release_schedule_service_returns_null_when_no_schedule()
     {
         $user = User::factory()->create();
@@ -374,7 +374,7 @@ class Phase3DripReleaseTest extends TestCase
         $this->assertTrue($service->isReleased($user, $lesson)); // Should be released if no schedule
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function release_schedule_works_with_sequential_unlock()
     {
         // Test that release schedule works alongside sequential unlock

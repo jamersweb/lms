@@ -63,9 +63,9 @@ class SecurityRegressionTest extends TestCase
 
     public function test_certificate_download_authorization()
     {
-        // Placeholder for certificate IDOR check if certificates were implemented in Phase 1 (implicit).
-        // Since we didn't explicitly implement CertificateController in P1/P2/P3, skipping for now
-        // or assuming it's a future step. We'll mark as skipped.
-        $this->markTestSkipped('Certificate module not yet implemented explicitly.');
+        $owner = User::factory()->create();
+        $other = User::factory()->create();
+        $certificate = app(\App\Services\CertificateService::class)->awardCertificate($owner, 'course_completion', Course::factory()->create());
+        $this->actingAs($other)->get(route('certificates.download', $certificate))->assertForbidden();
     }
 }

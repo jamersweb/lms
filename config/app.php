@@ -39,7 +39,7 @@ return [
     |
     */
 
-    'debug' => (bool) env('APP_DEBUG', false),
+    'debug' => env('APP_ENV') !== 'production' && (bool) env('APP_DEBUG', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -127,7 +127,7 @@ return [
     |--------------------------------------------------------------------------
     | Scheduler Token (no-cron HTTP trigger)
     |--------------------------------------------------------------------------
-    | Secret token for /scheduler/run?token=xxx. Use cron-job.org etc. to hit
+    | Bearer token for POST /scheduler/run. Use an external scheduler to call
     | this URL every hour. Set SCHEDULER_TOKEN in .env.
     */
     'scheduler_token' => env('SCHEDULER_TOKEN', ''),

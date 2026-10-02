@@ -14,7 +14,7 @@ class AdminContentRuleTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_can_upsert_course_rule(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -39,7 +39,7 @@ class AdminContentRuleTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_can_update_existing_course_rule(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -74,7 +74,7 @@ class AdminContentRuleTest extends TestCase
             ->count());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_can_upsert_module_rule(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -99,7 +99,7 @@ class AdminContentRuleTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_can_upsert_lesson_rule(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -124,7 +124,7 @@ class AdminContentRuleTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_can_delete_rule(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -142,7 +142,7 @@ class AdminContentRuleTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function deleting_nonexistent_rule_does_not_error(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -156,7 +156,7 @@ class AdminContentRuleTest extends TestCase
         $response->assertSessionHas('success');
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function non_admin_cannot_upsert_rule(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
@@ -177,7 +177,7 @@ class AdminContentRuleTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function non_admin_cannot_delete_rule(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
@@ -194,7 +194,7 @@ class AdminContentRuleTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function validation_rejects_invalid_min_level(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -215,7 +215,7 @@ class AdminContentRuleTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function validation_rejects_invalid_gender(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -236,7 +236,7 @@ class AdminContentRuleTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function validation_accepts_null_values(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -261,7 +261,7 @@ class AdminContentRuleTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function invalid_entity_type_returns_404(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -276,7 +276,7 @@ class AdminContentRuleTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_edit_course_page_includes_content_rule(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -299,7 +299,7 @@ class AdminContentRuleTest extends TestCase
         $this->assertTrue($pageData['contentRule']['requires_bayah']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_edit_module_page_includes_content_rule(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -320,7 +320,7 @@ class AdminContentRuleTest extends TestCase
         $this->assertSame('intermediate', $pageData['contentRule']['min_level']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_edit_lesson_page_includes_content_rule(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -342,7 +342,7 @@ class AdminContentRuleTest extends TestCase
         $this->assertTrue($pageData['contentRule']['requires_bayah']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_edit_pages_show_null_when_no_rule_exists(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -358,7 +358,7 @@ class AdminContentRuleTest extends TestCase
         $this->assertNull($pageData['contentRule']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function update_existing_rule_does_not_create_duplicate(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -393,7 +393,7 @@ class AdminContentRuleTest extends TestCase
         $this->assertTrue($rule->requires_bayah);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function invalid_type_param_returns_404(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -408,7 +408,7 @@ class AdminContentRuleTest extends TestCase
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_can_upsert_module_rule_separately(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -433,7 +433,7 @@ class AdminContentRuleTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_can_upsert_lesson_rule_separately(): void
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -458,7 +458,7 @@ class AdminContentRuleTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function non_admin_forbidden_on_module_rule_upsert(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
@@ -474,7 +474,7 @@ class AdminContentRuleTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function non_admin_forbidden_on_lesson_rule_upsert(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
@@ -490,7 +490,7 @@ class AdminContentRuleTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function non_admin_forbidden_on_module_rule_delete(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
@@ -503,7 +503,7 @@ class AdminContentRuleTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function non_admin_forbidden_on_lesson_rule_delete(): void
     {
         $user = User::factory()->create(['is_admin' => false]);

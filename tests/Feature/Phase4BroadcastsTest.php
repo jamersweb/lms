@@ -28,7 +28,7 @@ class Phase4BroadcastsTest extends TestCase
         parent::tearDown();
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function admin_can_create_broadcast_draft()
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -50,7 +50,7 @@ class Phase4BroadcastsTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function audience_preview_returns_correct_count()
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -76,7 +76,7 @@ class Phase4BroadcastsTest extends TestCase
         $this->assertEquals($expert->id, $data['sample'][0]['id']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function audience_preview_respects_channel_opt_ins()
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -108,7 +108,7 @@ class Phase4BroadcastsTest extends TestCase
         $this->assertEquals(1, $data['channel_counts']['email']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function audience_preview_returns_max_20_samples()
     {
         $admin = User::factory()->create(['is_admin' => true]);
@@ -131,7 +131,7 @@ class Phase4BroadcastsTest extends TestCase
         $this->assertCount(20, $data['sample']); // Max 20 samples
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function send_broadcast_queues_job()
     {
         Queue::fake();
@@ -154,7 +154,7 @@ class Phase4BroadcastsTest extends TestCase
         });
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function send_broadcast_job_creates_deliveries()
     {
         Notification::fake();
@@ -196,7 +196,7 @@ class Phase4BroadcastsTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function send_broadcast_respects_email_opt_out()
     {
         Notification::fake();
@@ -229,7 +229,7 @@ class Phase4BroadcastsTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function send_broadcast_respects_whatsapp_opt_out()
     {
         $broadcast = Broadcast::create([
@@ -267,7 +267,7 @@ class Phase4BroadcastsTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function dedupe_key_prevents_duplicate_deliveries()
     {
         Notification::fake();
@@ -300,7 +300,7 @@ class Phase4BroadcastsTest extends TestCase
             ->count());
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function failed_delivery_is_logged_with_error()
     {
         $broadcast = Broadcast::create([
@@ -334,7 +334,7 @@ class Phase4BroadcastsTest extends TestCase
         $this->assertStringContainsString('Provider error', $delivery->error);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function in_app_notifications_are_stored()
     {
         $broadcast = Broadcast::create([
@@ -361,7 +361,7 @@ class Phase4BroadcastsTest extends TestCase
         $this->assertEquals($broadcast->title, $notification->data['title']);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function inbox_displays_broadcasts()
     {
         $user = User::factory()->create();
@@ -396,7 +396,7 @@ class Phase4BroadcastsTest extends TestCase
         );
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function viewing_broadcast_marks_it_as_read()
     {
         $user = User::factory()->create();
@@ -417,7 +417,8 @@ class Phase4BroadcastsTest extends TestCase
             'dedupe_key' => sha1("broadcast:{$broadcast->id}:user:{$user->id}:channel:in_app"),
         ]);
 
-        $notification = $user->notify(new BroadcastInAppNotification($broadcast));
+        $user->notify(new BroadcastInAppNotification($broadcast));
+        $notification = $user->notifications()->firstOrFail();
         $this->assertNull($notification->read_at);
 
         $response = $this->actingAs($user)
@@ -428,7 +429,7 @@ class Phase4BroadcastsTest extends TestCase
         $this->assertNotNull($notification->read_at);
     }
 
-    /** @test */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function broadcast_status_updates_to_sent_after_job()
     {
         Notification::fake();

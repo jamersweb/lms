@@ -16,7 +16,7 @@ class CourseController extends Controller
      */
     public function index()
     {
-        $courses = Course::withCount('modules')->orderBy('sort_order')->get()->map(function ($course) {
+        $courses = Course::withCount(['modules', 'enrollments'])->with('modules:id,course_id')->orderBy('sort_order')->get()->map(function ($course) {
             return [
                 'id' => $course->id,
                 'title' => $course->title,
@@ -25,6 +25,8 @@ class CourseController extends Controller
                 'sort_order' => $course->sort_order,
                 'thumbnail' => $course->thumbnail ? Storage::disk('public')->url($course->thumbnail) : null,
                 'modules_count' => $course->modules_count,
+                'lessons_count' => \App\Models\Lesson::whereIn('module_id', $course->modules->pluck('id'))->count(),
+                'enrollments_count' => $course->enrollments_count,
             ];
         });
 
@@ -85,11 +87,18 @@ class CourseController extends Controller
         $course->load('contentRule');
 
         return Inertia::render('Admin/Courses/Edit', [
+            'readiness' => app(\App\Services\CourseReadinessService::class)->inspect($course),
             'course' => [
                 'id' => $course->id,
                 'title' => $course->title,
                 'slug' => $course->slug,
                 'description' => $course->description,
+                'title_en' => $course->title_en,
+                'title_en_roman' => $course->title_en_roman,
+                'title_ur' => $course->title_ur,
+                'description_en' => $course->description_en,
+                'description_en_roman' => $course->description_en_roman,
+                'description_ur' => $course->description_ur,
                 'sort_order' => $course->sort_order,
                 'thumbnail' => $course->thumbnail ? Storage::url($course->thumbnail) : null,
             ],
